@@ -15,13 +15,13 @@ from upstage.base import (
     STAGE_CONTEXT_VAR,
     EnvironmentContext,
     NamedUpstageEntity,
+    UpstageBase,
     UpstageError,
     add_stage_variable,
-    UpstageBase,
 )
 
 
-def test_context():
+def test_context() -> None:
     with EnvironmentContext() as env:
         assert isinstance(env, SIM.Environment)
         env.run(until=3)
@@ -32,7 +32,7 @@ def test_context():
         assert env.now == 3.1
 
 
-def test_entity_naming():
+def test_entity_naming() -> None:
     class TestItem(NamedUpstageEntity): ...
 
     class Example(TestItem, entity_groups=["This"]): ...
@@ -80,7 +80,7 @@ def test_entity_naming():
         assert len(items) == 1
 
 
-def test_stage():
+def test_stage() -> None:
     with EnvironmentContext():
         add_stage_variable("A variable", 3.14)
         ans = STAGE_CONTEXT_VAR.get()
@@ -91,7 +91,7 @@ def test_stage():
             add_stage_variable("A variable", 2)
 
 
-def test_random():
+def test_random() -> None:
     with EnvironmentContext(random_seed=1234986):
         cl = UpstageBase()
         num = cl.stage.random.uniform(1, 3)
@@ -109,13 +109,13 @@ def test_random():
         num = cl.stage.random.uniform(1, 3)
 
 
-def a_simulation(t: float):
+def a_simulation(t: float) -> float:
     with EnvironmentContext() as env:
         env.run(until=env.now + t)
         return env.now
 
 
-def test_multiproc_stability():
+def test_multiproc_stability() -> None:
     inputs = [1.2, 3.4, 5.6, 10.11, 74.31]
 
     with mp.Pool(3) as pool:

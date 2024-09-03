@@ -3,53 +3,55 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from typing import Protocol
+
 import pytest
 
 import upstage.api as UP
 from upstage.motion import SteppedMotionManager
+from upstage.type_help import TASK_GEN
 from upstage.utils import waypoint_time_and_dist
 
 
-class BaseSensor(UP.Actor):
-    radius = UP.State(valid_types=float, default=2.0)
-    history = UP.State(default_factory=list)
+class LocatedActor(Protocol):
+    location: UP.CartesianLocation
 
-    def entity_entered_range(self, detected):
+
+class StaticSensor(UP.Actor):
+    radius = UP.State[float](valid_types=float, default=2.0)
+    history = UP.State[list](default_factory=list)
+    location = UP.State[UP.CartesianLocation](valid_types=(UP.CartesianLocation,))
+
+    def entity_entered_range(self, detected: LocatedActor) -> None:
         dist = self.location - detected.location
         self.history.append((self.env.now, "saw", detected.location, dist))
 
-    def entity_exited_range(self, detected):
+    def entity_exited_range(self, detected: LocatedActor) -> None:
         dist = self.location - detected.location
         self.history.append((self.env.now, "lost", detected.location, dist))
 
 
-class StaticSensor(BaseSensor):
-    location = UP.State(valid_types=(UP.CartesianLocation,))
-
-
-class MovingSensor(BaseSensor):
-    location = UP.CartesianLocationChangingState()
-
-
 class Mover(UP.Actor):
     location = UP.CartesianLocationChangingState()
-    history = UP.State(default_factory=list, recording=False)
-    radius = UP.State(default=2.0)
+    history = UP.State[list](default_factory=list, recording=False)
+    radius = UP.State[float](default=2.0)
     visible = UP.DetectabilityState(default=True)
-    speed = UP.State(default=1.0)
+    speed = UP.State[float](default=1.0)
 
-    def entity_entered_range(self, detected):
+    def entity_entered_range(self, detected: LocatedActor) -> None:
         dist = self.location - detected.location
         self.history.append((self.env.now, "saw", detected, dist))
 
-    def entity_exited_range(self, detected):
+    def entity_exited_range(self, detected: LocatedActor) -> None:
         dist = self.location - detected.location
         self.history.append((self.env.now, "lost", detected, dist))
 
 
 class DoMotion(UP.Task):
+    waypoints: list[UP.CartesianLocation]
+
     # Hacking together, assuming start location is (2, 1, 0)
-    def task(self, *, actor):
+    def task(self, *, actor: Mover) -> TASK_GEN:
         waypoints = [x.copy() for x in self.waypoints]
         time, dist = waypoint_time_and_dist(actor.location, waypoints, actor.speed)
         actor.activate_state(
@@ -63,18 +65,22 @@ class DoMotion(UP.Task):
 
 
 class EndDetectable(UP.Task):
-    def task(self, *, actor):
+    time: float
+
+    def task(self, *, actor: Mover) -> TASK_GEN:
         yield UP.Wait(self.time)
         actor.visible = False
 
 
 class StartDetectable(UP.Task):
-    def task(self, *, actor):
+    time: float
+
+    def task(self, *, actor: Mover) -> TASK_GEN:
         yield UP.Wait(self.time)
         actor.visible = True
 
 
-def test_basic_functions():
+def test_basic_functions() -> None:
     with UP.EnvironmentContext() as env:
         motion = SteppedMotionManager(0.01)
         UP.add_stage_variable("motion_manager", motion)
@@ -106,7 +112,7 @@ def test_basic_functions():
         assert len(sense.history[0]) == 4, "Wrong intersection history"
 
 
-def test_dual_sense():
+def test_dual_sense() -> None:
     with UP.EnvironmentContext() as env:
         motion = SteppedMotionManager(0.01)
         UP.add_stage_variable("motion_manager", motion)
@@ -156,7 +162,7 @@ def test_dual_sense():
         assert pytest.approx(move2.history[0][3], abs=0.1) == 1
 
 
-def test_detectability_change():
+def test_detectability_change() -> None:
     with UP.EnvironmentContext() as env:
         motion = SteppedMotionManager(0.01)
         UP.add_stage_variable("motion_manager", motion)

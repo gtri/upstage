@@ -3,6 +3,10 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from math import degrees, pi, radians
+
+import pytest
+
 import upstage.api as UP
 from upstage.motion.great_circle_calcs import (
     get_course_rad,
@@ -10,11 +14,9 @@ from upstage.motion.great_circle_calcs import (
     get_great_circle_points,
     get_pos_from_points_and_distance,
 )
-import pytest
-from math import pi, degrees, radians
 
 
-def test_distance():
+def test_distance() -> None:
     """Test great circle distance calc."""
     with UP.EnvironmentContext():
         p1 = UP.GeodeticLocation(0, 180, 0).to_radians()
@@ -26,7 +28,7 @@ def test_distance():
         assert pytest.approx(get_dist_rad(p3, p4)) == pi / 180
 
 
-def test_course():
+def test_course() -> None:
     """Test great circle course calc."""
     with UP.EnvironmentContext():
         p1 = UP.GeodeticLocation(0, 180, 0).to_radians()
@@ -38,7 +40,7 @@ def test_course():
         assert pytest.approx(get_course_rad(p3, p4)) == 3 * pi / 2.0
 
 
-def test_position_from_point_distance():
+def test_position_from_point_distance() -> None:
     """Test position from point and distance calc."""
     with UP.EnvironmentContext():
         p1 = UP.GeodeticLocation(0, 180, 0).to_radians()
@@ -49,14 +51,16 @@ def test_position_from_point_distance():
         assert pytest.approx(degrees(half_point[1])) == -180
 
 
-def test_great_circle_points():
+def test_great_circle_points() -> None:
     """Test calculation of points on creat circle path."""
     with UP.EnvironmentContext():
         p1 = UP.GeodeticLocation(0, 180, 0).to_radians()
         p2 = UP.GeodeticLocation(5, 180, 0).to_radians()
         p3 = UP.GeodeticLocation(3, 180, 0).to_radians()
         dist = pi / 180
-        points, distances = get_great_circle_points(p1, p2, p3, dist)
+        x = get_great_circle_points(p1, p2, p3, dist)
+        assert x is not None
+        points, distances = x
         assert len(points) == 2
 
         assert pytest.approx(points[0][0]) == radians(2)
@@ -67,7 +71,7 @@ def test_great_circle_points():
         assert pytest.approx(distances[1]) == radians(4)
 
 
-def test_caching():
+def test_caching() -> None:
     with UP.EnvironmentContext():
         get_dist_rad.cache_clear()
         get_course_rad.cache_clear()

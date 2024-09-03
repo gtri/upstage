@@ -117,7 +117,7 @@ the state's value. Here is its basic usage:
 
     class Plane(UP.Actor):
         location: UP.GeodeticLocation = UP.GeodeticLocationChangingState(recording=True)
-        speed: float = UP.State(valid_types=float, default=100.0)
+        speed = UP.State[float](valid_types=float, default=100.0)
 
     class Fly(UP.Task):
         def task(self, *, actor: Plane):

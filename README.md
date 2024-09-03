@@ -22,13 +22,13 @@ Additional features include:
 1. Spatial-aware data types like `CartesianLocation`, and states like the waypoint-following `GeodeticLocationChangingState`.
 1. Geodetic and cartesian positions, distances, and motion - with ranged sensing.
 1. `NamedEntity` in a thread-safe global context, enabling easier "director" logic creation with fewer args in your code
-1. The STAGE: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
+1. The stage: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
 1. Rehearsal: Write planning and simulation code in one place only, and "rehearse" an actor through a task network using planning factors to discover task feasibility.
 1. All States are recordable
 1. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.
 1. And more!
 
-See the [documentation](https://JamesArruda.github.io/upstage) for tutorials and details.
+See the [documentation](https://gtri.github.io/upstage) for tutorials and details.
 
 ## Requirements
 
@@ -63,7 +63,7 @@ pytest
 
 ## Documentation
 
-See the [documentation](https://JamesArruda.github.io/upstage) for tutorials and details.
+See the [documentation](https://JamesArruda.github.io/upstage) for tutorials and additional details.
 
 ## How do I report an issue?
 

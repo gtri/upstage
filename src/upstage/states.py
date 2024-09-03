@@ -7,15 +7,15 @@
 
 from collections.abc import Callable
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from simpy import Container, Store
 
 from upstage.base import SimulationError, UpstageError
 from upstage.data_types import CartesianLocation, GeodeticLocation
+from upstage.math_utils import _vector_add, _vector_subtract
 from upstage.resources.monitoring import SelfMonitoringStore
 from upstage.task import Task
-from upstage.math_utils import _vector_subtract, _vector_add
 
 if TYPE_CHECKING:
     from upstage.actor import Actor
@@ -25,13 +25,17 @@ __all__ = (
     "State",
     "LinearChangingState",
     "CartesianLocationChangingState",
+    "GeodeticLocationChangingState",
+    "ResourceState",
     "DetectabilityState",
+    "CommunicationStore",
 )
 
 CALLBACK_FUNC = Callable[["Actor", Any], None]
+ST = TypeVar("ST")
 
 
-class State:
+class State(Generic[ST]):
     """The particular condition that something is in at a specific time.
 
     The states are implemented as
@@ -41,17 +45,41 @@ class State:
     Note:
         The classes that use this descriptor must contain an ``env`` attribute.
 
+    States are aware
+
     """
 
     def __init__(
         self,
         *,
-        default: Any | None = None,
+        default: ST | None = None,
         frozen: bool = False,
         valid_types: type | tuple[type, ...] | None = None,
         recording: bool = False,
-        default_factory: Callable[[], type] | None = None,
+        default_factory: Callable[[], ST] | None = None,
     ) -> None:
+        """Create a state descriptor for an Actor.
+
+        The default can be set either with the value or the factory. Use the factory if
+        the default needs to be a list, dict, or similar type of object. The default
+        is used if both are present (not the factory).
+
+        Setting frozen to True will throw an error if the value of the state is changed.
+
+        The valid_types input will type-check when you initialize an actor.
+
+        Recording enables logging the values of the state whenever they change, along
+        with the simulation time. This value isn't deepcopied, so it may behave poorly
+        for mutable types.
+
+        Args:
+            default (Any | None, optional): Default value of the state. Defaults to None.
+            frozen (bool, optional): If the state is allowed to change. Defaults to False.
+            valid_types (type | tuple[type, ...] | None, optional): Types allowed. Defaults to None.
+            recording (bool, optional): If the state records itself. Defaults to False.
+            default_factory (Callable[[], type] | None, optional): Default from function.
+                Defaults to None.
+        """
         if default is None and default_factory is not None:
             default = default_factory()
 
@@ -70,30 +98,26 @@ class State:
             self._types = valid_types
         self.IGNORE_LOCK: bool = False
 
-    def _do_record(self, instance: "Actor", value: Any) -> None:
+    def _do_record(self, instance: "Actor", value: ST) -> None:
         """Record the value of the state.
 
         Args:
             instance (Actor): The actor holding the state
-            value (Any): State value
+            value (ST): State value
         """
         env = getattr(instance, "env", None)
         if env is None:
             raise SimulationError(
-                f"Actor {instance} does not have an `env` attribute "
-                f"for state {self.name}"
+                f"Actor {instance} does not have an `env` attribute " f"for state {self.name}"
             )
         # get the instance time here
         to_append = (env.now, value)
-        attr_name = f"_{self.name}_history"
-        if not hasattr(instance, attr_name):
-            setattr(instance, attr_name, [to_append])
+        if self.name not in instance._state_histories:
+            instance._state_histories[self.name] = [to_append]
+        elif to_append != instance._state_histories[self.name][-1]:
+            instance._state_histories[self.name].append(to_append)
 
-        if to_append != instance.__dict__[attr_name][-1]:
-            # TODO: The value in to_append is a reference, not a copy
-            instance.__dict__[attr_name].append(to_append)
-
-    def _do_callback(self, instance: "Actor", value: Any) -> None:
+    def _do_callback(self, instance: "Actor", value: ST) -> None:
         """Run callbacks for the state change.
 
         Args:
@@ -103,7 +127,7 @@ class State:
         for _, callback in self._recording_callbacks.items():
             callback(instance, value)
 
-    def _broadcast_change(self, instance: "Actor", name: str, value: Any) -> None:
+    def _broadcast_change(self, instance: "Actor", name: str, value: ST) -> None:
         """Send state change values to nucleus.
 
         Args:
@@ -119,7 +143,7 @@ class State:
     # NOTE: A dictionary as a descriptor doesn't work well,
     # because all the operations seem to happen *after* the get
     # NOTE: Lists also have the same issue that
-    def __set__(self, instance: "Actor", value: Any) -> None:
+    def __set__(self, instance: "Actor", value: ST) -> None:
         """Set eh state's value.
 
         Args:
@@ -135,9 +159,7 @@ class State:
                 )
 
         if self._types and not isinstance(value, self._types):
-            raise TypeError(
-                f"{value} is of type {type(value)} not of type {self._types}"
-            )
+            raise TypeError(f"{value} is of type {type(value)} not of type {self._types}")
 
         instance.__dict__[self.name] = value
 
@@ -147,7 +169,7 @@ class State:
 
         self._broadcast_change(instance, self.name, value)
 
-    def __get__(self, instance: "Actor", objtype: type | None = None) -> Any:
+    def __get__(self, instance: "Actor", objtype: type | None = None) -> ST:
         if instance is None:
             # instance attribute accessed on class, return self
             return self  # pragma: no cover
@@ -159,7 +181,8 @@ class State:
             # Just set the value to the default
             # Mutable types will be tricky here, so deepcopy them
             instance.__dict__[self.name] = deepcopy(self._default)
-        return instance.__dict__[self.name]
+        v = instance.__dict__[self.name]
+        return cast(ST, v)
 
     def __set_name__(self, owner: "Actor", name: str) -> None:
         self.name = name
@@ -182,7 +205,7 @@ class State:
         self._recording_callbacks[source] = callback
 
     def _remove_callback(self, source: Any) -> None:
-        """Remove a callback
+        """Remove a callback.
 
         Args:
             source (Any): The callback's key
@@ -199,7 +222,7 @@ class State:
         return self._recording
 
 
-class DetectabilityState(State):
+class DetectabilityState(State[bool]):
     """A state whose purpose is to indicate True or False.
 
     For consideration in the motion manager's <>LocationChangingState checks.
@@ -235,7 +258,7 @@ class DetectabilityState(State):
                 mgr._mover_became_detectable(instance)
 
 
-class ActiveState(State):
+class ActiveState(State, Generic[ST]):
     """Base class for states that change over time according to some rules.
 
     This class must be subclasses with an implemented `active` method.
@@ -261,7 +284,7 @@ class ActiveState(State):
         """
         raise NotImplementedError("Method active not implemented.")
 
-    def __get__(self, instance: "Actor", owner: type | None = None) -> Any:
+    def __get__(self, instance: "Actor", owner: type | None = None) -> ST:
         if instance is None:
             # instance attribute accessed on class, return self
             return self  # pragma: no cover
@@ -273,13 +296,13 @@ class ActiveState(State):
             actor, name = instance._mimic_states[self.name]
             value = getattr(actor, name)
             self.__set__(instance, value)
-            return value
+            return cast(ST, value)
         # test if this instance is active or not
         res = self._active(instance)
         # comes back as None (not active), or if it can be obtained from dict
         if res is None:
             res = instance.__dict__[self.name]
-        return res
+        return cast(ST, res)
 
     def get_activity_data(self, instance: "Actor") -> dict[str, Any]:
         """Get the data useful for updating active states.
@@ -308,7 +331,7 @@ class ActiveState(State):
         return False
 
 
-class LinearChangingState(ActiveState):
+class LinearChangingState(ActiveState[ST], Generic[ST]):
     """A state whose value changes linearly over time.
 
     When activating:
@@ -353,7 +376,7 @@ class LinearChangingState(ActiveState):
         return return_value
 
 
-class CartesianLocationChangingState(ActiveState):
+class CartesianLocationChangingState(ActiveState[CartesianLocation]):
     """A state that contains the location in 3-dimensional Cartesian space.
 
     Movement is along straight lines in that space.
@@ -433,9 +456,7 @@ class CartesianLocationChangingState(ActiveState):
                     [data["value"]] + waypoints,
                 )
 
-    def _get_index(
-        self, path_data: dict[str, Any], time_elapsed: float
-    ) -> tuple[int, float]:
+    def _get_index(self, path_data: dict[str, Any], time_elapsed: float) -> tuple[int, float]:
         """Find out how far along waypoints the state is.
 
         Args:
@@ -498,9 +519,7 @@ class CartesianLocationChangingState(ActiveState):
         elapsed = current_time - path_start_time
         if elapsed < 0:
             # Can probably only happen if active state is set incorrectly
-            raise SimulationError(
-                f"Cannot set state '{self.name}' start time in the future!"
-            )
+            raise SimulationError(f"Cannot set state '{self.name}' start time in the future!")
         elif elapsed == 0:
             return_value: CartesianLocation = data["value"]  # pragma: no cover
         else:
@@ -550,7 +569,7 @@ class CartesianLocationChangingState(ActiveState):
         return super().deactivate(instance, task)
 
 
-class GeodeticLocationChangingState(ActiveState):
+class GeodeticLocationChangingState(ActiveState[GeodeticLocation]):
     """A state that contains a location around an ellipsoid that follows great-circle paths.
 
     Requires a distance model class that implements:
@@ -636,9 +655,7 @@ class GeodeticLocationChangingState(ActiveState):
                     [data["value"]] + waypoints,
                 )
 
-    def _get_index(
-        self, path_data: dict[str, Any], time_elapsed: float
-    ) -> tuple[int, float]:
+    def _get_index(self, path_data: dict[str, Any], time_elapsed: float) -> tuple[int, float]:
         """Get the index of the waypoint the path is on.
 
         Args:
@@ -656,7 +673,8 @@ class GeodeticLocationChangingState(ActiveState):
             if time_elapsed <= (sum_t + 1e-4):  # near one second allowed
                 return i, sum_t - t
         raise SimulationError(
-            f"GeodeticLocation active state exceeded travel time: Elapsed: {time_elapsed}, Actual: {sum_t}"
+            f"GeodeticLocation active state exceeded travel time: Elapsed: {time_elapsed}, "
+            "Actual: {sum_t}"
         )
 
     def _get_remaining_waypoints(self, instance: "Actor") -> list[GeodeticLocation]:
@@ -705,9 +723,7 @@ class GeodeticLocationChangingState(ActiveState):
 
         if elapsed < 0:
             # Can probably only happen if active state is set incorrectly
-            raise SimulationError(
-                f"Cannot set state '{self.name}' start time in the future!"
-            )
+            raise SimulationError(f"Cannot set state '{self.name}' start time in the future!")
         elif elapsed == 0:
             return_value: GeodeticLocation = data["value"]  # pragma: no cover
         else:
@@ -751,7 +767,7 @@ class GeodeticLocationChangingState(ActiveState):
         return return_value
 
     def deactivate(self, instance: "Actor", task: Task | None = None) -> bool:
-        """Deactivate the state
+        """Deactivate the state.
 
         Args:
             instance (Actor): The owning actor
@@ -770,7 +786,7 @@ class GeodeticLocationChangingState(ActiveState):
 T = TypeVar("T", Store, Container)
 
 
-class ResourceState(State):
+class ResourceState(State, Generic[T]):
     """A State class for States that are meant to be Stores or Containers.
 
     This should enable easier initialization of Actors with stores/containers or
@@ -810,6 +826,13 @@ class ResourceState(State):
         default: Any | None = None,
         valid_types: type | tuple[type, ...] | None = None,
     ) -> None:
+        """Create a resource State decorator.
+
+        Args:
+            default (Any | None, optional): Default store/container class. Defaults to None.
+            valid_types (type | tuple[type, ...] | None, optional): Valid store/container
+                classes. Defaults to None.
+        """
         if isinstance(valid_types, type):
             valid_types = (valid_types,)
 
@@ -831,10 +854,10 @@ class ResourceState(State):
             recording=False,
             valid_types=valid_types,
         )
-        self._been_set: set["Actor"] = set()
+        self._been_set: set[Actor] = set()
 
     def __set__(self, instance: "Actor", value: dict | Any) -> None:
-        """Set the state value
+        """Set the state value.
 
         Args:
             instance (Actor): The actor instance
@@ -849,30 +872,24 @@ class ResourceState(State):
         if not isinstance(value, dict):
             # we've been passed an actual resource, so save it and leave
             if not isinstance(value, self._types):
-                raise UpstageError(
-                    f"Resource object: '{value}' is not an expected type."
-                )
+                raise UpstageError(f"Resource object: '{value}' is not an expected type.")
             instance.__dict__[self.name] = value
             self._been_set.add(instance)
             return
 
         resource_type = value.get("kind", self._default)
         if resource_type is None:
-            raise UpstageError(
-                f"No resource type (Store, e.g.) specified for {instance}"
-            )
+            raise UpstageError(f"No resource type (Store, e.g.) specified for {instance}")
 
         if self._types and not issubclass(resource_type, self._types):
             raise UpstageError(
-                f"{resource_type} is of type {type(resource_type)} "
-                f"not of type {self._types}"
+                f"{resource_type} is of type {type(resource_type)} " f"not of type {self._types}"
             )
 
         env = getattr(instance, "env", None)
         if env is None:
             raise UpstageError(
-                f"Actor {instance} does not have an `env` attribute "
-                f"for state {self.name}"
+                f"Actor {instance} does not have an `env` attribute " f"for state {self.name}"
             )
         kwargs = {k: v for k, v in value.items() if k != "kind"}
         try:
@@ -895,9 +912,7 @@ class ResourceState(State):
     def _set_default(self, instance: "Actor") -> None:
         self.__set__(instance, {})
 
-    def __get__(
-        self, instance: "Actor", owner: type | None = None
-    ) -> Store | Container:
+    def __get__(self, instance: "Actor", owner: type | None = None) -> T:
         if instance is None:
             # instance attribute accessed on class, return self
             return self  # pragma: no cover
@@ -906,7 +921,7 @@ class ResourceState(State):
         obj = instance.__dict__[self.name]
         if not isinstance(obj, Store | Container):
             raise UpstageError("Bad type of ResourceStatee")
-        return obj
+        return cast(T, obj)
 
     def _make_clone(self, instance: "Actor", copy: T) -> T:
         """Method to support cloning a store or container.
@@ -929,7 +944,7 @@ class ResourceState(State):
         return new
 
 
-class CommunicationStore(ResourceState):
+class CommunicationStore(ResourceState[Store]):
     """A State class for communications inputs.
 
     Used for automated finding of communication inputs on Actors by the CommsTransfer code.
@@ -965,6 +980,15 @@ class CommunicationStore(ResourceState):
         default: type | None = None,
         valid_types: type | tuple[type, ...] | None = None,
     ):
+        """Create a comms store.
+
+        Args:
+            mode (str): A mode to describe the comms channel.
+            default (type | None, optional): Store class by default.
+                Defaults to None.
+            valid_types (type | tuple[type, ...] | None, optional): Valid store classes.
+                Defaults to None.
+        """
         if default is None:
             default = SelfMonitoringStore
         if valid_types is None:

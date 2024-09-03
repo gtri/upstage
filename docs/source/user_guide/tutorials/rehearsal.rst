@@ -19,10 +19,10 @@ Define an actor and a task where some states change:
     from upstage.utils import waypoint_time_and_dist
 
     class Plane(UP.Actor):
-        speed: float = UP.State()
+        speed = UP.State[float]()
         location: UP.CartesianLocation = UP.CartesianLocationChangingState()
         fuel: float = UP.LinearChangingState()
-        fuel_burn: float = UP.State()
+        fuel_burn = UP.State[float]()
 
 
     class Fly(UP.Task):

@@ -16,7 +16,7 @@ from upstage.api import (
 class Stager(UpstageBase): ...
 
 
-def test_stage():
+def test_stage() -> None:
     with EnvironmentContext():
         source = Stager()
         # Complain when accessing an unset attribute

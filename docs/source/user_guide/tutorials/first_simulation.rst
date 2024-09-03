@@ -40,12 +40,12 @@ Let's imagine our Cashier has the ability to scan items at a certain speed, and 
 
     class Cashier(UP.Actor):
         # items per minute
-        scan_speed: float = UP.State(
+        scan_speed = UP.State[float](
             valid_types=(float,),
             frozen=True,
         )
         # minutes until break
-        time_until_break: float = UP.State(
+        time_until_break = UP.State[float](
             default=120.0,
             valid_types=(float,),
             frozen=True,
@@ -85,17 +85,17 @@ We want to keep track of the number of items scanned, so let's add a state that 
 
     class Cashier(UP.Actor):
         # items per minute
-        scan_speed: float = UP.State(
+        scan_speed = UP.State[float](
             valid_types=(float,),
             frozen=True,
         )
         # minutes until break
-        time_until_break: float = UP.State(
+        time_until_break = UP.State[float](
             default=120.0,
             valid_types=(float,),
             frozen=True,
         )
-        items_scanned: int = UP.State(
+        items_scanned = UP.State[int](
             default=0,
             valid_types=(int,),
             recording=True,
@@ -134,7 +134,7 @@ Let's also make an Actor for the checkout lane, so we have a simple location to 
 .. code-block:: python
 
     class CheckoutLane(UP.Actor):
-        customer_queue: SIM.Store = UP.ResourceState()
+        customer_queue = UP.ResourceState[SIM.Store]()
 
     with UP.EnvironmentContext() as env:
         lane = CheckoutLane(
@@ -147,7 +147,7 @@ Let's also make an Actor for the checkout lane, so we have a simple location to 
 
 Here we use the built-in |ResourceState| to use a |SelfMonitoringStore| as an Actor state. The self-monitoring store is a subclass of the SimPy ``Store`` that records the number of items
 in the store whenever there is a get or put. The ``ResourceState`` could accept a default and not require a definition in the instantiation, but here we are demonstrating how to instantiate 
-a ``ResourceState`` in a way that lets you paramterize the store's values (in this case, the kind and the capacity). Other resources, such as containers, will have capacities and initial values.
+a ``ResourceState`` in a way that lets you parameterize the store's values (in this case, the kind and the capacity). Other resources, such as containers, will have capacities and initial values.
 
 Actors also have ``knowledge``, which is a simple dictionary attached to the actor that has an interface through the actor and tasks. This allows actors to hold runtime-dependent information
 that isn't tied to a state. Knowledge can be set and accessed with error-throwing checks for its existence, or for checks that it doesn't already have a value. An example is given later.
@@ -170,7 +170,7 @@ Let's define the tasks that wait for a customer and check the customer out.
     :linenos:
 
     from typing import Generator
-    TASK_GEN = Generator[UP.Event, Any, None]
+    from upstage.type_help import TASK_GEN
 
 
     class WaitInLane(UP.Task):
@@ -285,7 +285,7 @@ There is one other kind of Task, a |DecisionTask|, which does not consume the en
 .. code-block:: python
     
     class Break(UP.DecisionTask):
-        def make_decision(self, *, actor: Cashier):
+        def make_decision(self, *, actor: Cashier) -> None:
             """Decide what kind of break we are taking."""
             actor.breaks_taken += 1
             if actor.breaks_taken == actor.breaks_until_done:
@@ -347,34 +347,13 @@ The flow of Tasks is controlled by a TaskNetwork, and the setting of the queue w
     }
 
     task_links = {
-        "GoToWork": {
-                "default": "TalkToBoss",
-                "allowed":["TalkToBoss"],
-            },
-        "TalkToBoss": {
-                "default": "WaitInLane",
-                "allowed":["WaitInLane"],
-            },
-        "WaitInLane": {
-                "default": "DoCheckout",
-                "allowed":["DoCheckot", "Break"],
-            },
-        "DoCheckout": {
-                "default": "WaitInLane",
-                "allowed":["WaitInLane"],
-            },
-        "Break": {
-                "default": "ShortBreak",
-                "allowed":["ShortBreak", "NightBreak"],
-            },
-        "ShortBreak": {
-                "default": "WaitInLane",
-                "allowed":["WaitInLane"],
-            },
-        "NightBreak": {
-                "default": "GoToWork",
-                "allowed":["GoToWork"],
-            },
+        "GoToWork": UP.TaskLinks(default="TalkToBoss",allowed=["TalkToBoss"]),
+        "TalkToBoss": UP.TaskLinks(default="WaitInLane",allowed=["WaitInLane"]),
+        "WaitInLane": UP.TaskLinks(default="DoCheckout",allowed=["DoCheckout", "Break"]),
+        "DoCheckout": UP.TaskLinks(default="WaitInLane",allowed=["WaitInLane"]),
+        "Break": UP.TaskLinks(default="ShortBreak",allowed=["ShortBreak", "NightBreak"]),
+        "ShortBreak": UP.TaskLinks(default="WaitInLane",allowed=["WaitInLane"]),
+        "NightBreak": UP.TaskLinks(default="GoToWork",allowed=["GoToWork"]),
     }
 
     cashier_task_network = UP.TaskNetworkFactory(
@@ -436,7 +415,7 @@ To complete the simulation, we need to make customers arrive at the checkout lan
     def customer_spawner(
         env: SIM.Environment,
         lanes: list[CheckoutLane],
-    ) -> Generator[SIM.Event, None, None]:
+    ) -> SIMPY_GEN:
         # We store the RNG on the stage, and this is a quick way to get the stage (steal it from an actor)
         stage = lanes[0].stage
         while True:

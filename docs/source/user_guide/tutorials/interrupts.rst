@@ -54,7 +54,7 @@ The work in that process is very simple, but the cancelling and code required to
 to explain exactly what it's trying to do, and we can handle interrupts separately without clouding the business logic of the task.
 
 In addition, if interrupts are sent by another process, we don't want the other process to have to know about introspecting the actor or the task network to know if it can/should do the
-interrut. It's preferable to let the interrupting process ask for an interrupt (with some data) and let the actor/task decide if it's a good idea or not. Finally, if the simulation builder
+interrupt. It's preferable to let the interrupting process ask for an interrupt (with some data) and let the actor/task decide if it's a good idea or not. Finally, if the simulation builder
 does not remember to always cancel events (especially get and put), then you may end up with a get request that takes from a store without going anywhere.
 
 Here's how those interrupts would look in SimPy:
@@ -167,7 +167,7 @@ Here's what the above process would look like as an UPSTAGE Task:
             yield UP.Wait(2.0)
             env_print(env, "Finished work")
 
-        def on_interrupt(self, *, actor: UP.Actor, cause: Any):
+        def on_interrupt(self, *, actor: UP.Actor, cause: Any) -> UP.InterruptStates:
             marker = self.get_marker()
             env_print(self.env, f"INTERRUPT:\n\tGot cause: '{cause}'\n\tDuring marker: '{marker}'")
             return self.INTERRUPT.END
@@ -254,7 +254,7 @@ Let's return to our example, and add more complicated interrupt handling, includ
             actor.deactivate_all_states(task=self)
             env_print(env, "Finished work")
 
-        def on_interrupt(self, *, actor: Worker, cause: Any):
+        def on_interrupt(self, *, actor: Worker, cause: Any) -> UP.InterruptStates:
             marker = self.get_marker()
             marker_time = self.get_marker_time()
             env_print(self.env, f"INTERRUPT:\n\tGot cause: '{cause}'\n\tDuring marker: '{marker}'\nWhich started at: {marker_time}")
@@ -325,8 +325,8 @@ If an actor is running a task network, you will need to get the current Task pro
     task_process.interrupt(cause="Stop running")
 
     # OR:
-    task_name, task_process = actor.get_running_task(task_network_name)
-    task_process.interrupt(cause="Stop running")
+    task_data = actor.get_running_task(task_network_name)
+    task_data.process.interrupt(cause="Stop running")
 
     # OR:
     actor.interrupt_network(task_network_name, cause="Stop running")

@@ -2,31 +2,34 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""0A 3-D intersection model for cartesian motion in UPSTAGE along straight-line paths."""
 
-# A 3-D intersection model for cartesian motion in UPSTAGE along
-# straight-line paths
+from typing import TypeVar
+
 from upstage.base import MotionAndDetectionError
 from upstage.data_types import CartesianLocation
 from upstage.math_utils import (
     _col_mat_mul,
-    _vector_subtract,
+    _roots,
     _vector_add,
     _vector_dot,
     _vector_norm,
-    _roots,
+    _vector_subtract,
 )
 
 XY = tuple[float, float]
 XYZ = tuple[float, float, float]
 
+L = TypeVar("L", XY, XYZ)
+
 
 def ray_intersection(
-    start: XY | XYZ,
-    toward: XY | XYZ,
-    center: XY | XYZ,
-    radii: float | XY | XYZ,
+    start: L,
+    toward: L,
+    center: L,
+    radii: float | L,
     speed: float,
-) -> tuple[list[XY] | list[XYZ], list[float]]:
+) -> tuple[list[L], list[float]]:
     """Ray intersection with ellispoid.
 
     Args:
@@ -39,7 +42,6 @@ def ray_intersection(
     Returns:
         tuple[list[XY] | list[XYZ], list[float]]: Intersecting positions and times.
     """
-
     n_dim = len(start)
     for compare in [toward, center]:
         assert len(compare) == n_dim, "Mismatched dimensions in ray intersection."
@@ -54,7 +56,8 @@ def ray_intersection(
         _radii = radii
         if len(start) != len(radii):
             raise MotionAndDetectionError(
-                "Radius for a sensor must be a single float or the same dimensionality as the locations."
+                "Radius for a sensor must be a single float or the same dimensionality as the "
+                "locations."
             )
     for i in range(n_dim):
         M[i][i] = 1 / _radii[i]
@@ -70,7 +73,7 @@ def ray_intersection(
     roots = _roots(a, b, c)
     possible = [r for r in roots if r >= 0]
 
-    intersections: list[XY] | list[XYZ] = []
+    intersections: list[L] = []
     times: list[float] = []
     for t in sorted(possible):
         loc = _vector_add(start, [t * x for x in v])
@@ -127,9 +130,7 @@ def cartesian_linear_intersection(
 
     # filter out intersections beyond the path length
     idxs = sorted(range(len(times)), key=lambda i: times[i])
-    inters = [
-        CartesianLocation(*intersections[i]) for i in idxs if times[i] <= path_time
-    ]
+    inters = [CartesianLocation(*intersections[i]) for i in idxs if times[i] <= path_time]
     times = [times[i] for i in idxs if times[i] <= path_time]
     type_start = "START_INSIDE" if start_inside else "ENTER"
     type_end = "END_INSIDE" if finish_inside else "EXIT"

@@ -8,7 +8,7 @@ First, UPSTAGE lets you create ``Actors`` and modify the ``States`` of those act
 
 ``States`` have multiple features that allow them to be time-varying while respecting discrete event behavior, along with being recordable. More advanced features include "mimicking" other states.
 
-``Tasks`` and their networks can interacted with in multipe ways, and UPSTAGE provides ``Nucleus`` and Interrupt handling to support that.
+``Tasks`` and their networks can interacted with in multiple ways, and UPSTAGE provides ``Nucleus`` and Interrupt handling to support that.
 
 There are also several convenience features for simulation building and running, including entity naming, geographic functions and states, and safe global variables in an environment context manager.
 
@@ -51,6 +51,7 @@ These pages detail the specific activities that can be accomplished using UPSTAG
 :caption: How-Tos
 :maxdepth: 1
 
+how_tos/resource_states.rst
 how_tos/active_states.rst
 how_tos/mimic_states.rst
 how_tos/nucleus.rst
@@ -63,5 +64,6 @@ how_tos/state_sharing.rst
 how_tos/entity_naming.rst
 how_tos/motion_manager.rst
 how_tos/communications.rst
+how_tos/typing.rst
 how_tos/random_numbers.rst
 ```

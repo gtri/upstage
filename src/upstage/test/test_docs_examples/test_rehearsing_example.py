@@ -4,20 +4,21 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 import pytest
-import upstage.api as UP
 
+import upstage.api as UP
+from upstage.type_help import TASK_GEN
 from upstage.utils import waypoint_time_and_dist
 
 
 class Plane(UP.Actor):
-    speed: float = UP.State()
-    location: UP.CartesianLocation = UP.CartesianLocationChangingState()
-    fuel: float = UP.LinearChangingState()
-    fuel_burn: float = UP.State()
+    speed = UP.State[float]()
+    location = UP.CartesianLocationChangingState()
+    fuel = UP.LinearChangingState[float]()
+    fuel_burn = UP.State[float]()
 
 
 class Fly(UP.Task):
-    def task(self, *, actor: Plane):
+    def task(self, *, actor: Plane) -> TASK_GEN:
         fly_to: list[UP.CartesianLocation] = self.get_actor_knowledge(
             actor, "destination", must_exist=True
         )
@@ -40,7 +41,7 @@ class Fly(UP.Task):
 
 
 class Search(UP.Task):
-    def task(self, *, actor: Plane):
+    def task(self, *, actor: Plane) -> TASK_GEN:
         search_event = actor.create_knowledge_event(
             name="FOUND SURVIVOR",
             rehearsal_time_to_complete=0.5,
@@ -55,9 +56,9 @@ class Search(UP.Task):
 
 
 class Land(UP.Task):
-    def task(self, *, actor: Plane):
+    def task(self, *, actor: Plane) -> TASK_GEN:
         # Do a landing of some kind
-        event = actor.create_knowledge_event("DONE", rehearsal_time_to_complete=10.0)
+        event = actor.create_knowledge_event(name="DONE", rehearsal_time_to_complete=10.0)
         yield event
 
 
@@ -76,7 +77,7 @@ def some_preference_function(
 
 
 class Planner(UP.DecisionTask):
-    def make_decision(self, *, actor: Plane):
+    def make_decision(self, *, actor: Plane) -> None:
         go_to_loc = some_preference_function(self.stage.search_spots)
         if go_to_loc is None:  # implies we are done with searching
             self.set_actor_task_queue(actor, ["Fly", "Land"])
@@ -84,7 +85,7 @@ class Planner(UP.DecisionTask):
             self.set_actor_knowledge(actor, "destination", go_to_loc, overwrite=True)
             self.set_actor_task_queue(actor, ["Fly", "Search"])
 
-    def rehearse_decision(self, *, actor: Plane):
+    def rehearse_decision(self, *, actor: Plane) -> None:
         # Pop off a destination from the queue, or go "home"
         next_dests: list[list[UP.CartesianLocation]] | None = self.get_actor_knowledge(
             actor, "destination_plan", must_exist=False
@@ -96,9 +97,7 @@ class Planner(UP.DecisionTask):
             task_queue = ["Fly", "Land"]
         else:  # pop a location from the plan
             dests = next_dests.pop(0)
-            self.set_actor_knowledge(
-                actor, "destination_plan", next_dests, overwrite=True
-            )
+            self.set_actor_knowledge(actor, "destination_plan", next_dests, overwrite=True)
             task_queue = ["Fly", "Search"]
 
         self.set_actor_knowledge(actor, "destination", dests, overwrite=True)
@@ -107,10 +106,10 @@ class Planner(UP.DecisionTask):
 
 task_classes = {"Fly": Fly, "Search": Search, "Planner": Planner, "Land": Land}
 task_links = {
-    "Fly": {"default": "Search", "allowed": ["Fly", "Land", "Search"]},
-    "Search": {"default": "Planner", "allowed": ["Planner"]},
-    "Planner": {"default": "Fly", "allowed": ["Fly"]},
-    "Land": {"default": None, "allowed": ["Fly"]},
+    "Fly": UP.TaskLinks(default="Search", allowed=["Fly", "Land", "Search"]),
+    "Search": UP.TaskLinks(default="Planner", allowed=["Planner"]),
+    "Planner": UP.TaskLinks(default="Fly", allowed=["Fly"]),
+    "Land": UP.TaskLinks(default=None, allowed=["Fly"]),
 }
 search_network = UP.TaskNetworkFactory("SearchNet", task_classes, task_links)
 

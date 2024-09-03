@@ -134,7 +134,7 @@ Things to note:
 
   * Both can be set with/return a CartesianLocation, so this is OK.
 
-  * If we had one State mimicing a LinearChangingState, that would also work since a State can take a floating point value.
+  * If we had one State mimicking a LinearChangingState, that would also work since a State can take a floating point value.
 
   * States type-check under the hood, so you'll get notified if a mimic doesn't match.
 

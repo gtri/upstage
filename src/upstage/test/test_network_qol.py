@@ -4,25 +4,26 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 import upstage.api as UP
+from upstage.type_help import TASK_GEN
 
 
 class Act(UP.Actor):
-    state = UP.State(default=0)
+    state = UP.State[int](default=0)
 
 
 class Do(UP.Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Act) -> TASK_GEN:
         yield UP.Wait(2)
         actor.state = actor.state + 1
 
 
 class Do2(UP.Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Act) -> TASK_GEN:
         yield UP.Wait(3)
         actor.state = actor.state + 3
 
 
-def test_single_loop_and_names():
+def test_single_loop_and_names() -> None:
     with UP.EnvironmentContext() as env:
         factory = UP.TaskNetworkFactory.from_single_looping("example", Do)
 
@@ -59,7 +60,7 @@ def test_single_loop_and_names():
         assert actor.state == 4
 
 
-def test_other_inits():
+def test_other_inits() -> None:
     with UP.EnvironmentContext() as env:
         factory = UP.TaskNetworkFactory.from_ordered_terminating("example", [Do, Do2])
         actor = Act(name="a thing")
@@ -74,7 +75,7 @@ def test_other_inits():
         assert actor.state == 3
 
         task = actor.get_running_task("example")
-        assert "TERMINATING" in task["name"]
+        assert task is not None and "TERMINATING" in task.name
 
     with UP.EnvironmentContext() as env:
         factory = UP.TaskNetworkFactory.from_ordered_loop("example", [Do, Do2])

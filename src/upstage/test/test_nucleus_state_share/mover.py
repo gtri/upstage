@@ -3,16 +3,21 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from typing import Any
+
 import upstage.api as UP
+from upstage.type_help import TASK_GEN
 
 
 class Mover(UP.Actor):
-    fuel = UP.SharedLinearChangingState(valid_types=(float,), recording=True)
-    fuel_burn = UP.State(valid_types=(float,), frozen=True)
+    fuel = UP.SharedLinearChangingState(recording=True)
+    fuel_burn = UP.State[float](valid_types=(float,), frozen=True)
     location = UP.CartesianLocationChangingState(recording=True)
-    speed = UP.State(valid_types=(float, int), recording=True)
+    speed = UP.State[float](valid_types=(float, int), recording=True)
 
-    def get_distance(self, waypoints):
+    def get_distance(
+        self, waypoints: list[UP.GeodeticLocation] | list[UP.CartesianLocation]
+    ) -> float:
         d = waypoints[0] - self.location
         for i in range(1, len(waypoints)):
             d += waypoints[i] - waypoints[i - 1]
@@ -20,7 +25,7 @@ class Mover(UP.Actor):
 
 
 class Fly(UP.Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Mover) -> TASK_GEN:
         destinations = list(self.get_actor_knowledge(actor, "destinations"))
         self.clear_actor_knowledge(actor, "destinations")
         actor.activate_state(
@@ -39,7 +44,7 @@ class Fly(UP.Task):
         yield UP.Wait(time)
         actor.deactivate_all_states(task=self)
 
-    def on_interrupt(self, *, actor: UP.Actor, cause):
+    def on_interrupt(self, *, actor: Mover, cause: Any) -> UP.InterruptStates:
         # Allow subclassing to run a check prior to this
         # and input "restart" if they want.
         reason = None

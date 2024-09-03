@@ -1,0 +1,30 @@
+name: lint
+
+on: [push, pull_request]
+
+# TODO: remove all of the if: success() || failure()
+# that code is for debug only
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install .[lint]
+    - name: Verify pyproject format ran
+      run: pyproject-fmt --check pyproject.toml 
+    - name: Verify ssort ran
+      run: ssort --check src
+    - name: Verify Ruff Formatter ran
+      run: ruff format --check src
+    - name: Run Ruff linter
+      run: ruff check --output-format=github src
+    - name: Run mypy
+      run: mypy --show-error-codes -p upstage

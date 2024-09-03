@@ -2,8 +2,11 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""This file contains a ContinuousContainer."""
 
-from typing import Any, Generator, Callable
+from collections.abc import Callable, Generator
+from typing import TYPE_CHECKING, Any
+
 from simpy import Environment, Event, Interrupt, Process
 from simpy.core import BoundClass
 
@@ -23,6 +26,11 @@ class ContainerError(Exception):
 
     @property
     def cause(self) -> Any:
+        """Get the exception's cause.
+
+        Returns:
+            Any: The cause.
+        """
         return self.args[0]
 
 
@@ -100,6 +108,15 @@ class ContinuousPut(_ContinuousEvent):
         time: float,
         custom_callbacks: list[Callable[[], None]] | None = None,
     ) -> None:
+        """Create a put event that is continuous.
+
+        Args:
+            container (ContinuousContainer): Container to add to.
+            rate (float): Rate to add at.
+            time (float): Time to run the event.
+            custom_callbacks (list[Callable[[], None]] | None, optional): Callbacks
+                for completion. Defaults to None.
+        """
         if rate <= 0:
             raise ValueError(
                 "Rates must be greater than zero. Put means 'positive'."
@@ -116,7 +133,16 @@ class ContinuousGet(_ContinuousEvent):
         rate: float,
         time: float,
         custom_callbacks: list[Callable[[], None]] | None = None,
-    ):
+    ) -> None:
+        """Create a get event that is continuous.
+
+        Args:
+            container (ContinuousContainer): Container to take from.
+            rate (float): Rate to remote at.
+            time (float): Time to run the event.
+            custom_callbacks (list[Callable[[], None]] | None, optional): Callbacks
+                for completion. Defaults to None.
+        """
         if rate <= 0:
             raise ValueError(
                 "Rates must be greater than zero. Get means 'negative'."
@@ -127,10 +153,6 @@ class ContinuousGet(_ContinuousEvent):
 class ContinuousContainer:
     """A container that accepts continuous gets and puts."""
 
-    put = BoundClass(ContinuousPut)
-
-    get = BoundClass(ContinuousGet)
-
     def __init__(
         self,
         env: Environment,
@@ -139,11 +161,18 @@ class ContinuousContainer:
         error_empty: bool = True,
         error_full: bool = True,
     ):
+        """Create a container that allows continuous gets and puts.
+
+        Args:
+            env (Environment): SimPy Environment.
+            capacity (int | float): Capacity of the container
+            init (int | float, optional): Initial amount. Defaults to 0.0.
+            error_empty (bool, optional): Error when it gets empty. Defaults to True.
+            error_full (bool, optional): Error when it gets full. Defaults to True.
+        """
         self._capacity = capacity
         if init < 0 or capacity < 0:
-            raise ValueError(
-                "Initial and capacity cannot be negative."
-            )  # pragma: no cover
+            raise ValueError("Initial and capacity cannot be negative.")  # pragma: no cover
         self._level = init
         self.error_empty = error_empty
         self.error_full = error_full
@@ -154,7 +183,37 @@ class ContinuousContainer:
         self._active_users: list[_ContinuousEvent] = []
         self._checking: Process | None = None
 
+    if TYPE_CHECKING:
+
+        def put(
+            self,
+            rate: float,
+            time: float,
+            custom_callbacks: list[Callable[[], None]] | None = None,
+        ) -> ContinuousPut:
+            """Request to put *item* into the store."""
+            return ContinuousPut(self, rate, time, custom_callbacks)
+
+        def get(
+            self, rate: float, time: float, custom_callbacks: list[Callable[[], None]] | None = None
+        ) -> ContinuousGet:
+            """Request to get an *item* out of the store."""
+            return ContinuousGet(self, rate, time, custom_callbacks)
+
+    else:
+        put = BoundClass(ContinuousPut)
+        get = BoundClass(ContinuousGet)
+
     def time_until_level(self, level: float, rate: float = 0.0) -> float:
+        """Calculate the time until the containers reaches a value.
+
+        Args:
+            level (float): The value to reach.
+            rate (float, optional): Additional rate. Defaults to 0.0.
+
+        Returns:
+            float: The time to reach the level.
+        """
         rate += self._rate
 
         if self.level == level:
@@ -165,6 +224,14 @@ class ContinuousContainer:
         return time if time > 0 else float("inf")
 
     def time_until_done(self, rate: float = 0.0) -> float:
+        """Calculate the time until the container is full or empty.
+
+        Args:
+            rate (float, optional): Additional rate. Defaults to 0.0.
+
+        Returns:
+            float: Time until the container reaches a limit.
+        """
         rate += self._rate
         if rate > 0:
             return (self.capacity - self.level) / rate
@@ -175,14 +242,29 @@ class ContinuousContainer:
 
     @property
     def env(self) -> Environment:
+        """Get the environment of the container.
+
+        Returns:
+            Environment: The SimPy environment.
+        """
         return self._env
 
     @property
     def rate(self) -> float:
+        """Get the current net rate.
+
+        Returns:
+            float: The net rate.
+        """
         return self._rate
 
     @property
     def capacity(self) -> float:
+        """Get the capacity of the container.
+
+        Returns:
+            float: The capacity.
+        """
         return self._capacity
 
     @property
@@ -204,6 +286,11 @@ class ContinuousContainer:
         return gets
 
     def _set_level(self) -> float:
+        """Set the level of the container based on the active gets/puts.
+
+        Returns:
+            float: The current level.
+        """
         now = self._env.now
         if now > self._last:
             self._level += self._rate * (now - self._last)
@@ -283,10 +370,20 @@ class ContinuousContainer:
             self._checking = self._env.process(self._check())
 
     def add_user(self, user: _ContinuousEvent) -> None:
+        """Add a user to the container.
+
+        Args:
+            user (_ContinuousEvent): The user event
+        """
         self._active_users.append(user)
         self._add_rate(user.rate)
 
     def remove_user(self, user: _ContinuousEvent) -> None:
+        """Remove a user of the container.
+
+        Args:
+            user (_ContinuousEvent): The user event.
+        """
         to_remove_rate = -1 * user.rate
         self._active_users.remove(user)
         self._add_rate(to_remove_rate)
@@ -303,4 +400,9 @@ class ContinuousContainer:
 
     @property
     def level(self) -> float:
+        """Get the level of the container.
+
+        Returns:
+            float: The current amount remaining.
+        """
         return self._level + self._rate * (self._env.now - self._last)

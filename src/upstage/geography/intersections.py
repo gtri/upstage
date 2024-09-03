@@ -5,22 +5,25 @@
 
 """Functions for finding intersections in geodetics."""
 
-from typing import Optional
-from upstage.units import unit_convert
+from dataclasses import dataclass
+
 from upstage.math_utils import _vector_norm, _vector_subtract
+from upstage.units import unit_convert
+
 from .conversions import POSITION, POSITIONS
 from .spherical import Spherical
 from .wgs84 import WGS84
-from dataclasses import dataclass
 
 LAT_LON_ALT = POSITION
 
 
 @dataclass
 class CrossingCondition:
+    """Data about an intersection."""
+
     kind: str
     begin: LAT_LON_ALT
-    end: Optional[LAT_LON_ALT] = None
+    end: LAT_LON_ALT | None = None
 
 
 def _preprocess(
@@ -49,9 +52,7 @@ def _preprocess(
     while points <= 2:
         dist_between = dist_between / 2.0
         if dist_between < 100:
-            raise Exception(
-                f"Intersetion Segment {start_lla} -> {finish_lla} is too small!"
-            )
+            raise Exception(f"Intersetion Segment {start_lla} -> {finish_lla} is too small!")
         points = int(dist / dist_between) + 1
     ecef_point = earth.lla2ecef([point_lla])[0]
     assert len(ecef_point) == 3
@@ -73,8 +74,7 @@ def find_crossing_points(
     radius: float,
     dist_between: float = 9260.0,
 ) -> list[CrossingCondition]:
-    """Finds the points along a great circle path where range and visibility
-    constraints are met for entering and exiting the range.
+    """Finds the points along a great circle path and a sphere.
 
     The output data provides booleans to state If the start or end are within
     range/visibility.
@@ -85,14 +85,16 @@ def find_crossing_points(
         point_lla (LAT_LON_ALT): Point of sensing (degrees/meters)
         earth (Spherical | WGS84): Earth model
         radius (float): Radius that the sensor can see (meters)
-        dist_between (float, optional): Distance to use for segment length (meters). Defaults to 5 nmi (or 9260 meters).
+        dist_between (float, optional): Distance to use for segment length (meters).
+            Defaults to 5 nmi (or 9260 meters).
 
     Returns:
         list[CrossingCondition]:
             A list of data describing the crossover points on the great circle path.
-            It will start with: ["START_INSIDE" or "START_OUT", start LLA]
-            Then there will be one or two: ["ENTER" or "EXIT", LLA, LLA] where the two LLA values are the OUT and IN points as described
-            It will end with: ["END_INSIDE" or "END_OUT", end LLA]
+            It will start with: ["START_INSIDE" or "START_OUT", start LLA].
+            Then there will be one or two: ["ENTER" or "EXIT", LLA, LLA] where the
+            two LLA values are the OUT and IN points as described.
+            It will end with: ["END_INSIDE" or "END_OUT", end LLA].
     """
     ecef_test, lla_test, ecef_point = _preprocess(
         start_lla,
@@ -153,7 +155,7 @@ def _split_down(
     radius: float,
     earth: Spherical | WGS84,
     distance_between: float,
-    subdivide_levels: Optional[list[int]] = None,
+    subdivide_levels: list[int] | None = None,
 ) -> CrossingCondition:
     """Find an intersection point from a sphere to a great circle.
 
@@ -170,7 +172,8 @@ def _split_down(
         radius (float): Sensor radius (meters)
         earth (Spherical | WGS84): Geodetic description
         distance_between (float): Splitting distance for search
-        subdivide_levels (list[int], optional): Levels for searching smaller sections. Defaults to None.
+        subdivide_levels (list[int], optional): Levels for searching smaller sections.
+            Defaults to None.
 
     Returns:
         tuple[str, LAT_LON_ALT]: The intersection type, if any (degrees/meters)
@@ -189,13 +192,10 @@ def _split_down(
         )
         if len(split_data) != 3:
             raise ValueError(
-                "A subdivide split shouldn't have 2 crossovers"
-                " in intersections with a sphere"
+                "A subdivide split shouldn't have 2 crossovers" " in intersections with a sphere"
             )
         if split_data[1].kind not in ["EXIT", "ENTER"]:
-            raise ValueError(
-                "Subdividing an intersection check gave an invalid Direction"
-            )
+            raise ValueError("Subdividing an intersection check gave an invalid Direction")
         assert split_data[1].end is not None
         begin, end = split_data[1].begin, split_data[1].end
 
@@ -215,7 +215,7 @@ def get_intersection_locations(
     radius_units: str,
     earth: WGS84 | Spherical,
     dist_between: float | None = None,
-    subdivide_levels: Optional[list[int]] = None,
+    subdivide_levels: list[int] | None = None,
 ) -> list[CrossingCondition]:
     """Get the locations and kinds of intersections of a path to a sphere.
 
@@ -226,8 +226,10 @@ def get_intersection_locations(
         radius (float): Sensor radius
         radius_units (str): Units of the sensor radius
         earth (Spherical | WGS84): Geodetic description
-        dist_between (float, optional): Splitting distance for search. Defaults to 9260.0 meters (5 nmi)
-        subdivide_levels (list[int], optional): Levels for searching smaller sections. Defaults to None.
+        dist_between (float, optional): Splitting distance for search.
+            Defaults to 9260.0 meters (5 nmi)
+        subdivide_levels (list[int], optional): Levels for searching smaller sections.
+            Defaults to None.
 
     Returns:
         list[CrossingCondition]: The intersection type, if any

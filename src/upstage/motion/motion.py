@@ -2,22 +2,24 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""This file contains a queueing motion manager for sensor/mover intersections."""
 
+from collections.abc import Generator
+from typing import Any, Protocol
 from warnings import warn
-from typing import Any, Generator, Protocol
 
-from simpy import Interrupt, Process, Event as SimpyEvent
+from simpy import Event as SimpyEvent
+from simpy import Interrupt, Process
 
 from upstage.actor import Actor
 from upstage.base import (
+    INTERSECTION_TIMING_CALLABLE,
     MotionAndDetectionError,
     SimulationError,
     UpstageBase,
-    INTERSECTION_TIMING_CALLABLE,
 )
-from upstage.states import CartesianLocationChangingState, GeodeticLocationChangingState
 from upstage.data_types import CartesianLocation, GeodeticLocation
-
+from upstage.states import CartesianLocationChangingState, GeodeticLocationChangingState
 
 VALID = [
     ("ENTER", "END_INSIDE"),
@@ -27,18 +29,21 @@ VALID = [
 ]
 
 LOC_TYPES = CartesianLocation | GeodeticLocation
+LOC_LIST = list[CartesianLocation] | list[GeodeticLocation]
 
 
 class SensorType(Protocol):
+    """Protocol class for sensor typing."""
+
     def entity_exited_range(
         self,
-        entity: Actor,
+        entity: Any,
     ) -> None:
         """Entity exit range and does something."""
 
     def entity_entered_range(
         self,
-        entity: Actor,
+        entity: Any,
     ) -> None:
         """Entity enters range and does something."""
 
@@ -69,9 +74,16 @@ class SensorMotionManager(UpstageBase):
     def __init__(
         self, intersection_model: INTERSECTION_TIMING_CALLABLE, debug: bool = False
     ) -> None:
+        """Create a sensor motion manager for queueing intersection events.
+
+        Args:
+            intersection_model (INTERSECTION_TIMING_CALLABLE): The odel to calculate
+                intersections.
+            debug (bool, optional): Allow debug logging to _debug_log. Defaults to False.
+        """
         super().__init__()
         self._sensors: dict[SensorType, tuple[str, str]] = {}
-        self._movers: dict[Actor, tuple[float, list[LOC_TYPES], float]] = {}
+        self._movers: dict[Actor, tuple[float, LOC_LIST, float]] = {}
         self._events: dict[Actor, list[tuple[SensorType, Process]]] = {}
         self._in_view: dict[Actor, set[SensorType]] = {}
         self._debug: bool = debug
@@ -88,7 +100,8 @@ class SensorMotionManager(UpstageBase):
 
         Args:
             mover (Actor): The moving actor.
-            from_not_detectable (bool, optional): Is this was called from detectability state. Defaults to False.
+            from_not_detectable (bool, optional): Is this was called from detectability state.
+                Defaults to False.
         """
         detect_state = self._test_detect(mover)
         if detect_state is None:
@@ -218,12 +231,8 @@ class SensorMotionManager(UpstageBase):
 
         # pair off the in/out
         if len(inter_data) % 2 != 0:
-            raise SimulationError(
-                f"Intersections should pair in/out or in/in, found: {inter_data}"
-            )
-        pairs = [
-            (inter_data[i], inter_data[i + 1]) for i in range(0, len(inter_data), 2)
-        ]
+            raise SimulationError(f"Intersections should pair in/out or in/in, found: {inter_data}")
+        pairs = [(inter_data[i], inter_data[i + 1]) for i in range(0, len(inter_data), 2)]
         if not all((a[0], b[0]) in VALID for a, b in pairs):
             raise SimulationError(f"Bad pairing of intersections: {pairs}")
         return pairs
@@ -252,13 +261,9 @@ class SensorMotionManager(UpstageBase):
             sensor (Actor): Sensor
         """
         if mover not in self._in_view:
-            raise MotionAndDetectionError(
-                f"{mover} isn't in view of anything to remove."
-            )
+            raise MotionAndDetectionError(f"{mover} isn't in view of anything to remove.")
         if sensor not in self._in_view[mover]:
-            raise MotionAndDetectionError(
-                f"{mover} isn't in view of {sensor} to allow clearing."
-            )
+            raise MotionAndDetectionError(f"{mover} isn't in view of {sensor} to allow clearing.")
         self._in_view[mover].remove(sensor)
 
     def _end_notify(self, mover: Actor, sensor: SensorType, event: str) -> None:
@@ -322,9 +327,7 @@ class SensorMotionManager(UpstageBase):
 
         end_time_from_now = second_time - self.env.now
         if end_time_from_now <= 0:
-            raise MotionAndDetectionError(
-                "Detection end time is less than detection start"
-            )
+            raise MotionAndDetectionError("Detection end time is less than detection start")
 
         try:
             yield self.env.timeout(end_time_from_now)
@@ -381,9 +384,7 @@ class SensorMotionManager(UpstageBase):
             self._debug_log.append(msg)
 
         proc = self.env.process(
-            self._notify(
-                mover, sensor, first_time, second_time, first_kind, second_kind
-            )
+            self._notify(mover, sensor, first_time, second_time, first_kind, second_kind)
         )
         if mover not in self._events:
             self._events[mover] = [
@@ -402,8 +403,10 @@ class SensorMotionManager(UpstageBase):
         Optionally, use a reduced list of either movers or sensors.
 
         Args:
-            mover_list (list[Actor] | None, optional): Movers to consider. Defaults to None (all movers).
-            sensor_list (list[SensorType] | None, optional): Sensors to consider. Defaults to None (all sensors).
+            mover_list (list[Actor] | None, optional): Movers to consider.
+                Defaults to None (all movers).
+            sensor_list (list[SensorType] | None, optional): Sensors to consider.
+                Defaults to None (all sensors).
         """
         movers = list(self._movers.keys()) if mover_list is None else mover_list
         sensors = list(self._sensors.keys()) if sensor_list is None else sensor_list
@@ -413,15 +416,13 @@ class SensorMotionManager(UpstageBase):
                 for pair in inter_pairs:
                     self._schedule(m, s, pair)
 
-    def _start_mover(
-        self, mover: Actor, speed: float, waypoints: list[LOC_TYPES]
-    ) -> None:
+    def _start_mover(self, mover: Actor, speed: float, waypoints: LOC_LIST) -> None:
         """Start a mover's motion and find intersections with sensors.
 
         Args:
             mover (Actor): The mover
             speed (float): Speed (in model units)
-            waypoints (list[LOC_TYPES]): Waypoint of travel.
+            waypoints (LOC_LIST): Waypoint of travel.
         """
         detect_state = self._test_detect(mover)
         if detect_state is None:
@@ -458,16 +459,15 @@ class SensorMotionManager(UpstageBase):
 
         Args:
             sensor (SensorType): The sensor object
-            location_attr_name (str, optional): Name of the location attribute. Defaults to "location".
+            location_attr_name (str, optional): Name of the location attribute.
+                Defaults to "location".
             radius_attr_name (str, optional): Name of the radius attribute. Defaults to "radius".
         """
         # test the sensor for earlier errors about improperly-defined methods
         required_methods = ["entity_entered_range", "entity_exited_range"]
         for req in required_methods:
             if not hasattr(sensor, req):
-                raise NotImplementedError(
-                    f"Sensor {sensor} does not have '{req}' method!"
-                )
+                raise NotImplementedError(f"Sensor {sensor} does not have '{req}' method!")
         for attr in [location_attr_name, radius_attr_name]:
             _attr = getattr(sensor, attr, None)
             if _attr is None:

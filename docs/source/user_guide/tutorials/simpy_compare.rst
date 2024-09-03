@@ -209,7 +209,7 @@ We would start by doing this (assume any unseen methods are appropriate):
 
     class Cashier:
         ...
-        reqeusts: SIM.Store
+        requests: SIM.Store
 
     ...
     # inside run_cashier

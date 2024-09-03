@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name = "upstage"
-version = "1.0.0"
+version = "0.1.0"
 description = "A library for behavior-driven discrete event simulation."
 readme = "README.md"
 keywords = [
@@ -46,15 +46,18 @@ optional-dependencies.docs = [
   "pydata-sphinx-theme",
   "sphinx>=7",
 ]
-optional-dependencies.test = [
+optional-dependencies.lint = [
   "mypy",
   "pyproject-fmt!=0.9.1",
+  "pytest",
+  "ruff",
+  "ssort",
+]
+optional-dependencies.test = [
   "pytest-cov",
   "pytest-html",
   "pytest-json-report",
   "pytest-xdist",
-  "ruff",
-  "ssort",
 ]
 urls."Bug Tracker" = "https://github.com/JamesArruda/upstage/issues"
 urls.Documentation = "https://JamesArruda.github.io/upstage"
@@ -64,6 +67,31 @@ urls."Source" = "https://github.com/JamesArruda/upstage"
 exclude = [
   ".gitignore",
 ]
+
+[tool.ruff]
+line-length = 100
+cache-dir = "build/.ruff_cache"
+
+format.docstring-code-line-length = 100
+lint.select = [
+  "D",
+  "E",
+  "F",
+  "I",
+  "PLE",
+  "PLW",
+  "UP",
+]
+lint.ignore = [
+  "D105",
+]
+lint.per-file-ignores."src/upstage/test/__*.py" = [
+  "D",
+]
+lint.per-file-ignores."src/upstage/test/test*.py" = [
+  "D",
+]
+lint.pydocstyle.convention = "google"
 
 [tool.pytest.ini_options]
 junit_family = "xunit2"
@@ -122,15 +150,6 @@ exclude_also = [
   "except MotionAndDetectionError",
 ]
 
-[tool.doit]
-backend = "sqlite3"
-verbosity = 2
-par_type = "thread"
-
-[tool.doit.commands.list]
-status = true
-subtasks = true
-
 [tool.mypy]
 # broken by ipywidgetsplugins = "pydantic.mypy"
 cache_dir = "build/.mypy_cache"
@@ -145,38 +164,12 @@ warn_return_any = true
 warn_unused_ignores = true
 disable_error_code = "type-abstract"
 # disallow_any_unimported = true
-exclude = [
-  "^.+/upstage/test.+\\.py$",
-]
+#exclude = [
+#  "^.+/upstage/test.+\\.py$",
+#]
 
 [[tool.mypy.overrides]]
 module = [
   "importlib.metadata",
 ]
 ignore_missing_imports = true
-
-[tool.lint]
-select = [
-  "E",
-  "F",
-  "I",
-  "PLE",
-  "W",
-  "UP",
-  "D",
-]
-ignore = [
-  "E501",
-]
-cache-dir = "build/.ruff_cache"
-
-[tool.lint.per-file-ignores]
-"src/upstage/test/test*.py" = [
-  "D",
-]
-"src/upstage/test/__*.py" = [
-  "D",
-]
-
-[tool.lint.pydocstyle]
-convention = "google"

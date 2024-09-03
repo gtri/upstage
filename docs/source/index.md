@@ -19,7 +19,7 @@ Additional features include:
 3. Spatial-aware data types like {{ CartesianLocation }}, and states like the waypoint-following {{ GeodeticLocationChangingState }}.
 4. Geodetic and cartesian positions, distances, and motion - with ranged sensing.
 5. {{ NamedEntity }} in a thread-safe global context, enabling easier "director" logic creation with fewer args in your code
-6. The STAGE: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
+6. The stage: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
 7. Rehearsal: Write planning and simulation code in one place only, and "rehearse" an actor through a task network using planning factors to discover task feasibility.
 8. All States are recordable
 9. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.

@@ -7,17 +7,18 @@ import simpy as SIM
 
 import upstage.api as UP
 from upstage.api import Task
+from upstage.type_help import SIMPY_GEN, TASK_GEN
 
 
 class ParallelTest(UP.Actor):
-    comms = UP.State()
-    logger = UP.State()
-    internal = UP.State()
-    working = UP.State()
+    comms = UP.State[SIM.Store]()
+    logger = UP.State[list]()
+    internal = UP.State[SIM.Store]()
+    working = UP.State[bool]()
 
 
 class TaskOne(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: ParallelTest) -> TASK_GEN:
         actor.working = not actor.working
         actor._lock_state(state="working", task=self)
         thing = yield UP.Get(actor.internal)
@@ -26,24 +27,23 @@ class TaskOne(Task):
 
 
 class TaskTwo(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: ParallelTest) -> TASK_GEN:
         other = yield UP.Get(actor.comms)
         actor.logger.append((actor.env.now, "Put the message", actor.working))
         yield UP.Put(actor.internal, other)
 
 
-def test_parallel_looping():
+def test_parallel_looping() -> None:
     with UP.EnvironmentContext() as env:
         net_1_classes = {"Task": TaskOne}
-        net_1_links = {"Task": {"default": "Task", "allowed": ["Task"]}}
-
+        net_1_links = {"Task": UP.TaskLinks(default="Task", allowed=["Task"])}
         net_2_classes = {"Task": TaskTwo}
-        net_2_links = {"Task": {"default": "Task", "allowed": ["Task"]}}
+        net_2_links = {"Task": UP.TaskLinks(default="Task", allowed=["Task"])}
 
         tn1 = UP.TaskNetwork("InternalGet", net_1_classes, net_1_links)
         tn2 = UP.TaskNetwork("ExternalGet", net_2_classes, net_2_links)
 
-        def proc(env, actor, thing):
+        def proc(env: SIM.Environment, actor: ParallelTest, thing: str) -> SIMPY_GEN:
             yield env.timeout(1.3)
             yield actor.comms.put(thing)
             yield env.timeout(2.2)
@@ -67,9 +67,9 @@ def test_parallel_looping():
         running = pt.get_running_tasks()
         assert len(running) == 2
         assert "InternalGet" in running
-        assert running["InternalGet"]["name"] == "Task"
+        assert running["InternalGet"].name == "Task"
         assert "ExternalGet" in running
-        assert running["ExternalGet"]["name"] == "Task"
+        assert running["ExternalGet"].name == "Task"
 
         tqs = pt.get_all_task_queues()
         assert "InternalGet" in tqs

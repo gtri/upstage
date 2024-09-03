@@ -2,8 +2,7 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
-
-from typing import Any
+"""States that enable sharing between tasks."""
 
 from upstage.actor import Actor
 from upstage.base import UpstageError
@@ -15,6 +14,8 @@ class SharedLinearChangingState(ActiveState):
     """A state whose value changes linearly over time.
 
     Allows for multiple users of the state, keyed on actor and task.
+
+    Assumes it's a non-frozen, floating-point value.
 
     Still activated in the usual way:
 
@@ -28,8 +29,25 @@ class SharedLinearChangingState(ActiveState):
     >>> )
     """
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        *,
+        default: float | None = None,
+        recording: bool = False,
+    ) -> None:
+        """Create a linear changing state that is shareable.
+
+        Args:
+            default (float | None, optional): Default value. Defaults to None.
+            recording (bool, optional): If the state records. Defaults to False.
+        """
+        super().__init__(
+            default=default,
+            frozen=False,
+            valid_types=float,
+            recording=recording,
+            default_factory=None,
+        )
         self.IGNORE_LOCK: bool = True
 
     def _active(self, instance: Actor) -> float | None:

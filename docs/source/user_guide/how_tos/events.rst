@@ -56,7 +56,8 @@ Get from a store or container.
 
     amount = 12.3
     get_event = UP.Get(some_container, amount)
-    item = yield get_event
+    yield get_event
+    assert get_event.get_value() == amount
 
 
 :py:class:`~upstage.events.FilterGet`

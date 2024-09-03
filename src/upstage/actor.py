@@ -8,27 +8,29 @@
 from collections import defaultdict
 from collections.abc import Callable, Iterable
 from copy import copy, deepcopy
+from dataclasses import dataclass
 from inspect import Parameter, signature
-from typing import Any, Optional, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, Self
 
 from simpy import Process
+
 from upstage.events import Event
 
 from .base import (
     MockEnvironment,
     NamedUpstageEntity,
+    SettableEnv,
     SimulationError,
     UpstageError,
-    SettableEnv,
 )
-from .data_types import GeodeticLocation, CartesianLocation
+from .data_types import CartesianLocation, GeodeticLocation
 from .states import (
+    ActiveState,
+    CartesianLocationChangingState,
     DetectabilityState,
+    GeodeticLocationChangingState,
     ResourceState,
     State,
-    GeodeticLocationChangingState,
-    CartesianLocationChangingState,
-    ActiveState,
 )
 from .task import Task
 from .task_network import TaskNetwork, TaskNetworkFactory
@@ -41,6 +43,13 @@ if TYPE_CHECKING:
 
 LOC_STATE = GeodeticLocationChangingState | CartesianLocationChangingState
 LOCATIONS = GeodeticLocation | CartesianLocation
+LOC_LIST = list[GeodeticLocation] | list[CartesianLocation]
+
+
+@dataclass
+class TaskData:
+    name: str
+    process: Process
 
 
 class Actor(SettableEnv, NamedUpstageEntity):
@@ -68,7 +77,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
     """
 
-    def __init_states(self, **states: State) -> None:
+    def __init_states(self, **states: Any) -> None:
         seen = set()
         for state, value in states.items():
             if state in self._state_defs:
@@ -89,7 +98,14 @@ class Actor(SettableEnv, NamedUpstageEntity):
         if "log" in seen:
             raise UpstageError("Do not name a state `log`")
 
-    def __init__(self, *, name: str, debug_log: bool = True, **states: State) -> None:
+    def __init__(self, *, name: str, debug_log: bool = True, **states: Any) -> None:
+        """Create an Actor.
+
+        Args:
+            name (str): The name of the actor.
+            debug_log (bool, optional): Whether to write to debug log. Defaults to True.
+            states (Any): Values for each state as kwargs.
+        """
         self.name = name
         super().__init__()
 
@@ -97,9 +113,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self._num_clones: int = 0
         self._state_defs: dict[str, State] = getattr(self.__class__, "_state_defs", {})
 
-        self._mimic_states: dict[
-            str, tuple[Actor, str]
-        ] = {}  # has to be before other calls
+        self._mimic_states: dict[str, tuple[Actor, str]] = {}  # has to be before other calls
         self._mimic_states_by_task: dict[Task, set[str]] = defaultdict(set)
 
         self._states_by_task: dict[Task, set[str]] = defaultdict(set)
@@ -113,6 +127,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         self._debug_logging: bool = debug_log
         self._debug_log: list[str] = []
+
+        self._state_histories: dict[str, list[tuple[float, Any]]] = {}
 
         # Task Network Nucleus hook-ins
         self._state_listener: TaskNetworkNucleus | None = None
@@ -140,7 +156,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         cls._state_defs = all_states
 
         nxt = cls.mro()[1]
-        if nxt == object:
+        if nxt is object:
             raise UpstageError(f"Actor has bad inheritance, MRO: {cls.mro()}")
 
         sig = signature(cls.__init__)
@@ -200,9 +216,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         started_at = self.env.now if started_at is None else started_at
         old_data = self._active_states.get(state_name, {})
         new_data = {"started_at": started_at, **data}
-        keep_old = {
-            k: v for k, v in old_data.items() if k not in new_data and "_" == k[0]
-        }
+        keep_old = {k: v for k, v in old_data.items() if k not in new_data and "_" == k[0]}
         new_data.update(keep_old)
         self._active_states[state_name] = new_data
 
@@ -228,9 +242,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         if state not in self._state_defs:
             raise SimulationError(f"No state named '{state}' to activate")
         self._lock_state(state=state, task=task)
-        self._set_active_state_data(
-            state_name=state, started_at=self.env.now, task=task, **kwargs
-        )
+        self._set_active_state_data(state_name=state, started_at=self.env.now, task=task, **kwargs)
         # any initialization in the state needs to be called via attribute access
         getattr(self, state)
 
@@ -245,14 +257,15 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self.activate_state(state=state, task=task, rate=rate)
 
     def activate_location_state(
-        self, *, state: str, speed: float, waypoints: list[LOCATIONS], task: Task
+        self, *, state: str, speed: float, waypoints: LOC_LIST, task: Task
     ) -> None:
         """Shortcut for activating a (Cartesian|Geodetic)LocationChangingState.
 
         Args:
             state (str): State name
             speed (float): The speed to move at
-            waypoints (list[LOCATIONS]): Waypoints to move over
+            waypoints (LOC_LIST): Waypoints to move over
+            task (Task): The task that the state is activated during.
         """
         self.activate_state(
             state=state,
@@ -274,8 +287,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
             # be associated with this state
             if task not in self._tasks_by_state[state]:
                 raise SimulationError(
-                    f"State `{state}` isn't locked by '{task}', "
-                    "but it's trying to be unlocked."
+                    f"State `{state}` isn't locked by '{task}', " "but it's trying to be unlocked."
                 )
             self._states_by_task[task].remove(state)
             self._tasks_by_state[state].remove(task)
@@ -283,9 +295,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
             self._states_by_task[task].remove(state)
             self._tasks_by_state[state].remove(task)
         else:
-            raise UpstageError(
-                f"State '{state}' was not activated by '{task}', cannot deactivate"
-            )
+            raise UpstageError(f"State '{state}' was not activated by '{task}', cannot deactivate")
 
     def deactivate_states(self, *, states: str | Iterable[str], task: Task) -> None:
         """Set a list of active states to not active.
@@ -304,7 +314,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         """Deactivate a specific state.
 
         Args:
-            states (str | Iterable[str]): The names of the states to deactivate.
+            state (str): The name of the state to deactivate.
             task (Task): The task that is deactivating the state.
         """
         self._unlock_state(state=state, task=task)
@@ -336,7 +346,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         Args:
             state_name (str): The name of the state for which to retrieve the data.
-            without_update (bool): Whether or not to update the state to the current sim time. Defaults to True
+            without_update (bool): Whether or not to update the state to the current
+                sim time. Defaults to True
 
         Returns:
             dict[str, Any]: The state data.
@@ -450,7 +461,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         state = self._state_defs[state_name]
         state._remove_callback(source)
 
-    def get_knowledge(self, name: str, must_exist: bool = False) -> Any | None:
+    def get_knowledge(self, name: str, must_exist: bool = False) -> Any:
         """Get a knowledge value from the actor.
 
         Args:
@@ -458,7 +469,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
             must_exist (bool): Raise an error if the knowledge isn't present. Defaults to false.
 
         Returns:
-            Any | None: The knowledge value. None if the name doesn't exist.
+            Any: The knowledge value. None if the name doesn't exist.
         """
         if must_exist and name not in self._knowledge:
             raise SimulationError(f"Knowledge '{name}' does not exist in {self}")
@@ -499,7 +510,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
         Args:
             name (str): The name of the knowledge item.
             value (Any): The value to store for the knowledge.
-            overwrite (bool, Optional): Allow the knowledge to be changed if it exits. Defaults to False.
+            overwrite (bool, Optional): Allow the knowledge to be changed if it exits.
+                Defaults to False.
             caller (str, Optional): The name of the object that called the method.
         """
         self._log_caller(f"set_knowledge '{name}={value}'", caller_name=caller)
@@ -649,8 +661,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
         network = self._task_networks[network_name]
         network.loop(actor=self, init_task_name=init_task_name)
 
-    def get_running_task(self, network_name: str) -> dict[str, str | Process]:
-        """Return name and process reference of a task on this Actor's task network of the given name.
+    def get_running_task(self, network_name: str) -> TaskData | None:
+        """Return name and process reference of a task on this Actor's task network.
 
         Useful for finding a process to call interrupt() on.
 
@@ -658,40 +670,31 @@ class Actor(SettableEnv, NamedUpstageEntity):
             network_name (str): Network name.
 
         Returns:
-            dict[str, str | Process]: Dictionary of name and process for the current task.
+            TaskData: Dataclass of name and process for the current task.
                 {"name": Name, "process": the Process simpy is holding.}
         """
         if network_name not in self._task_networks:
-            raise SimulationError(
-                f"{self} does not have a task networked named {network_name}"
-            )
+            raise SimulationError(f"{self} does not have a task networked named {network_name}")
         net = self._task_networks[network_name]
         if net._current_task_proc is not None:
             assert net._current_task_name is not None
             assert net._current_task_proc is not None
-            task_data: dict[str, str | Process] = {
-                "name": net._current_task_name,
-                "process": net._current_task_proc,
-            }
+            task_data = TaskData(name=net._current_task_name, process=net._current_task_proc)
             return task_data
-        return {}
+        return None
 
-    def get_running_tasks(self) -> dict[str, dict[str, str | Process]]:
+    def get_running_tasks(self) -> dict[str, TaskData]:
         """Get all running task data.
 
         Returns:
-            dict[str, dict[str, str | Generator]]: Dictionary of all running tasks.
+            dict[str, dict[str, TaskData]]: Dictionary of all running tasks.
                 Keyed on network name, then {"name": Name, "process": ...}
         """
-        tasks: dict[str, dict[str, str | Process]] = {}
+        tasks: dict[str, TaskData] = {}
         for name, net in self._task_networks.items():
             if net._current_task_proc is not None:
                 assert net._current_task_name is not None
-                assert net._current_task_proc is not None
-                tasks[name] = {
-                    "name": net._current_task_name,
-                    "process": net._current_task_proc,
-                }
+                tasks[name] = TaskData(name=net._current_task_name, process=net._current_task_proc)
         return tasks
 
     def interrupt_network(self, network_name: str, **interrupt_kwargs: Any) -> None:
@@ -702,8 +705,9 @@ class Actor(SettableEnv, NamedUpstageEntity):
             interrupt_kwargs (Any): kwargs to pass to the interrupt.
         """
         data = self.get_running_task(network_name)
-        proc = cast(Process, data["process"])
-        proc.interrupt(**interrupt_kwargs)
+        if data is None:
+            raise UpstageError(f"No processes named {network_name} is running.")
+        data.process.interrupt(**interrupt_kwargs)
 
     def has_task_network(self, network_id: Any) -> bool:
         """Test if a network id exists.
@@ -717,7 +721,9 @@ class Actor(SettableEnv, NamedUpstageEntity):
         return network_id in self._task_networks
 
     def suggest_network_name(self, factory: TaskNetworkFactory) -> str:
-        """For creating multiple parallel task networks, this assists in deconflicting names of the networks.
+        """Deconflict names of task networks by suggesting a new name.
+
+        Used for creating multiple parallel task networks.
 
         Args:
             factory (TaskNetworkFactory): The factory from which you will create the network.
@@ -752,9 +758,9 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self,
         network_name: str,
         task_name_list: list[str],
-        knowledge: Optional[dict[str, Any]] = None,
-        end_task: Optional[str] = None,
-    ) -> "Actor":
+        knowledge: dict[str, Any] | None = None,
+        end_task: str | None = None,
+    ) -> Self:
         """Rehearse a network on this actor.
 
         Supply the network name, the tasks to rehearse from this state, and
@@ -763,7 +769,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
         Args:
             network_name (str): Network name
             task_name_list (list[str]): Tasks to rehearse on the network.
-            knowledge (dict[str, Any], optional): knowledge to give to the cloned actor. Defaults to None.
+            knowledge (dict[str, Any], optional): knowledge to give to the cloned
+                actor. Defaults to None.
             end_task (str, optional): A task to end on once reached.
 
         Returns:
@@ -771,7 +778,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         """
         knowledge = {} if knowledge is None else knowledge
         net = self._task_networks[network_name]
-        understudy: Actor = net.rehearse_network(
+        understudy = net.rehearse_network(
             actor=self,
             task_name_list=task_name_list,
             knowledge=knowledge,
@@ -783,8 +790,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self,
         new_env: MockEnvironment | None = None,
         knowledge: dict[str, Any] | None = None,
-        **new_states: State,
-    ) -> "Actor":
+        **new_states: Any,
+    ) -> Self:
         """Clones an actor and assigns it a new environment.
 
         Note:
@@ -798,16 +805,19 @@ class Actor(SettableEnv, NamedUpstageEntity):
             ``'#'`` indicates the number of clones of the actor.
 
         Args:
-            new_env (Optional[MockEnvironment], optional): Environment for cloning. Defaults to None.
-            knowledge (Optional[dict[str, Any]], optional): Knowledge for the clone. Defaults to None.
+            new_env (Optional[MockEnvironment], optional): Environment for cloning.
+                Defaults to None.
+            knowledge (Optional[dict[str, Any]], optional): Knowledge for the clone.
+                Defaults to None.
+            new_states (Any): New states to add to the actor when cloning.
 
         Returns:
-            Actor: The cloned actor
+            Actor: The cloned actor of the same type
         """
         knowledge = {} if knowledge is None else knowledge
         new_env = MockEnvironment.mock(self.env) if new_env is None else new_env
 
-        states = {}
+        states: dict[str, Any] = {}
         for state in self.states:
             state_obj = self._state_defs[state]
             if isinstance(state_obj, ResourceState):
@@ -839,13 +849,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         # update the state histories
         for state_name in self._state_defs:
-            history_name = f"_{state_name}_history"
-            if hasattr(self, history_name):
-                setattr(
-                    clone,
-                    history_name,
-                    deepcopy(getattr(self, history_name)),
-                )
+            if state_name in self._state_histories:
+                clone._state_histories[state_name] = deepcopy(self._state_histories[state_name])
 
         clone._knowledge = {}
         for name, data in self._knowledge.items():
@@ -882,6 +887,14 @@ class Actor(SettableEnv, NamedUpstageEntity):
             return self._debug_log
         return None
 
+    def get_log(self) -> list[str]:
+        """Get the debug log.
+
+        Returns:
+            list[str]: List of log messages.
+        """
+        return self._debug_log
+
     @property
     def states(self) -> tuple[str, ...]:
         """Get the names of the actor's states.
@@ -906,13 +919,9 @@ class Actor(SettableEnv, NamedUpstageEntity):
         Returns:
             None | str: The name of the state (None if none found).
         """
-        detection = [
-            k for k, v in self._state_defs.items() if isinstance(v, DetectabilityState)
-        ]
+        detection = [k for k, v in self._state_defs.items() if isinstance(v, DetectabilityState)]
         if len(detection) > 1:
-            raise NotImplementedError(
-                "Only 1 state of type DetectabilityState allowed for now"
-            )
+            raise NotImplementedError("Only 1 state of type DetectabilityState allowed for now")
         return None if not detection else detection[0]
 
     def _get_matching_state(
@@ -926,7 +935,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         Args:
             state_class (State): The class of state to search for
-            attr_matches (Optional[dict[str, Any]], optional): Attributes and values to match. Defaults to None.
+            attr_matches (Optional[dict[str, Any]], optional): Attributes and values
+                to match. Defaults to None.
 
         Returns:
             str | None: The name of the state (for getattr)
@@ -959,7 +969,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
     ) -> Event:
         """Create an event and store it in knowledge.
 
-        Useful for creating simple hold points in Tasks that can be succeeded by other processes.
+        Useful for creating simple hold points in Tasks that can be succeeded by
+        other processes.
 
         Example:
             >>> def task(self, actor):
@@ -973,7 +984,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         Args:
             name (str): Name of the knowledge slot to store the event in.
-            rehearsal_time_to_complete (float, optional): The event's expected time to complete. Defaults to 0.0.
+            rehearsal_time_to_complete (float, optional): The event's expected
+                time to complete. Defaults to 0.0.
 
         Returns:
             Event: The event to yield on
@@ -1007,7 +1019,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
     ) -> list[GeodeticLocation] | list[CartesianLocation]:
         """Convenience method for interacting with LocationChangingStates.
 
-        Primary use case is when restarting a Task that has a motion element to allow updating waypoint knowledge easily.
+        Primary use case is when restarting a Task that has a motion element to
+        allow updating waypoint knowledge easily.
 
         Args:
             location_state (str): The name of the <LocationChangingState>
@@ -1016,13 +1029,16 @@ class Actor(SettableEnv, NamedUpstageEntity):
             list[Location]: List of waypoints yet to be reached
         """
         loc_state = self._state_defs[location_state]
-        assert isinstance(
-            loc_state, GeodeticLocationChangingState | CartesianLocationChangingState
-        )
+        assert isinstance(loc_state, GeodeticLocationChangingState | CartesianLocationChangingState)
         wypts = loc_state._get_remaining_waypoints(self)
         return wypts
 
     def get_nucleus(self) -> "TaskNetworkNucleus":
+        """Return the actor's nucleus.
+
+        Returns:
+            TaskNetworkNucleus: The nucleus on the actor.
+        """
         if self._state_listener is None:
             raise SimulationError("Expected a nucleus, but none found.")
         return self._state_listener

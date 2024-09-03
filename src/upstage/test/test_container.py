@@ -17,12 +17,13 @@ from upstage.resources.monitoring import (
     SelfMonitoringContainer,
     SelfMonitoringContinuousContainer,
 )
+from upstage.type_help import SIMPY_GEN
 
 CONTAINER_CAPACITY = 100
 INITIAL_LEVEL = 50
 
 
-def test_basics():
+def test_basics() -> None:
     with EnvironmentContext() as env:
         con = ContinuousContainer(
             capacity=CONTAINER_CAPACITY,
@@ -41,7 +42,7 @@ def test_basics():
         assert err.value.cause == "Container is empty!"
 
 
-def test_error():
+def test_error() -> None:
     with EnvironmentContext() as env:
         con = ContinuousContainer(
             capacity=CONTAINER_CAPACITY,
@@ -56,7 +57,7 @@ def test_error():
             con.put(-20, 3)
 
 
-def test_calculations():
+def test_calculations() -> None:
     with EnvironmentContext() as env:
         con = ContinuousContainer(
             capacity=CONTAINER_CAPACITY,
@@ -69,7 +70,7 @@ def test_calculations():
         assert con.time_until_level(CONTAINER_CAPACITY) == float("inf")
 
 
-def test_checking():
+def test_checking() -> None:
     with EnvironmentContext() as env:
         auto_started = ContinuousContainer(
             capacity=CONTAINER_CAPACITY,
@@ -84,7 +85,7 @@ def test_checking():
             env.run(until=10)
 
 
-def test_get_and_put():
+def test_get_and_put() -> None:
     with EnvironmentContext() as env:
         tank = ContinuousContainer(env, capacity=1000.0, init=500.0)
         get_time = 10.0
@@ -111,7 +112,7 @@ def test_get_and_put():
         assert tank.level == 720
 
 
-def test_interrupting():
+def test_interrupting() -> None:
     with EnvironmentContext() as env:
         tank = ContinuousContainer(
             env,
@@ -123,7 +124,7 @@ def test_interrupting():
 
         msg = []
 
-        def full_callback():
+        def full_callback() -> None:
             msg.append("full")
 
         putter = tank.put(10.0, 100.0, custom_callbacks=[full_callback])
@@ -151,7 +152,7 @@ def test_interrupting():
         assert putter not in tank._active_users
 
 
-def test_complex_behavior():
+def test_complex_behavior() -> None:
     times = []
     tanker_called = [False]
 
@@ -163,13 +164,15 @@ def test_complex_behavior():
         )
         tank._set_new_rate(-1.0)
 
-        def tank_is_empty():
-            return "empty"
+        d: list[str] = []
 
-        def tank_is_overflowing():
-            return "overflowing"
+        def tank_is_empty() -> None:
+            d.append("empty")
 
-        def call_refill():
+        def tank_is_overflowing() -> None:
+            d.append("overflowing")
+
+        def call_refill() -> SIMPY_GEN:
             yield env.timeout(5.0)
 
             rate = 10.0
@@ -179,16 +182,14 @@ def test_complex_behavior():
             tanker_called[0] = False
             yield env.timeout(until)
 
-        def draw_fuel():
+        def draw_fuel() -> SIMPY_GEN:
             while True:
                 wait = uniform(10.0, 15.0)
 
                 yield env.timeout(wait)
 
                 rate = uniform(1.0, 2.0)
-                until = 0.5 * min(
-                    tank.time_until_done(rate * 0.99), uniform(20.0, 30.0)
-                )
+                until = 0.5 * min(tank.time_until_done(rate * 0.99), uniform(20.0, 30.0))
                 # print(f"{env.now:5.1f} - Random Draw (rate: {rate:.1f}, "
                 #       f"until={until:.1f})")
                 tank.get(rate=rate, time=until)
@@ -196,7 +197,7 @@ def test_complex_behavior():
                 # print("{:5.1f} - Random Draw Stopped".format(env.now, rate,
                 #                                              until))
 
-        def start_stop_getting():
+        def start_stop_getting() -> SIMPY_GEN:
             getter = tank.get(rate=1.0, time=1_000, custom_callbacks=[tank_is_empty])
             # print("{:5.1f} - Started constant getting".format(env.now))
             while True:
@@ -209,12 +210,10 @@ def test_complex_behavior():
                 wait = uniform(40.0, 60.0)
                 yield env.timeout(wait)
 
-                getter = tank.get(
-                    rate=10.0, time=1_000, custom_callbacks=[tank_is_empty]
-                )
+                getter = tank.get(rate=10.0, time=1_000, custom_callbacks=[tank_is_empty])
                 # print("{:5.1f} - Restarted constant getting".format(env.now))
 
-        def simulate():
+        def simulate() -> SIMPY_GEN:
             env.process(draw_fuel())
             env.process(start_stop_getting())
             while True:
@@ -236,7 +235,7 @@ def test_complex_behavior():
         tank._set_level()
 
 
-def test_basics_monitoring():
+def test_basics_monitoring() -> None:
     with EnvironmentContext() as env:
         con = SelfMonitoringContinuousContainer(
             capacity=CONTAINER_CAPACITY,
@@ -256,7 +255,7 @@ def test_basics_monitoring():
         assert len(con._quantities) == 3
 
 
-def test_checking_monitoring():
+def test_checking_monitoring() -> None:
     with EnvironmentContext() as env:
         auto_started = SelfMonitoringContinuousContainer(
             capacity=CONTAINER_CAPACITY,
@@ -271,11 +270,9 @@ def test_checking_monitoring():
             env.run(until=10)
 
 
-def test_self_monitoring_container():
+def test_self_monitoring_container() -> None:
     """Test self-monitoring container"""
     with EnvironmentContext() as env:
-        con = SelfMonitoringContainer(
-            env=env, capacity=CONTAINER_CAPACITY, init=INITIAL_LEVEL
-        )
+        con = SelfMonitoringContainer(env=env, capacity=CONTAINER_CAPACITY, init=INITIAL_LEVEL)
 
         assert len(con._quantities) == 1

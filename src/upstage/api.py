@@ -71,10 +71,10 @@ from upstage.states import (
 )
 
 # Task
-from upstage.task import DecisionTask, Task, TerminalTask, process
+from upstage.task import DecisionTask, InterruptStates, Task, TerminalTask, process
 
 # Task Networks
-from upstage.task_network import TaskNetwork, TaskNetworkFactory
+from upstage.task_network import TaskLinks, TaskNetwork, TaskNetworkFactory
 
 # Conversion
 from upstage.units import unit_convert
@@ -124,9 +124,11 @@ __all__ = [
     "DecisionTask",
     "Task",
     "process",
+    "InterruptStates",
     "TerminalTask",
     "TaskNetwork",
     "TaskNetworkFactory",
+    "TaskLinks",
     "TaskNetworkNucleus",
     "NucleusInterrupt",
     "SharedLinearChangingState",

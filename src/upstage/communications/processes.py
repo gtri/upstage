@@ -2,19 +2,20 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""Communications process helper."""
 
 from collections.abc import Callable, Generator
 from typing import Any
 
-from simpy import Process, Store, Event
+from simpy import Event, Process, Store
 
-from upstage.communications.comms import CommsManager, MessageContent, Message
+from upstage.communications.comms import CommsManager, Message, MessageContent
 from upstage.task import process
 
 
 def generate_comms_wait(
     incoming_store: Store,
-    callback: Callable[[str | MessageContent | dict], Any],
+    callback: Callable[[MessageContent], Any],
 ) -> Callable[[], Process]:
     """Create a process function to transfer communications to a callback.
 

@@ -3,70 +3,76 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from typing import Any, Generic, TypeVar, cast
+
 import pytest
+import simpy as SIM
 
 import upstage.api as UP
 from upstage.geography import Spherical, get_intersection_locations
 from upstage.motion.cartesian_model import cartesian_linear_intersection as cli
 from upstage.motion.geodetic_model import analytical_intersection as agi
 from upstage.motion.geodetic_model import subdivide_intersection as gi
+from upstage.type_help import TASK_GEN
+
+LOC = TypeVar("LOC", bound=UP.CartesianLocation | UP.GeodeticLocation)
 
 
-class DummySensor:
+class DummySensor(Generic[LOC]):
     """A simple sensor for testing purposes."""
 
-    def __init__(self, env, location=None, radius=1.0):
+    def __init__(self, env: SIM.Environment, location: LOC, radius: float = 1.0) -> None:
         self.env = env
-        self.data = []
+        self.data: list[tuple[Any, float, str]] = []
         self._location = location
         self._radius = radius
 
-    def entity_entered_range(self, mover):
-        self.data.append([mover, self.env.now, "detect"])
+    def entity_entered_range(self, mover: Any) -> None:
+        self.data.append((mover, self.env.now, "detect"))
         if hasattr(mover, "loc"):
             # call the location to record it
             mover.loc
 
-    def entity_exited_range(self, mover):
+    def entity_exited_range(self, mover: Any) -> None:
         self.data.append((mover, self.env.now, "end detect"))
         if hasattr(mover, "loc"):
             # call the location to record it
             mover.loc
 
     @property
-    def location(self):
+    def location(self) -> LOC:
         return self._location
 
     @property
-    def radius(self):
+    def radius(self) -> float:
         return self._radius
 
 
 class BadSensor:
     """An incomplete sensor for testing purposes."""
 
-    def __init__(self, env, location, radius):
+    def __init__(self, env: SIM.Environment, location: tuple[float, ...], radius: float) -> None:
         self.env = env
         self._location = UP.CartesianLocation(*location)
         self._radius = radius
 
     @property
-    def location(self):
+    def location(self) -> UP.CartesianLocation:
         return self._location
 
     @property
-    def radius(self):
+    def radius(self) -> float:
         return self._radius
 
 
 class DummyMover:
     """A simple mover for testing purposes."""
 
-    def __init__(self, env):
+    def __init__(self, env: SIM.Environment) -> None:
         self.env = env
         self.detect = True
 
-    def _get_detection_state(self):
+    def _get_detection_state(self) -> str:
         return "detect"
 
 
@@ -74,7 +80,7 @@ class RealMover(UP.Actor):
     """A more realistic mover that moves in Cartesian Space."""
 
     loc = UP.CartesianLocationChangingState(recording=True)
-    speed = UP.State()
+    speed = UP.State[float]()
     detect = UP.DetectabilityState()
 
 
@@ -82,7 +88,7 @@ class RealGeodeticMover(UP.Actor):
     """A more realistic mover that moves in Geodetic Space."""
 
     loc = UP.GeodeticLocationChangingState(recording=True)
-    speed = UP.State()
+    speed = UP.State[float]()
     detect = UP.DetectabilityState()
 
 
@@ -90,37 +96,48 @@ class RealGeodeticMover(UP.Actor):
 class DoMove(UP.Task):
     """A task for movers to move."""
 
-    def task(self, *, actor):
-        dist = 0
-        curr = actor.loc
-        for wypt in list(self.waypoints):
-            dist += wypt - curr
-            curr = wypt
+    waypoints: list[UP.GeodeticLocation] | list[UP.CartesianLocation] = []
+
+    def task(self, *, actor: RealGeodeticMover | RealMover) -> TASK_GEN:
+        dist = 0.0
+        wayps = [actor.loc] + list(self.waypoints)
+        for i in range(len(wayps) - 1):
+            dist += wayps[i + 1] - wayps[i]
         time = dist / actor.speed
 
         actor.activate_location_state(
             state="loc",
             task=self,
             speed=actor.speed,
-            waypoints=[x.copy() for x in self.waypoints],
+            waypoints=self.waypoints,
         )
         yield UP.Wait(time)
         actor.deactivate_all_states(task=self)
 
-    def on_interrupt(self, *, actor, cause):
+    def on_interrupt(
+        self, *, actor: RealGeodeticMover | RealMover, cause: Any
+    ) -> UP.InterruptStates:
         if cause == "Become undetectable":
             actor.detect = False
             return self.INTERRUPT.IGNORE
         return self.INTERRUPT.END
 
 
-def _create_mover_and_waypoints(env, mover_type, location_type, *waypoints):
-    mover = mover_type(env)
+L = TypeVar("L")
+
+
+def _create_mover_and_waypoints(
+    env: SIM.Environment,
+    mover_type: type,
+    location_type: type[L],
+    *waypoints: tuple[float, ...],
+) -> tuple[UP.Actor, list[L]]:
+    mover = cast(UP.Actor, mover_type(env))
     waypoints = [location_type(*waypoint) for waypoint in waypoints]
     return mover, waypoints
 
 
-def test_errors():
+def test_errors() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli)
@@ -133,20 +150,20 @@ def test_errors():
             (1, 1, 0),
         )
 
-        bad_sensor = BadSensor(env, [0.9, 0.9], 0.5)
+        bad_sensor = BadSensor(env, (0.9, 0.9), 0.5)
 
         with pytest.raises(UP.MotionAndDetectionError):
             motion._stop_mover(mover)
 
         motion._start_mover(mover, speed=1.0, waypoints=waypoints)
         with pytest.raises(UP.MotionAndDetectionError):
-            motion._start_mover(mover, speed=1.0, waypoints=[[2, 2], [3, 3]])
+            motion._start_mover(mover, speed=1.0, waypoints=[[2, 2], [3, 3]])  # type: ignore [arg-type]
 
         with pytest.raises(NotImplementedError):
-            motion.add_sensor(bad_sensor, "location", "radius")
+            motion.add_sensor(bad_sensor, "location", "radius")  # type: ignore [arg-type]
 
 
-def test_no_interaction_cli():
+def test_no_interaction_cli() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli)
@@ -175,7 +192,7 @@ def test_no_interaction_cli():
         assert motion._debug_log == [], "No log expected for no actions"
 
 
-def test_enter_exit():
+def test_enter_exit() -> None:
     with UP.EnvironmentContext() as env:
         motion = UP.SensorMotionManager(cli)
         mover, waypoints = _create_mover_and_waypoints(
@@ -208,7 +225,7 @@ def test_enter_exit():
         assert sensor not in motion._in_view.get(mover, {})
 
 
-def test_sensor_popup():
+def test_sensor_popup() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli)
@@ -244,7 +261,7 @@ def test_sensor_popup():
         assert sensor not in motion._in_view.get(mover, {})
 
 
-def test_start_inside_exit():
+def test_start_inside_exit() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli)
@@ -276,7 +293,7 @@ def test_start_inside_exit():
         assert sensor not in motion._in_view.get(mover, {})
 
 
-def test_enter_end_inside_then_leave():
+def test_enter_end_inside_then_leave() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli)
@@ -318,7 +335,7 @@ def test_enter_end_inside_then_leave():
         assert sensor not in motion._in_view[mover]
 
 
-def test_start_inside_end_inside():
+def test_start_inside_end_inside() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli)
@@ -329,6 +346,7 @@ def test_start_inside_end_inside():
             (0.5, 0.5, 0),
             (-0.5, -0.5, 0),
         )
+        mover = cast(UP.Actor, mover)
         loc = UP.CartesianLocation(0, 0, 0)
         sensor = DummySensor(env, loc)
         motion.add_sensor(
@@ -339,14 +357,12 @@ def test_start_inside_end_inside():
 
         assert env.now == 0
 
-        assert (
-            len(sensor.data) == 1
-        ), f"Only need to see the start recorded: {sensor.data}"
+        assert len(sensor.data) == 1, f"Only need to see the start recorded: {sensor.data}"
         assert sensor.data[0][2] == "detect"
         assert sensor in motion._in_view[mover]
 
 
-def test_motion_setup_cli():
+def test_motion_setup_cli() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -354,7 +370,7 @@ def test_motion_setup_cli():
         loc = UP.CartesianLocation(0, 0, 0)
         sensor = DummySensor(env, loc, radius=10.0)
 
-        mover = DummyMover(env)
+        mover = cast(UP.Actor, DummyMover(env))
         mover_start = UP.CartesianLocation(*[8, 8, 2])
         waypoints = [
             mover_start,
@@ -376,7 +392,7 @@ def test_motion_setup_cli():
             assert pytest.approx(truth) == datum[1]
 
 
-def test_late_intersection():
+def test_late_intersection() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -384,7 +400,7 @@ def test_late_intersection():
         loc = UP.CartesianLocation(0, 0, 0)
         sensor = DummySensor(env, loc, radius=5.0)
 
-        mover = DummyMover(env)
+        mover = cast(UP.Actor, DummyMover(env))
         mover_start = UP.CartesianLocation(*[0, 8, 0])
         waypoints = [
             mover_start,
@@ -397,7 +413,7 @@ def test_late_intersection():
         env.run()
 
 
-def test_motion_coordination_cli():
+def test_motion_coordination_cli() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -427,12 +443,12 @@ def test_motion_coordination_cli():
         for i, data in enumerate(motion._debug_data[mover]):
             sense, kinds, times, inters = data
             loc = inters[0]
-            assert times[0] == mover._loc_history[i * 2 + 1][0]
-            assert times[1] == mover._loc_history[i * 2 + 2][0]
-            assert abs(loc - mover._loc_history[i * 2 + 1][1]) <= 1e-12
+            assert times[0] == mover._state_histories["loc"][i * 2 + 1][0]
+            assert times[1] == mover._state_histories["loc"][i * 2 + 2][0]
+            assert abs(loc - mover._state_histories["loc"][i * 2 + 1][1]) <= 1e-12
 
 
-def test_background_motion():
+def test_background_motion() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -463,7 +479,7 @@ def test_background_motion():
         # TODO: TEST EQUIVALENT POINTS: I MISSED THAT ONE
 
 
-def test_background_rehearse():
+def test_background_rehearse() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -491,7 +507,7 @@ def test_background_rehearse():
         assert flyer_clone not in motion._debug_data
 
 
-def test_interrupt_clean():
+def test_interrupt_clean() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -500,9 +516,7 @@ def test_interrupt_clean():
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(
-            name="A Mover", loc=mover_start, speed=1, detect=True, debug_log=True
-        )
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1, detect=True, debug_log=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -542,7 +556,7 @@ def test_interrupt_clean():
         assert mover not in motion._movers
 
 
-def test_undetectable_cli():
+def test_undetectable_cli() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -551,9 +565,7 @@ def test_undetectable_cli():
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(
-            name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=True
-        )
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -576,7 +588,7 @@ def test_undetectable_cli():
         assert sensor.data[-1] == (mover, 25, "end detect")
 
 
-def test_redetectable():
+def test_redetectable() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -585,9 +597,7 @@ def test_redetectable():
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(
-            name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=False
-        )
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=False)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -601,13 +611,11 @@ def test_redetectable():
         motion.add_sensor(sensor)
         # no need to start the mover this time
         env.run(until=25)
-        with pytest.warns(
-            UserWarning, match="Setting DetectabilityState to True while*"
-        ):
+        with pytest.warns(UserWarning, match="Setting DetectabilityState to True while*"):
             mover.detect = True
 
 
-def test_undetectable_after():
+def test_undetectable_after() -> None:
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("distance_units", "m")
         motion = UP.SensorMotionManager(cli, debug=True)
@@ -616,9 +624,7 @@ def test_undetectable_after():
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(
-            name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=True
-        )
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -642,7 +648,7 @@ def test_undetectable_after():
         assert len(sensor.data) == 4
 
 
-def test_motion_setup_gi():
+def test_motion_setup_gi() -> None:
     with UP.EnvironmentContext() as env:
         motion = UP.SensorMotionManager(gi, debug=True)
         UP.add_stage_variable("stage_model", Spherical)
@@ -652,7 +658,7 @@ def test_motion_setup_gi():
         loc = UP.GeodeticLocation(0, 0, 0)
         sensor = DummySensor(env, loc, radius=150.0)
 
-        geo_mover = DummyMover(env)
+        geo_mover = cast(UP.Actor, DummyMover(env))
         t = 2
         geo_mover_start = UP.GeodeticLocation(*[t, t, 4000])
         waypoints = [
@@ -673,19 +679,19 @@ def test_motion_setup_gi():
             assert pytest.approx(truth, abs=0.001) == datum[1]
 
 
-def test_no_interaction_gi():
+def test_no_interaction_gi() -> None:
     with UP.EnvironmentContext() as env:
         motion = UP.SensorMotionManager(gi, debug=True)
         UP.add_stage_variable("stage_model", Spherical)
         UP.add_stage_variable("altitude_units", "ft")
         UP.add_stage_variable("distance_units", "nmi")
         UP.add_stage_variable("intersection_model", get_intersection_locations)
-        env = env
+
         motion = UP.SensorMotionManager(gi)
         loc = UP.GeodeticLocation(*[90, 40, 0])
         sensor = DummySensor(env, loc, 1.0)
 
-        mover = DummyMover(env)
+        mover = cast(UP.Actor, DummyMover(env))
         waypoints = [
             UP.GeodeticLocation(0, 10, 0),
             UP.GeodeticLocation(10, 10, 0),
@@ -706,7 +712,7 @@ def test_no_interaction_gi():
         motion._stop_mover(mover)
 
 
-def test_motion_coordination_gi():
+def test_motion_coordination_gi() -> None:
     with UP.EnvironmentContext() as env:
         motion = UP.SensorMotionManager(gi, debug=True)
         UP.add_stage_variable("stage_model", Spherical)
@@ -719,9 +725,7 @@ def test_motion_coordination_gi():
 
         t = 2
         geo_mover_start = UP.GeodeticLocation(*[t, t, 4000])
-        geo_mover = RealGeodeticMover(
-            name="Mover", loc=geo_mover_start, speed=1, detect=True
-        )
+        geo_mover = RealGeodeticMover(name="Mover", loc=geo_mover_start, speed=1, detect=True)
 
         waypoints = [
             geo_mover_start,
@@ -742,11 +746,11 @@ def test_motion_coordination_gi():
         for i, data in zip([1, 3, 5], motion._debug_data[geo_mover]):
             sense, kinds, times, inters = data
             loc = inters[0]
-            assert times[0] == geo_mover._loc_history[i][0]
-            assert abs(loc - geo_mover._loc_history[i][1]) <= 1e-12
+            assert times[0] == geo_mover._state_histories["loc"][i][0]
+            assert abs(loc - geo_mover._state_histories["loc"][i][1]) <= 1e-12
 
 
-def test_motion_setup_agi():
+def test_motion_setup_agi() -> None:
     with UP.EnvironmentContext() as env:
         motion = UP.SensorMotionManager(agi, debug=True)
         UP.add_stage_variable("stage_model", Spherical)
@@ -756,7 +760,7 @@ def test_motion_setup_agi():
         UP.add_stage_variable("motion_manager", motion)
         sensor = DummySensor(env, UP.GeodeticLocation(0, 0, 0), radius=150.0)
 
-        geo_mover = DummyMover(env)
+        geo_mover = cast(UP.Actor, DummyMover(env))
         t = 2
         geo_mover_start = UP.GeodeticLocation(*[t, t, 4000])
         waypoints = [
@@ -777,7 +781,7 @@ def test_motion_setup_agi():
             assert pytest.approx(truth, abs=0.1) == datum[1]
 
 
-def test_no_interaction_agi():
+def test_no_interaction_agi() -> None:
     with UP.EnvironmentContext() as env:
         motion = UP.SensorMotionManager(agi, debug=True)
         UP.add_stage_variable("stage_model", Spherical)
@@ -786,12 +790,11 @@ def test_no_interaction_agi():
         UP.add_stage_variable("intersection_model", get_intersection_locations)
         UP.add_stage_variable("motion_manager", motion)
 
-        env = env
         motion = UP.SensorMotionManager(agi)
         sensor = DummySensor(env, UP.GeodeticLocation(0, 0, 0))
         UP.GeodeticLocation(*[0, 0, 0])
 
-        mover = DummyMover(env)
+        mover = cast(UP.Actor, DummyMover(env))
         waypoints = [
             UP.GeodeticLocation(0, 10, 0),
             UP.GeodeticLocation(10, 10, 0),
@@ -812,7 +815,7 @@ def test_no_interaction_agi():
         motion._stop_mover(mover)
 
 
-def test_motion_coordination_agi():
+def test_motion_coordination_agi() -> None:
     with UP.EnvironmentContext() as env:
         motion = UP.SensorMotionManager(agi, debug=True)
         UP.add_stage_variable("stage_model", Spherical)
@@ -825,9 +828,7 @@ def test_motion_coordination_agi():
 
         t = 2
         geo_mover_start = UP.GeodeticLocation(*[t, t, 4000])
-        geo_mover = RealGeodeticMover(
-            name="Mover", loc=geo_mover_start, speed=1, detect=True
-        )
+        geo_mover = RealGeodeticMover(name="Mover", loc=geo_mover_start, speed=1, detect=True)
 
         waypoints = [
             geo_mover_start,
@@ -848,11 +849,11 @@ def test_motion_coordination_agi():
         for i, data in zip([1, 3, 5], motion._debug_data[geo_mover]):
             sense, kinds, times, inters = data
             loc = inters[0]
-            assert times[0] == geo_mover._loc_history[i][0]
-            assert abs(loc - geo_mover._loc_history[i][1]) <= 0.5  # nm
+            assert times[0] == geo_mover._state_histories["loc"][i][0]
+            assert abs(loc - geo_mover._state_histories["loc"][i][1]) <= 0.5  # nm
 
 
-def test_analytical_intersection():
+def test_analytical_intersection() -> None:
     with UP.EnvironmentContext():
         UP.add_stage_variable("stage_model", Spherical)
         UP.add_stage_variable("altitude_units", "m")

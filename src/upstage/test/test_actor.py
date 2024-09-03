@@ -4,6 +4,7 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 from inspect import signature
+from typing import Any
 
 import pytest
 
@@ -29,8 +30,8 @@ def test_actor_creation() -> None:
 
 
 def test_actor_subclass(
-    base_actors: tuple[tuple[UP.State, ...], tuple[UP.Actor, ...]],
-):
+    base_actors: tuple[tuple[UP.State, ...], tuple[type[UP.Actor], ...]],
+) -> None:
     """Test subclasses of actor.
 
     A subclass of actor must have a proper signature and states in its
@@ -57,7 +58,7 @@ def test_actor_subclass(
 
     # test making an instance without arguments raising an error
     with pytest.raises(Exception):
-        ActorSubclass()
+        ActorSubclass()  # type: ignore [call-arg]
 
     with EnvironmentContext():
         # create an instance
@@ -67,7 +68,7 @@ def test_actor_subclass(
             state_two=2,
         )
 
-        assert instance.a_function(123) == (instance, 123)
+        assert instance.a_function(123) == (instance, 123)  # type: ignore [attr-defined]
 
         # test the state definitions
         assert hasattr(instance, "_state_defs")
@@ -82,13 +83,13 @@ def test_actor_subclass(
     # Test that copying a state name will cause a failure.
     with pytest.raises(ValueError):
 
-        class _(DoubleSubclass):
-            state_three = UP.State(default=1.2)
+        class _(DoubleSubclass):  # type: ignore [valid-type, misc]
+            state_three = UP.State[float](default=1.2)
 
 
 def test_multiple_inheritance(
-    base_actors: tuple[tuple[UP.State, ...], tuple[UP.Actor, ...]],
-):
+    base_actors: tuple[tuple[UP.State, ...], tuple[type[UP.Actor], ...]],
+) -> None:
     """Test actor subclasses but for an additional subclass."""
     states, actors = base_actors
     first_state, second_state, third_state, fourth_state = states
@@ -111,7 +112,7 @@ def test_multiple_inheritance(
             state_three=3,
             state_four=4,
         )
-        assert instance.b_function(123) == (instance, 123)
+        assert instance.b_function(123) == (instance, 123)  # type: ignore [attr-defined]
 
         # test the state definitions
         assert hasattr(instance, "_state_defs")
@@ -123,7 +124,7 @@ def test_multiple_inheritance(
         assert instance._state_defs["state_four"] is fourth_state
 
 
-def test_get_knowledge():
+def test_get_knowledge() -> None:
     class TestActor(Actor):
         pass
 
@@ -142,7 +143,7 @@ def test_get_knowledge():
         assert other_value is None, "Empty knowledge returned something other than None"
 
 
-def test_set_knowledge():
+def test_set_knowledge() -> None:
     class TestActor(Actor):
         pass
 
@@ -162,7 +163,7 @@ def test_set_knowledge():
         assert value2 == returned_value, "Returned value is not the same knowldge"
 
 
-def test_clear_knowledge():
+def test_clear_knowledge() -> None:
     class TestActor(Actor):
         pass
 
@@ -180,7 +181,7 @@ def test_clear_knowledge():
         assert know is None, "Knowledge was not cleared"
 
 
-def test_knowledge_event():
+def test_knowledge_event() -> None:
     with EnvironmentContext() as env:
         act = Actor(name="A test actor")
         evt = act.create_knowledge_event(name="Waiter")
@@ -192,17 +193,15 @@ def test_knowledge_event():
         assert evt.is_complete()
 
 
-def test_actor_copying():
+def test_actor_copying() -> None:
     class SomeActor(Actor):
         kind = "a simple actor for testing"
-        some_state = State()
+        some_state = State[Any]()
 
     with EnvironmentContext():
         actor = SomeActor(name="some actor", some_state=True)
 
-        mock_env = {"None": None}
-
-        clone = actor.clone(new_env=mock_env, some_state=False)
+        clone = actor.clone(new_env=None, some_state=False)
 
         assert clone.some_state != actor.some_state
 
@@ -215,22 +214,21 @@ def test_actor_copying():
         assert actor.kind == clone.kind
 
 
-def test_actor_copy_with_knowledge():
+def test_actor_copy_with_knowledge() -> None:
     class SomeActor(Actor):
         kind = "a simple actor for testing"
-        some_state = State()
+        some_state = State[Any]()
 
     with EnvironmentContext():
         actor = SomeActor(name="some actor", some_state=True)
-        names = ["new", "other"]
-        values = [{"A": 1, "B": 2}, 1234.567]
-        for name, value in zip(names, values):
-            actor.set_knowledge(name, value)
+        d_values = {"A": 1, "B": 2}
+        float_value = 1234.567
 
-        mock_env = {"None": None}
+        actor.set_knowledge("new", d_values)
+        actor.set_knowledge("other", float_value)
 
-        clone = actor.clone(new_env=mock_env, some_state=False)
-        for name, value in zip(names, values):
+        clone = actor.clone(new_env=None, some_state=False)
+        for name in ["new", "other"]:
             v1 = actor.get_knowledge(name)
             v2 = clone.get_knowledge(name)
             assert v1 == v2, "Copied knowledge is different"
@@ -238,7 +236,7 @@ def test_actor_copy_with_knowledge():
         # we can't test for equal IDs or object equivalence because of how
         # Python handles memory for booleans, small integers, etc.
 
-        values[0]["A"] = 23
+        d_values["A"] = 23
         v1 = actor.get_knowledge("new")
         assert v1["A"] == 23, "Input knowledge did not retain reference"
 

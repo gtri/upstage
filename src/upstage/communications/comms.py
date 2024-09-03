@@ -7,11 +7,11 @@
 
 from collections.abc import Generator
 from dataclasses import dataclass
+from typing import Any
 from uuid import uuid4
 
 from simpy import Event as SimpyEvent
 from simpy import Store
-from typing import Any
 
 from upstage.actor import Actor
 from upstage.base import ENV_CONTEXT_VAR, SimulationError, UpstageBase
@@ -22,13 +22,18 @@ from upstage.task import process
 
 @dataclass
 class MessageContent:
+    """Message content data object."""
+
     data: dict
+    message: str | None = None
 
 
 @dataclass
 class Message:
+    """A message data object."""
+
     sender: Actor
-    content: str | MessageContent | dict
+    content: MessageContent
     destination: Actor
 
     header: str | None = None
@@ -130,19 +135,20 @@ class CommsManager(UpstageBase):
         self.debug_logging: bool = debug_logging
 
     @staticmethod
-    def clean_message(message: str | Message) -> str | MessageContent | dict:
+    def clean_message(message: str | Message) -> MessageContent:
         """Test to see if an object is a message.
 
         If it is, return the message contents only. Otherwise return the message.
 
-        Parameters
-        ----------
-        message :
-            The message to clean
+        Args:
+            message (str | Message): The message to clean
+
+        Returns:
+            MessageContent: The message as a message content object.
         """
         if isinstance(message, Message):
             return message.content
-        return message
+        return MessageContent(data={"message": message})
 
     def connect(self, entity: Actor, comms_store_name: str) -> None:
         """Connect an actor and its comms store to this comms manager.
@@ -154,11 +160,17 @@ class CommsManager(UpstageBase):
         self.connected[entity] = comms_store_name
 
     def store_from_actor(self, actor: Actor) -> Store:
+        """Retrieve a communications store from an actor.
+
+        Args:
+            actor (Actor): The actor
+
+        Returns:
+            Store: A Comms store.
+        """
         if actor not in self.connected:
             try:
-                msg_store_name = actor._get_matching_state(
-                    CommunicationStore, {"_mode": self.mode}
-                )
+                msg_store_name = actor._get_matching_state(CommunicationStore, {"_mode": self.mode})
             except SimulationError as e:
                 e.add_note(f"No comms destination on actor {actor}")
                 raise e
@@ -197,11 +209,22 @@ class CommsManager(UpstageBase):
         Put
             UPSTAGE Put event object to yield from a task
         """
-        if not isinstance(message, Message):
-            message = Message(sender=source, content=message, destination=destination)
+        use: Message
+        if isinstance(message, Message):
+            use = message
+        elif isinstance(message, MessageContent):
+            use = Message(sender=source, content=message, destination=destination)
+        else:
+            content = (
+                MessageContent(data=message)
+                if isinstance(message, dict)
+                else MessageContent(data={}, message=message)
+            )
+            use = Message(sender=source, content=content, destination=destination)
+
         return Put(
             self.incoming,
-            message,
+            use,
             rehearsal_time_to_complete=rehearsal_time_to_complete,
         )
 
@@ -210,7 +233,7 @@ class CommsManager(UpstageBase):
         self, message: Message, destination: Actor
     ) -> Generator[SimpyEvent, None, None]:
         start_time = self.env.now
-        while self.comms_degraded or self.link_test(message):
+        while self.comms_degraded or self.test_if_link_is_blocked(message):
             if self.debug_logging:
                 msg = {
                     "time": self.env.now,
@@ -253,6 +276,11 @@ class CommsManager(UpstageBase):
 
     @process
     def run(self) -> Generator[SimpyEvent, Any, None]:
+        """Run the communications message passing.
+
+        Yields:
+            Generator[SimpyEvent, Any, None]: Simpy Process
+        """
         while True:
             message = yield self.incoming.get()
             dest = message.destination
@@ -265,7 +293,15 @@ class CommsManager(UpstageBase):
                 return True
         return False
 
-    def link_test(self, message: Message) -> bool:
+    def test_if_link_is_blocked(self, message: Message) -> bool:
+        """Test if a link is blocked.
+
+        Args:
+            message (Message): Message with sender/destination data.
+
+        Returns:
+            bool: If the link is blocked.
+        """
         if self._link_compare(message.sender, message.destination):
             return True
         return False

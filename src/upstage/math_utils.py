@@ -11,7 +11,7 @@ VECTOR = list[float] | tuple[float, ...]
 
 
 def _vector_subtract(A: VECTOR, B: VECTOR) -> list[float]:
-    """Subtract equal-sized vectors
+    """Subtract equal-sized vectors.
 
     Args:
         A (list[float]): Left vector
@@ -28,14 +28,14 @@ def _vector_subtract(A: VECTOR, B: VECTOR) -> list[float]:
 
 
 def _vector_add(A: VECTOR, B: VECTOR) -> list[float]:
-    """Subtract equal-sized vectors
+    """Add equal-sized vectors.
 
     Args:
         A (list[float]): Left vector
         B (list[float]): Right vector
 
     Returns:
-        list[float]: Subtracted vector
+        list[float]: Added vector
     """
     if not (len(A) == len(B)):
         raise ValueError("Vectors are not the same size")
@@ -58,7 +58,7 @@ def _vector_dot(A: VECTOR, B: VECTOR) -> float:
 
 
 def _vector_norm(arr: VECTOR) -> float:
-    """Norm of a vector
+    """Norm of a vector.
 
     Args:
         arr (VECTOR): vector
@@ -71,6 +71,18 @@ def _vector_norm(arr: VECTOR) -> float:
 
 
 def _roots(a: float, b: float, c: float) -> list[float]:
+    """Calculate the roots of a quadratic.
+
+    The form is ax^2 + bx + c = 0.
+
+    Args:
+        a (float): Coefficient on the square term
+        b (float): Coefficient on the base term
+        c (float): Constant
+
+    Returns:
+        list[float]: The two roots, empty if not real.
+    """
     discriminant = b**2 - 4 * a * c
     if discriminant < 0:
         return []

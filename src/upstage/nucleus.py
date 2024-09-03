@@ -2,6 +2,7 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""The file contains the Nucleus features of UPSTAGE."""
 
 from collections import defaultdict
 from typing import Any
@@ -12,6 +13,8 @@ from upstage.task_network import TaskNetwork
 
 
 class NucleusInterrupt:
+    """A data container for interrupting nucleus events."""
+
     def __init__(self, name: str, value: Any) -> None:
         """A container for Nucleus interrupt data.
 
@@ -27,6 +30,8 @@ class NucleusInterrupt:
 
 
 class TaskNetworkNucleus:
+    """The nucleus, for state-based task network signaling."""
+
     def _attach(self) -> None:
         """Attach the nucleus to an actor."""
         self._actor.log(f"Attaching {self} as a state listener!")
@@ -39,6 +44,11 @@ class TaskNetworkNucleus:
         *,
         actor: Actor,
     ) -> None:
+        """Create a task network nucleus on an Actor.
+
+        Args:
+            actor (Actor): The actor instance.
+        """
         self._actor = actor
         self._state_map: dict[str, set[str]] = defaultdict(set)
         self._network_map: dict[str, set[str]] = defaultdict(set)
@@ -83,6 +93,12 @@ class TaskNetworkNucleus:
         del self._network_map[network_name]
 
     def send_change(self, state_name: str, state_value: Any) -> None:
+        """Send a change notification for a given state.
+
+        Args:
+            state_name (str): The state's name.
+            state_value (Any): The value of the state.
+        """
         for net_name in self._state_map.get(state_name, []):
             net: TaskNetwork | None = self._actor._task_networks.get(net_name, None)
             if net is None:

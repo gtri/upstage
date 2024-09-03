@@ -2,23 +2,22 @@
 
 name: Python application
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
+on: [push, pull_request]
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -30,5 +29,4 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[test]
     - name: Test with pytest
-      run: |
-        pytest
+      run: pytest

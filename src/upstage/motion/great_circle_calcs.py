@@ -11,9 +11,8 @@ the web. The overall algorithms have been slightly modified to support UPSTAGE.
 """
 
 from functools import lru_cache
+from math import acos, asin, atan2, cos, pi, sin, sqrt
 from typing import cast
-
-from math import sqrt, pi, cos, sin, asin, acos, atan2
 
 from upstage.data_types import GeodeticLocation
 
@@ -30,9 +29,7 @@ def get_dist_rad(point1: GeodeticLocation, point2: GeodeticLocation) -> float:
     ans = 2.0 * asin(
         sqrt(
             (sin((point1.lat - point2.lat) / 2.0)) ** 2
-            + cos(point1.lat)
-            * cos(point2.lat)
-            * (sin((point1.lon - point2.lon) / 2.0)) ** 2
+            + cos(point1.lat) * cos(point2.lat) * (sin((point1.lon - point2.lon) / 2.0)) ** 2
         )
     )
     return cast(float, ans)
@@ -52,9 +49,7 @@ def get_course_rad(point1: GeodeticLocation, point2: GeodeticLocation) -> float:
     d = get_dist_rad(point1, point2)
 
     if sin(point2.lon - point1.lon) < 0:
-        tcl = acos(
-            (sin(point2.lat) - sin(point1.lat) * cos(d)) / (sin(d) * cos(point1.lat))
-        )
+        tcl = acos((sin(point2.lat) - sin(point1.lat) * cos(d)) / (sin(d) * cos(point1.lat)))
     else:
         tcl = 2.0 * pi - acos(
             (sin(point2.lat) - sin(point1.lat) * cos(d)) / (sin(d) * cos(point1.lat))
@@ -79,9 +74,7 @@ def get_pos_from_points_and_distance(
     point2 = point2.to_radians()
     tc = get_course_rad(point1, point2)  # course from point 1 to 2
 
-    lat: float = asin(
-        sin(point1.lat) * cos(dist) + cos(point1.lat) * sin(dist) * cos(tc)
-    )
+    lat: float = asin(sin(point1.lat) * cos(dist) + cos(point1.lat) * sin(dist) * cos(tc))
 
     dlon = atan2(
         sin(tc) * sin(dist) * cos(point1.lat),

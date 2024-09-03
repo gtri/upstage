@@ -4,7 +4,7 @@ Task Networks
 
 Task Networks have been demonstrated in :doc:`First Simulation </user_guide//tutorials/first_simulation>`, and this document will add some details to the usage of Task Networks.
 
-In general, once an Actor has recieved a Task Network instance, all introspection or modifications of that network goes through the actor.
+In general, once an Actor has received a Task Network instance, all introspection or modifications of that network goes through the actor.
 
 Defining a Network
 ==================
@@ -83,7 +83,7 @@ The task network queues can be viewed using:
 
 You can get the names and processes of tasks that are running (and their network names) using:
 
-* :py:meth:`upstage.actor.Actor.get_running_task`: Returns a dictionary with the task name and process object of the task on the defined network.
+* :py:meth:`upstage.actor.Actor.get_running_task`: Returns a dataclass with the task name and process object of the task on the defined network.
 * :py:meth:`upstage.actor.Actor.get_running_tasks`: Returns the same as above, but keyed on task network names.
 
 You would want the processes to interrupt them, but you can also use :py:meth:`upstage.actor.Actor.interrupt_network` to do that.

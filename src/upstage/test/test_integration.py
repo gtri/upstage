@@ -4,6 +4,7 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 import simpy as SIM
+from simpy import Environment, Process
 
 from upstage.actor import Actor
 from upstage.base import EnvironmentContext, MockEnvironment
@@ -11,19 +12,32 @@ from upstage.constants import PLANNING_FACTOR_OBJECT
 from upstage.events import Any, Get, Put, ResourceHold, Wait
 from upstage.states import LinearChangingState, State
 from upstage.task import Task
+from upstage.type_help import SIMPY_GEN, TASK_GEN
 
 
 class ActorForTest(Actor):
-    dummy = State()
+    dummy = State[list]()
 
 
 class StateActor(Actor):
-    fuel = LinearChangingState(recording=True)
-    fuel_burn = State(recording=True)
+    fuel = LinearChangingState[float](recording=True)
+    fuel_burn = State[float](recording=True)
+
+
+class Flight:
+    def __init__(self, code: int) -> None:
+        self.code = code
+        self.dummy: list = []
 
 
 class AirplaneTask(Task):
-    def task(self, *, actor):
+    limit: float
+    rate: float
+    store: SIM.Store
+    orders_time: float
+    reason: list
+
+    def task(self, *, actor: StateActor) -> TASK_GEN:
         # this task could be thought of as loitering, waiting for a get
         # request, interrupt, or prescribed failure
         time_to_leave = (actor.fuel - self.limit) / self.rate
@@ -45,18 +59,22 @@ class AirplaneTask(Task):
 
 
 class BigTask(Task):
+    time: float
+    maintenance_bay: SIM.Resource
+    broken_vehicle_depot: SIM.Store
+    fixed_vehicle_depot: SIM.Store
+
     def task(
         self,
         *,
-        actor,
-    ):
+        actor: Flight,
+    ) -> TASK_GEN:
         # a function to mimic extra code needed to perform a task
         # TODO: This should be wrapped to handle the planning answer
-        def test_flight(flight, planning_answer=3.0):
+        def test_flight(flight: Flight, planning_answer: float = 3.0) -> float:
             if flight is PLANNING_FACTOR_OBJECT:
                 return planning_answer
-            else:
-                return flight.code * 1.5
+            return flight.code * 1.5
 
         yield Wait(self.time)
         actor.dummy.append(self.time)
@@ -81,13 +99,13 @@ class BigTask(Task):
         yield resource_event
 
 
-def interrupting_task(*, env, time, other_task):
+def interrupting_task(*, env: Environment, time: float, other_task: Process) -> SIMPY_GEN:
     yield env.timeout(time)
     if other_task.is_alive:
         other_task.interrupt("cancelling")
 
 
-def test_event_store_returns():
+def test_event_store_returns() -> None:
     with EnvironmentContext() as env:
         store = SIM.Store(env, capacity=1)
         put_object = ("A Test Object", 1.0)
@@ -95,7 +113,7 @@ def test_event_store_returns():
         env.run()
 
         class DoARun(Task):
-            def task(self, *, actor):
+            def task(self, *, actor: ActorForTest) -> TASK_GEN:
                 return_value = yield Get(store)
                 actor.dummy.append(return_value)
 
@@ -113,16 +131,11 @@ def test_event_store_returns():
         assert actor.dummy[0] is put_object, "Object returned is not the correct object"
 
 
-def test_task_with_all_events():
+def test_task_with_all_events() -> None:
     with EnvironmentContext() as env:
         store = SIM.Store(env, capacity=2)
         store2 = SIM.Store(env, capacity=2)
         resource = SIM.Resource(env)
-
-        # add a 'flight' to the store
-        class Flight:
-            def __init__(self, code):
-                self.code = code
 
         f = Flight(2)
         f2 = Flight(3)
@@ -144,9 +157,7 @@ def test_task_with_all_events():
 
         # check that the returned test actor has the expected entries in its state
         assert test_actor.dummy[0] == 2.0, "Wrong result in test actor"
-        assert (
-            test_actor.dummy[1] == 6.0
-        ), "Wrong result in test actor for fake store object"
+        assert test_actor.dummy[1] == 6.0, "Wrong result in test actor for fake store object"
         assert f in store.items, "Item was removed when it shouldn't have been"
         assert f2 in store.items, "Item was removed when it shouldn't have been"
         # run the process for real
@@ -161,15 +172,13 @@ def test_task_with_all_events():
 
         env.run()
         assert actor.dummy[0] == 2.0, "Wrong result in test actor"
-        assert (
-            actor.dummy[1] == f.code * 1.5
-        ), "Wrong result in test actor for fake store object"
+        assert actor.dummy[1] == f.code * 1.5, "Wrong result in test actor for fake store object"
         assert f not in store.items, "Item wasn't removed when it should have been"
         assert f2 in store.items, "Item was removed when it shouldn't have been"
         assert f in store2.items, "Item wasn't moved to the next store"
 
 
-def test_task_with_get():
+def test_task_with_get() -> None:
     with EnvironmentContext() as env:
         orders = SIM.Store(env)
         actor = StateActor(name="Airplane", fuel=100, fuel_burn=5.2)
@@ -177,7 +186,7 @@ def test_task_with_get():
         order_time = 12.3
 
         class SimpleTask(Task):
-            def task(self, *, actor):
+            def task(self, *, actor: StateActor) -> TASK_GEN:
                 event = Get(orders, rehearsal_time_to_complete=order_time)
                 res = yield event
                 result.append(res)
@@ -189,15 +198,13 @@ def test_task_with_get():
             actor=actor,
         )
 
-        assert isinstance(
-            result[3], MockEnvironment
-        ), f"Not a mock environment: {result[3]}"
+        assert isinstance(result[3], MockEnvironment), f"Not a mock environment: {result[3]}"
         assert result[0] is PLANNING_FACTOR_OBJECT
         assert result[1] == 12.3
         assert result[2].is_complete, "Tested event believes it completed"
 
 
-def test_task_rehearsal_with_cancels():
+def test_task_rehearsal_with_cancels() -> None:
     with EnvironmentContext() as env:
         orders = SIM.Store(env)
         actor = StateActor(name="Airplane", fuel=100, fuel_burn=5.2)
@@ -230,11 +237,11 @@ def test_task_rehearsal_with_cancels():
         assert tested_actor.fuel == 5
 
 
-def test_task_with_cancels():
+def test_task_with_cancels() -> None:
     with EnvironmentContext() as env:
         orders = SIM.Store(env)
         actor = StateActor(name="Airplane", fuel=100, fuel_burn=5.2)
-        reason = []
+        reason: list[str] = []
 
         at = AirplaneTask()
         at.rate = 1.2
@@ -254,7 +261,7 @@ def test_task_with_cancels():
         assert actor.fuel == 5, "Wrong fuel"
 
         # test the task when orders are given
-        def give_orders(env, time, orders):
+        def give_orders(env: SIM.Environment, time: float, orders: SIM.Store) -> SIMPY_GEN:
             yield env.timeout(time)
             yield orders.put("STOP WHAT YOU ARE DOING")
 
@@ -303,6 +310,4 @@ def test_task_with_cancels():
         expected_fuel = 100 - (16.5 * 1.2)
         assert actor.fuel == expected_fuel
         assert len(env._queue) == 1, "End environment queue is too long"
-        assert (
-            env._queue[0][3].callbacks == []
-        ), "Timeout had callbacks that should be cleared"
+        assert env._queue[0][3].callbacks == [], "Timeout had callbacks that should be cleared"

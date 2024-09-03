@@ -49,7 +49,7 @@ In some cases, you may be able to get away with pure decrements:
 .. code-block:: python
 
     class Thinker(UP.Actor):
-        cognition: float = UP.State(valid_types=float, default=1.0)
+        cognition = UP.State[float](valid_types=float, default=1.0)
 
     class DoThinking(UP.Task):
         def task(self, *, actor: Thinker):

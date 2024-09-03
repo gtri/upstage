@@ -11,25 +11,27 @@ from functools import wraps
 from typing import TYPE_CHECKING, Any, TypeVar
 from warnings import warn
 
+from simpy import Environment as SimpyEnv
 from simpy import Event as SimpyEvent
-from simpy import Interrupt, Process, Environment as SimpyEnv
+from simpy import Interrupt, Process
 
 if TYPE_CHECKING:
     from .actor import Actor
     from .task_network import TaskNetwork
 
-from .base import ENV_CONTEXT_VAR, MockEnvironment, SimulationError, SettableEnv
+from .base import ENV_CONTEXT_VAR, MockEnvironment, SettableEnv, SimulationError
 from .constants import PLANNING_FACTOR_OBJECT
 from .events import BaseEvent, Event
-
 
 TASK_TYPE = Generator[BaseEvent | Process, Any, None]
 
 
-__all__ = ("DecisionTask", "Task", "process", "TerminalTask", "TASK_TYPE")
+__all__ = ("DecisionTask", "Task", "process", "TerminalTask", "TASK_TYPE", "InterruptStates")
 
 
 class InterruptStates(IntFlag):
+    """Class that describes how to behave after an interrupt."""
+
     END = 0
     IGNORE = 1
     RESTART = 2
@@ -60,7 +62,8 @@ def process(
     >>>     generator()
 
     Args:
-        func (Callable[..., Generator[BaseEvent, None, None]]): The process function that is a generator of simpy events.
+        func (Callable[..., Generator[BaseEvent, None, None]]): The process function that is a
+        generator of simpy events.
 
     Returns:
         Process: The generator as a ``simpy`` process.
@@ -87,6 +90,7 @@ def process(
 
 
 EVT = TypeVar("EVT", bound=BaseEvent)
+REH_ACTOR = TypeVar("REH_ACTOR", bound="Actor")
 
 
 class Task(SettableEnv):
@@ -99,19 +103,17 @@ class Task(SettableEnv):
         super().__init__()
         self._proc: TASK_TYPE | None = None
         self._network_name: str | None = None
-        self._network_ref: "TaskNetwork" | None = None
+        self._network_ref: TaskNetwork | None = None
         self._marker: str | None = None
         self._marked_time: float | None = None
-        self._interrupt_action: InterruptStates | None = InterruptStates.END
+        self._interrupt_action: InterruptStates = InterruptStates.END
         self._rehearsing: bool = False
 
-    def task(self, *, actor: "Actor") -> TASK_TYPE:
+    def task(self, *, actor: Any) -> TASK_TYPE:
         """Define the process this task follows."""
-        raise NotImplementedError(
-            "User must define the actions performed when executing this task"
-        )
+        raise NotImplementedError("User must define the actions performed when executing this task")
 
-    def on_interrupt(self, *, actor: "Actor", **kwargs: Any) -> InterruptStates | None:
+    def on_interrupt(self, *, actor: Any, cause: Any) -> InterruptStates:
         """Define any actions to take on the actor if this task is interrupted.
 
         Note:
@@ -121,9 +123,9 @@ class Task(SettableEnv):
 
         Args:
             actor (Actor): the actor using the task
-            kwargs (Any): Optional data for the interrupt
+            cause (Any): Optional data for the interrupt
         """
-        actor.log(f"Interrupted while performing {self}. Reasons: {kwargs}")
+        actor.log(f"Interrupted while performing {self}. Reasons: {cause}")
         return self._interrupt_action
 
     def set_marker(
@@ -135,14 +137,15 @@ class Task(SettableEnv):
 
         Args:
             marker (str): String for the marker.
-            interrupt_action (InterruptStates, optional): Action to take on interrupt. Defaults to InterruptStates.END.
+            interrupt_action (InterruptStates, optional): Action to take on interrupt.
+            Defaults to InterruptStates.END.
         """
         self._marker = marker
         self._marked_time = self.env.now
         self._interrupt_action = interrupt_action
 
     def get_marker(self) -> str | None:
-        """Get the current marker
+        """Get the current marker.
 
         Returns:
             str | None: Marker (or None if cleared)
@@ -182,9 +185,7 @@ class Task(SettableEnv):
             network_name (str): Network name
         """
         if self._network_name is not None:
-            raise SimulationError(
-                "Setting task network name on task that already has a network"
-            )
+            raise SimulationError("Setting task network name on task that already has a network")
         self._network_name = network_name
 
     def clear_actor_task_queue(self, actor: "Actor") -> None:
@@ -262,22 +263,21 @@ class Task(SettableEnv):
         actor.clear_knowledge(name, caller=cname)
 
     @staticmethod
-    def get_actor_knowledge(
-        actor: "Actor", name: str, must_exist: bool = False
-    ) -> Any | None:
+    def get_actor_knowledge(actor: "Actor", name: str, must_exist: bool = False) -> Any:
         """Get knowledge from the actor.
 
         Args:
             actor (Actor): The actor to get knowledge from.
             name (str): Name of the knowledge
-            must_exist (bool, optional): Raise errors if the knowledge doesn't exist. Defaults to False.
+            must_exist (bool, optional): Raise errors if the knowledge doesn't exist.
+            Defaults to False.
 
         Returns:
-            Any | None: The knowledge value or None
+            Any: The knowledge value, which could be None
         """
         return actor.get_knowledge(name, must_exist)
 
-    def _clone_actor(self, actor: "Actor", knowledge: dict[str, Any] | None) -> "Actor":
+    def _clone_actor(self, actor: REH_ACTOR, knowledge: dict[str, Any] | None) -> REH_ACTOR:
         """Create a clone of the actor.
 
         Args:
@@ -298,17 +298,18 @@ class Task(SettableEnv):
     def rehearse(
         self,
         *,
-        actor: "Actor",
+        actor: REH_ACTOR,
         knowledge: dict[str, Any] | None = None,
         cloned_actor: bool = False,
         **kwargs: Any,
-    ) -> "Actor":
+    ) -> REH_ACTOR:
         """Rehearse the task to evaluate its feasibility.
 
         Args:
             actor (Actor): The actor to rehearse in the task
             knowledge (dict[str, Any], optional): Knowledge to add to the actor. Defaults to None.
-            cloned_actor (bool, optional): If the actor is already a clone or not. Defaults to False.
+            cloned_actor (bool, optional): If the actor is a clone or not. Defaults to False.
+            kwargs (Any): Optional args to send to the task.
 
         Returns:
             Actor: The cloned actor with a state reflecting the task flow.
@@ -336,8 +337,7 @@ class Task(SettableEnv):
                     returned_item = None
                 if not issubclass(next_event.__class__, BaseEvent):
                     raise SimulationError(
-                        f"Task {self} event {next_event} must "
-                        f"be a subclass of BaseEvent!"
+                        f"Task {self} event {next_event} must " f"be a subclass of BaseEvent!"
                     )
                 time_advance, returned_item = next_event.rehearse()
                 mocked_env.now += time_advance
@@ -400,14 +400,14 @@ class Task(SettableEnv):
         return stop_run, restart
 
     @process
-    def run(self, *, actor: "Actor") -> Generator[SimpyEvent | Process, None, None]:
+    def run(self, *, actor: "Actor") -> Generator[SimpyEvent | Process, Any, None]:
         """Execute the task.
 
         Args:
             actor (Actor): The actor using the task
 
         Returns:
-            Generator[SimpyEvent, None, None]
+            Generator[SimpyEvent, Any, None]
         """
         generator = self.task(actor=actor)
         self._proc = generator
@@ -447,9 +447,7 @@ class Task(SettableEnv):
                         # that way we can return it as a more useful object
                     except AttributeError as exc:
                         if "as_event" in exc.args[0]:
-                            raise SimulationError(
-                                "Task is yielding objects without `as_event`"
-                            )
+                            raise SimulationError("Task is yielding objects without `as_event`")
                         else:
                             raise exc
                     except StopIteration:
@@ -475,36 +473,33 @@ class Task(SettableEnv):
 class DecisionTask(Task):
     """A task used for decision processes."""
 
-    def task(self, *, actor: "Actor") -> TASK_TYPE:
+    def task(self, *, actor: Any) -> TASK_TYPE:
         """Define the process this task follows."""
         raise SimulationError("No need to call `task` on a DecisionTask")
 
-    def rehearse_decision(self, *, actor: "Actor") -> None:
+    def rehearse_decision(self, *, actor: Any) -> None:
         """Define the process this task follows."""
-        raise NotImplementedError(
-            "User must define the actions performed when executing this task"
-        )
+        raise NotImplementedError("User must define the actions performed when executing this task")
 
-    def make_decision(self, *, actor: "Actor") -> None:
+    def make_decision(self, *, actor: Any) -> None:
         """Define the process this task follows."""
-        raise NotImplementedError(
-            "User must define the actions performed when executing this task"
-        )
+        raise NotImplementedError("User must define the actions performed when executing this task")
 
     def rehearse(
         self,
         *,
-        actor: "Actor",
+        actor: REH_ACTOR,
         knowledge: dict[str, Any] | None = None,
         cloned_actor: bool = False,
         **kwargs: Any,
-    ) -> "Actor":
+    ) -> REH_ACTOR:
         """Rehearse the task to evaluate its feasibility.
 
         Args:
             actor (Actor): The actor to rehearse with
             knowledge (Optional[dict[str, Any]], optional): Knowledge to add. Defaults to None.
             cloned_actor (bool, optional): If the actor is a clone or not. Defaults to False.
+            kwargs (Any): Kwargs for rehearsal. Kept for consistency to the base class.
 
         Returns:
             Actor: Cloned actor after rehearsing this task.
@@ -525,6 +520,14 @@ class DecisionTask(Task):
 
     @process
     def run(self, *, actor: "Actor") -> Generator[SimpyEvent, None, None]:
+        """Run the decision task.
+
+        Args:
+            actor (Actor): The actor making decisions
+
+        Yields:
+            Generator[SimpyEvent, None, None]: Generator for SimPy event queue.
+        """
         self.make_decision(actor=actor)
         assert isinstance(self.env, SimpyEnv)
         yield self.env.timeout(0.0)
@@ -552,16 +555,17 @@ class TerminalTask(Task):
         """
         return f"Entering terminal task: {self} on network {self._network_name}"
 
-    def on_interrupt(self, *, actor: "Actor", **kwargs: Any) -> None:
+    def on_interrupt(self, *, actor: "Actor", cause: Any) -> InterruptStates:
         """Special case interrupt for terminal task.
 
         Args:
             actor (Actor): The actor
+            cause (Any): Additional data sent to the interrupt.
         """
         raise SimulationError(
-            f"Cannot interrupt a terminal task {self} on {actor}. "
-            f"Kwargs sent: {kwargs}"
+            f"Cannot interrupt a terminal task {self} on {actor}. " f"Kwargs sent: {cause}"
         )
+        return InterruptStates.END
 
     def task(self, *, actor: "Actor") -> TASK_TYPE:
         """The terminal task.

@@ -2,18 +2,20 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""Geographical math using spherical coordinates for Earth."""
 
-from math import degrees, atan, atan2, sin, cos, radians, sqrt, asin, acos
+from math import acos, asin, atan, atan2, cos, degrees, radians, sin, sqrt
 
-from upstage.units import unit_convert
 from upstage.math_utils import _vector_dot
-from .conversions import spherical_radius, SphericalConversions, POSITION, POSITIONS
+from upstage.units import unit_convert
+
+from .conversions import POSITION, POSITIONS, SphericalConversions, spherical_radius
 
 LAT_LON = tuple[float, float]
 
 
 class Spherical(SphericalConversions):
-    """A class containing methods for doing geographical math using spherical coordinates for Earth."""
+    """Geographical math using spherical coordinates for Earth."""
 
     EARTH_RADIUS = spherical_radius  # m
 
@@ -39,7 +41,7 @@ class Spherical(SphericalConversions):
         origin: LAT_LON,
         destination: LAT_LON,
     ) -> float:
-        """Calculate the forward bearing from origin to destination
+        """Calculate the forward bearing from origin to destination.
 
         Args:
             origin (LAT_LON): Start lat/lon
@@ -92,8 +94,7 @@ class Spherical(SphericalConversions):
         destination: LAT_LON,
         f: float,
     ) -> LAT_LON:
-        """Find the location along a great circle path given a fraction of the
-        distance traveled.
+        """Find the location fractionally along a great circle path.
 
         Args:
             origin (LAT_LON): Lat / Lon (degrees)
@@ -128,7 +129,7 @@ class Spherical(SphericalConversions):
 
     @classmethod
     def _cart2lla(cls, cart: POSITION, R: float = 1.0) -> POSITION:
-        """Convert XYZ to lat/lon
+        """Convert XYZ to lat/lon.
 
         Args:
             cart (POSITION): Cartesian (XYZ) point.
@@ -201,9 +202,7 @@ class Spherical(SphericalConversions):
         a, _, _ = v1
         d, _, _ = v2
         lead = a * alpha + beta * d
-        sqrt_inner = (
-            a**2 * alpha**2 + a**2 + 2 * a * alpha * beta * d + beta**2 * d**2 - d**2
-        )
+        sqrt_inner = a**2 * alpha**2 + a**2 + 2 * a * alpha * beta * d + beta**2 * d**2 - d**2
         if sqrt_inner < 0:
             raise ValueError("geo_linspace fails due to negative sqrt")
         t = 2 * atan((lead + sqrt(sqrt_inner)) / (a + d))
@@ -290,10 +289,7 @@ class Spherical(SphericalConversions):
         """
         positions = [loc1[1], loc1[0], loc2[1], loc2[0]]
         lon1, lat1, lon2, lat2 = map(radians, positions)
-        a = (
-            sin(0.5 * (lat2 - lat1)) ** 2
-            + cos(lat1) * cos(lat2) * sin(0.5 * (lon2 - lon1)) ** 2
-        )
+        a = sin(0.5 * (lat2 - lat1)) ** 2 + cos(lat1) * cos(lat2) * sin(0.5 * (lon2 - lon1)) ** 2
 
         dist_m = spherical_radius * 2 * atan2(sqrt(a), sqrt(1.0 - a))
         return unit_convert(dist_m, "m", units)

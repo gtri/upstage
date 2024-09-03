@@ -3,47 +3,48 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for license terms.
 
-from typing import Generator, Any
-import upstage.api as UP
+from collections.abc import Generator
+from typing import Any
+
 import simpy as SIM
 
+import upstage.api as UP
 from upstage.task import InterruptStates
-
-TASK_GEN = Generator[UP.Event, Any, None]
+from upstage.type_help import SIMPY_GEN, TASK_GEN
 
 
 class Cashier(UP.Actor):
-    scan_speed: float = UP.State(
+    scan_speed = UP.State[float](
         valid_types=(float,),
         frozen=True,
     )
-    time_until_break: float = UP.State(
+    time_until_break = UP.State[float](
         default=120.0,
         valid_types=(float,),
         frozen=True,
     )
-    breaks_until_done: int = UP.State(default=2, valid_types=int)
-    breaks_taken: int = UP.State(default=0, valid_types=int, recording=True)
-    items_scanned: int = UP.State(
+    breaks_until_done = UP.State[int](default=2, valid_types=int)
+    breaks_taken = UP.State[int](default=0, valid_types=int, recording=True)
+    items_scanned = UP.State[int](
         default=0,
         valid_types=(int,),
         recording=True,
     )
-    time_scanning: float = UP.LinearChangingState(
+    time_scanning = UP.LinearChangingState[float](
         default=0.0,
         valid_types=(float,),
     )
-    messages: UP.SelfMonitoringStore = UP.ResourceState(
+    messages = UP.ResourceState[UP.SelfMonitoringStore](
         default=UP.SelfMonitoringStore,
     )
 
-    def time_left_to_break(self):
-        elapsed = self.env.now - self.get_knowledge("start_time", must_exist=True)
+    def time_left_to_break(self) -> float:
+        elapsed = self.env.now - float(self.get_knowledge("start_time", must_exist=True))
         return self.time_until_break - elapsed
 
 
 class CheckoutLane(UP.Actor):
-    customer_queue: UP.SelfMonitoringStore = UP.ResourceState(
+    customer_queue = UP.ResourceState[UP.SelfMonitoringStore](
         default=UP.SelfMonitoringStore,
     )
 
@@ -59,14 +60,14 @@ class StoreBoss(UP.UpstageBase):
         self._lane_map[lane] = cashier
         return lane
 
-    def clear_lane(self, cashier: Cashier) -> CheckoutLane:
+    def clear_lane(self, cashier: Cashier) -> None:
         to_del = [name for name, cash in self._lane_map.items() if cash is cashier]
         for name in to_del:
             del self._lane_map[name]
 
 
 class CashierBreakTimer(UP.Task):
-    def task(self, *, actor: Cashier):
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         yield UP.Wait(actor.time_until_break)
         actor.interrupt_network("CashierJob", cause=dict(reason="BREAK TIME"))
 
@@ -161,7 +162,7 @@ class DoCheckout(InterruptibleTask):
 
 
 class Break(UP.DecisionTask):
-    def make_decision(self, *, actor: Cashier):
+    def make_decision(self, *, actor: Cashier) -> None:
         """Decide what kind of break we are taking."""
         actor.breaks_taken += 1
 
@@ -214,38 +215,14 @@ task_classes = {
 }
 
 task_links = {
-    "GoToWork": {
-        "default": "TalkToBoss",
-        "allowed": ["TalkToBoss"],
-    },
-    "TalkToBoss": {
-        "default": "WaitInLane",
-        "allowed": ["WaitInLane"],
-    },
-    "WaitInLane": {
-        "default": "DoCheckout",
-        "allowed": ["DoCheckout", "Break"],
-    },
-    "DoCheckout": {
-        "default": "WaitInLane",
-        "allowed": ["WaitInLane", "Break"],
-    },
-    "Restock": {
-        "default": "WaitInLane",
-        "allowed": ["WaitInLane", "Break"],
-    },
-    "Break": {
-        "default": "ShortBreak",
-        "allowed": ["ShortBreak", "NightBreak"],
-    },
-    "ShortBreak": {
-        "default": "WaitInLane",
-        "allowed": ["WaitInLane"],
-    },
-    "NightBreak": {
-        "default": "GoToWork",
-        "allowed": ["GoToWork"],
-    },
+    "GoToWork": UP.TaskLinks(default="TalkToBoss", allowed=["TalkToBoss"]),
+    "TalkToBoss": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane"]),
+    "WaitInLane": UP.TaskLinks(default="DoCheckout", allowed=["DoCheckout", "Break"]),
+    "DoCheckout": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane", "Break"]),
+    "Break": UP.TaskLinks(default="ShortBreak", allowed=["ShortBreak", "NightBreak"]),
+    "ShortBreak": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane"]),
+    "NightBreak": UP.TaskLinks(default="GoToWork", allowed=["GoToWork"]),
+    "Restock": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane", "Break"]),
 }
 
 cashier_task_network = UP.TaskNetworkFactory(
@@ -256,19 +233,15 @@ cashier_task_network = UP.TaskNetworkFactory(
 
 
 class CashierMessages(UP.Task):
-    def task(self, *, actor: Cashier):
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         getter = UP.Get(actor.messages)
         yield getter
         tasks_needed: list[str] | str = getter.get_value()
         tasks_needed = [tasks_needed] if isinstance(tasks_needed, str) else tasks_needed
-        actor.interrupt_network(
-            "CashierJob", cause=dict(reason="NEW JOB", job_list=tasks_needed)
-        )
+        actor.interrupt_network("CashierJob", cause=dict(reason="NEW JOB", job_list=tasks_needed))
 
 
-cashier_message_net = UP.TaskNetworkFactory.from_single_looping(
-    "Messages", CashierMessages
-)
+cashier_message_net = UP.TaskNetworkFactory.from_single_looping("Messages", CashierMessages)
 
 
 def customer_spawner(
@@ -290,7 +263,7 @@ def customer_spawner(
         yield UP.Wait.from_random_uniform(5.0, 30.0).as_event()
 
 
-def manager_process(boss: StoreBoss, cashiers: list[Cashier]):
+def manager_process(boss: StoreBoss, cashiers: list[Cashier]) -> SIMPY_GEN:
     while True:
         # Use the random uniform feature, but convert the UPSTAGE event to simpy
         # because this is a simpy only process
@@ -298,7 +271,7 @@ def manager_process(boss: StoreBoss, cashiers: list[Cashier]):
         possible = [
             cash
             for cash in cashiers
-            if cash.get_running_task("CashierJob") != "NightBreak"
+            if getattr(cash.get_running_task("CashierJob"), "name", "") != "NightBreak"
         ]
         if not possible:
             return
@@ -337,7 +310,7 @@ def test_cashier_example() -> None:
 
         env.run(until=20 * 60)
 
-    for line in cashier.log():
+    for line in cashier.get_log():
         if "Interrupt" in line:
             print(line)
 

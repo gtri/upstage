@@ -3,26 +3,29 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from typing import Any
+
 import upstage.api as UP
+from upstage.type_help import TASK_GEN
 
 
 class Dummy(UP.Actor):
-    number = UP.State()
-    results = UP.State(default=0)
+    number = UP.State[float]()
+    results = UP.State[int](default=0)
 
 
 class Example(UP.Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Dummy) -> TASK_GEN:
         yield UP.Wait(actor.number)
         actor.number /= 2
 
 
 class OtherExample(UP.Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Dummy) -> TASK_GEN:
         actor.results += 1
         yield UP.Wait(100)
 
-    def on_interrupt(self, *, actor, cause):
+    def on_interrupt(self, *, actor: Dummy, cause: Any) -> UP.InterruptStates:
         super().on_interrupt(actor=actor, cause=cause)
         return self.INTERRUPT.RESTART
 
@@ -30,17 +33,17 @@ class OtherExample(UP.Task):
 fact = UP.TaskNetworkFactory(
     "example",
     {"Runner": Example},
-    {"Runner": {"default": "Runner", "allowed": ["Runner"]}},
+    {"Runner": UP.TaskLinks(default="Runner", allowed=["Runner"])},
 )
 
 fact2 = UP.TaskNetworkFactory(
     "side",
     {"Side": OtherExample},
-    {"Side": {"default": "Side", "allowed": ["Side"]}},
+    {"Side": UP.TaskLinks(default="Side", allowed=["Side"])},
 )
 
 
-def test_creation():
+def test_creation() -> None:
     with UP.EnvironmentContext() as env:
         actor = Dummy(name="example", number=10)
         nuc = UP.TaskNetworkNucleus(actor=actor)
@@ -53,7 +56,7 @@ def test_creation():
         assert actor.number == 1.25
 
 
-def test_with_interrupt():
+def test_with_interrupt() -> None:
     with UP.EnvironmentContext() as env:
         actor = Dummy(name="example", number=10, results=0)
         nuc = UP.TaskNetworkNucleus(actor=actor)

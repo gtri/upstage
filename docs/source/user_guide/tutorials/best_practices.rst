@@ -85,7 +85,7 @@ When testing for ``PLANNING_FACTOR_OBJECT``, do so in a method on the task that 
                 return 3.0
             return item["process_time"]
 
-        def task(self, *, actor: UP.Actor):
+        def task(self, *, actor: UP.Actor) -> upstage.type_help.TASK_GEN:
             item = yield UP.Get(actor.some_store, planning_time_to_complete=1.23)
             time = self._get_time(item)
             yield UP.Wait(time)

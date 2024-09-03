@@ -7,13 +7,14 @@ import pytest
 import simpy as SIM
 
 import upstage.api as UP
+from upstage.type_help import SIMPY_GEN
 
 from .flyer import Flyer, flyer_refuel_factory, mission_plan_net
 from .mothership import Mothership, crew_factory, give_fuel_factory
 from .mover import fly_end_factory
 
 
-def build_sim():
+def build_sim() -> tuple[float, Mothership]:
     MEETING_POINT = UP.CartesianLocation(0, 0)
     TRAVERSE_TO_POINT = UP.CartesianLocation(200, 0)
     START_POINT = UP.CartesianLocation(200, 200)
@@ -62,12 +63,23 @@ def build_sim():
     return total_dist, mothership
 
 
-def speed_change(env, vehicle, new_speed, time):
+def speed_change(
+    env: SIM.Environment,
+    vehicle: Mothership,
+    new_speed: float,
+    time: float,
+) -> SIMPY_GEN:
     yield env.timeout(time)
     vehicle.speed = new_speed
 
 
-def add_draw(env, vehicle, amount, time_to, time_on):
+def add_draw(
+    env: SIM.Environment,
+    vehicle: Mothership,
+    amount: float,
+    time_to: float,
+    time_on: float,
+) -> SIMPY_GEN:
     class Dummy(UP.Actor):
         messages = UP.ResourceState(default=SIM.Store)
 
@@ -78,7 +90,7 @@ def add_draw(env, vehicle, amount, time_to, time_on):
     yield vehicle.messages.put((d, 0))
 
 
-def test_nothing_added():
+def test_nothing_added() -> None:
     with UP.EnvironmentContext() as env:
         total_dist, mothership = build_sim()
         t = total_dist / 200
@@ -87,7 +99,7 @@ def test_nothing_added():
         assert pytest.approx(mothership.fuel) == 1000 - 100 * t
 
 
-def test_fueling():
+def test_fueling() -> None:
     with UP.EnvironmentContext() as env:
         _, mothership = build_sim()
 
@@ -104,7 +116,12 @@ def test_fueling():
         assert pytest.approx(63.104858350253835) == mothership.fuel
 
 
-def figher_build():
+# Fake mothership
+class Dummy(UP.Actor):
+    messages = UP.ResourceState[SIM.Store](default=SIM.Store)
+
+
+def figher_build() -> tuple[Flyer, Dummy]:
     MEETING_POINT = UP.CartesianLocation(0, 0)
     TRAVERSE_TO_POINT = UP.CartesianLocation(200, 0)
     START_POINT = UP.CartesianLocation(-200, -200)
@@ -137,10 +154,6 @@ def figher_build():
         [MEETING_POINT, TRAVERSE_TO_POINT, START_POINT],
     )
 
-    # Fake mothership
-    class Dummy(UP.Actor):
-        messages = UP.ResourceState(default=SIM.Store)
-
     d = Dummy(name="the_mothership")
     # env.process(dummy_mothership_proc(env, d))
 
@@ -160,13 +173,13 @@ def figher_build():
     return flyer, d
 
 
-def dummy_mothership_proc(mothership):
+def dummy_mothership_proc(mothership: Dummy) -> SIMPY_GEN:
     msg = yield mothership.messages.get()
     sendback = msg[0]
     yield sendback.messages.put("GO")
 
 
-def test_flyer_nothing():
+def test_flyer_nothing() -> None:
     with UP.EnvironmentContext() as env:
         flyer, _ = figher_build()
         env.run()
@@ -175,7 +188,7 @@ def test_flyer_nothing():
         assert pytest.approx(flyer.fuel) == 1000 - 100 * t
 
 
-def test_flyer_refuel():
+def test_flyer_refuel() -> None:
     with UP.EnvironmentContext() as env:
         flyer, mothership = figher_build()
         env.process(dummy_mothership_proc(mothership))
@@ -185,7 +198,7 @@ def test_flyer_refuel():
         assert pytest.approx(flyer.fuel) == 1068.5242696666946
 
 
-def test_full_fuelinging():
+def test_full_fuelinging() -> None:
     with UP.EnvironmentContext() as env:
         MEETING_POINT = UP.CartesianLocation(0, 0)
         TRAVERSE_TO_POINT = UP.CartesianLocation(200, 0)

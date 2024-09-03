@@ -2,6 +2,7 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""Tests for nucleus and state sharing."""
 
 from .flyer import Flyer, flyer_refuel_factory, mission_plan_net
 from .mothership import Mothership, crew_factory, give_fuel_factory

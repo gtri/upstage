@@ -2,11 +2,10 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""Filter stores that allow sorting of items."""
 
-#!/usr/bin/python
-# -*- coding: iso-8859-15 -*-
 from collections.abc import Callable
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from simpy import Store
 from simpy.resources.base import BoundClass, Get
@@ -101,7 +100,7 @@ class SortedFilterStore(Store):
 
 
 class SortedFilterGet(UPGet):
-    """A Get for a SortedFilterStore"""
+    """A Get for a SortedFilterStore."""
 
     def __init__(
         self,
@@ -112,13 +111,13 @@ class SortedFilterGet(UPGet):
     ) -> None:
         """Create a Get request on a SortedFilterStore.
 
-        The filter function returns a boolean (in/out of consideration).
+        The filter function returns a boolean (True/False for in/out of consideration).
 
         The sorter function must return something sortable (number, tuple, e.g.)
 
         Args:
             get_location (SIM.Store | SIM.Container): The place for the Get request
-            filter (Callable[[Any], bool]): The function that filters (True/False) items in the store
+            filter (Callable[[Any], bool]): The function that filters items in the store.
             sorter (Callable[[Any], Any]): The function that returns values to sort an item on.
             rehearsal_time_to_complete (float, optional): _description_. Defaults to 0.0.
         """

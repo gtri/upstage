@@ -6,7 +6,7 @@
 from upstage import api
 
 
-def test_api():
+def test_api() -> None:
     api_items = dir(api)
 
     items_to_test = (
@@ -52,9 +52,11 @@ def test_api():
         "DecisionTask",
         "Task",
         "process",
+        "InterruptStates",
         "TerminalTask",
         "TaskNetwork",
         "TaskNetworkFactory",
+        "TaskLinks",
         "CommsManager",
         "Message",
         "MessageContent",

@@ -12,6 +12,7 @@ Note:
 """
 
 import inspect
+from collections.abc import Sequence
 from sys import _getframe as get_frame  # pylint: disable=protected-access
 from typing import Any, TypeVar
 
@@ -152,14 +153,14 @@ def iterable_convert(item: T | list[T] | tuple[T, ...]) -> list[T]:
 
 def waypoint_time_and_dist(
     start: Location,
-    waypoints: list[Location],
+    waypoints: Sequence[Location],
     speed: float,
 ) -> tuple[float, float]:
     """Get the time and distance of a series of locations.
 
     Args:
         start (Location): Starting point
-        waypoints (list[Location]): Waypoints after the start
+        waypoints (Sequence[Location]): Waypoints after the start
         speed (float): Travel speed
 
     Returns:

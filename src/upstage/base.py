@@ -6,24 +6,27 @@
 """Base classes and exceptions for UPSTAGE."""
 
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from contextvars import ContextVar, Token
 from functools import wraps
 from math import floor
-from time import gmtime, strftime
-from typing import TYPE_CHECKING, Any, Protocol, Union, Callable, Optional
-from warnings import warn
 from random import Random
+from time import gmtime, strftime
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, Union
+from warnings import warn
 
 from simpy import Environment as SimpyEnv
-from upstage.geography import CrossingCondition, LAT_LON_ALT
+
+from upstage.geography import LAT_LON_ALT, CrossingCondition
 from upstage.units import unit_convert
 
 if TYPE_CHECKING:
-    from upstage.data_types import Location, GeodeticLocation, CartesianLocation
+    from upstage.data_types import CartesianLocation, GeodeticLocation
 
 
 class EarthProtocol(Protocol):
+    """Protocol for defining an earth model interface."""
+
     def distance(
         self,
         loc1: tuple[float, float],
@@ -38,7 +41,7 @@ class EarthProtocol(Protocol):
         loc2: tuple[float, float],
         units: str,
     ) -> tuple[float, float]:
-        """get the distance between two lat/lon (degrees) points"""
+        """Get the distance between two lat/lon (degrees) points."""
 
     def point_from_bearing_dist(
         self,
@@ -47,7 +50,7 @@ class EarthProtocol(Protocol):
         distance: float,
         distance_units: str = "nmi",
     ) -> tuple[float, float]:
-        """Get a lat/lon in degrees from a point, bearing, and distance"""
+        """Get a lat/lon in degrees from a point, bearing, and distance."""
 
     def lla2ecef(
         self,
@@ -64,22 +67,24 @@ INTERSECTION_LOCATION_CALLABLE = Callable[
         float,
         str,
         EarthProtocol,
-        Optional[float],
-        Optional[list[int]],
+        float | None,
+        list[int] | None,
     ],
     list[CrossingCondition],
 ]
 
+LOC_INPUT = TypeVar("LOC_INPUT", "GeodeticLocation", "CartesianLocation")
+
 INTERSECTION_TIMING_CALLABLE = Callable[
     [
-        "Location",
-        "Location",
+        LOC_INPUT,
+        LOC_INPUT,
         float,
-        "Location",
+        LOC_INPUT,
         float,
     ],
     tuple[
-        list[Union["GeodeticLocation", "CartesianLocation"]],
+        list[LOC_INPUT],
         list[float],
         list[str],
         float,
@@ -89,6 +94,7 @@ INTERSECTION_TIMING_CALLABLE = Callable[
 
 class dotdict(dict):
     """A dictionary that supports dot notation as well as dictionary access notation.
+
     Usage: d = dotdict({'val1':'first'})
     set attributes: d.val2 = 'second' or d['val2'] = 'second'
     get attributes: d.val2 or d['val2'] would both produce 'second'
@@ -104,9 +110,7 @@ class dotdict(dict):
             Any: The value
         """
         if key not in self:
-            raise AttributeError(
-                f"No key `{key}` found in stage. Use `UP.add_stage_variable`"
-            )
+            raise AttributeError(f"No key `{key}` found in stage. Use `UP.add_stage_variable`")
         return self.get(key)
 
     def __setattr__(self, key: str, value: Any) -> None:
@@ -132,21 +136,23 @@ class dotdict(dict):
 
 
 class StageProtocol(Protocol):
+    """Protocol for typing the minimum entries in the Stage."""
+
     @property
     def altitude_units(self) -> str:
-        """Units of altitude"""
+        """Units of altitude."""
 
     @property
     def distance_units(self) -> str:
-        """Units of distance"""
+        """Units of distance."""
 
     @property
     def stage_model(self) -> EarthProtocol:
-        """Model for geodetics"""
+        """Model for geodetics."""
 
     @property
     def intersection_model(self) -> INTERSECTION_LOCATION_CALLABLE:
-        """Callable for geodetic intersections"""
+        """Callable for geodetic intersections."""
 
     @property
     def time_unit(self) -> str:
@@ -154,7 +160,7 @@ class StageProtocol(Protocol):
 
     @property
     def random(self) -> Random:
-        """Random number generator"""
+        """Random number generator."""
 
     if TYPE_CHECKING:
 
@@ -173,6 +179,12 @@ class SimulationError(UpstageError):
     """Raised when a simulation error occurs."""
 
     def __init__(self, message: str, time: float | None = None):
+        """Create an informative simulation error.
+
+        Args:
+            message (str): Error message
+            time (float | None, optional): Time of the error. Defaults to None.
+        """
         msg = "Error in the simulation: "
         if msg in message:
             msg = ""
@@ -193,6 +205,11 @@ class MockEnvironment:
     """A fake environment that holds the ``now`` property and all-caps attributes."""
 
     def __init__(self, now: float):
+        """Create the mock environment.
+
+        Args:
+            now (float): The time the environment is at.
+        """
         self.now = now
 
     @classmethod
@@ -212,12 +229,19 @@ class MockEnvironment:
                 setattr(mock_env, k, v)
         return mock_env
 
+    @classmethod
+    def run(cls, until: float | int) -> None:
+        """Method stub for playing nice with rehearsal.
+
+        Args:
+            until (float | int): Placeholder
+        """
+        raise UpstageError("You tried to use `run` on a mock environment")
+
 
 ENV_CONTEXT_VAR: ContextVar[SimpyEnv] = ContextVar("Environment")
 ACTOR_CONTEXT_VAR: ContextVar[list["NamedUpstageEntity"]] = ContextVar("Actors")
-ENTITY_CONTEXT_VAR: ContextVar[dict[str, list["NamedUpstageEntity"]]] = ContextVar(
-    "Entities"
-)
+ENTITY_CONTEXT_VAR: ContextVar[dict[str, list["NamedUpstageEntity"]]] = ContextVar("Entities")
 STAGE_CONTEXT_VAR: ContextVar[dotdict] = ContextVar("Stage")
 
 
@@ -243,6 +267,11 @@ class UpstageBase:
 
     @property
     def env(self) -> SimpyEnv:
+        """Return the environment.
+
+        Returns:
+            SimpyEnv: SimPy environment.
+        """
         try:
             env: SimpyEnv = ENV_CONTEXT_VAR.get()
         except LookupError:
@@ -251,6 +280,11 @@ class UpstageBase:
 
     @property
     def stage(self) -> StageProtocol:
+        """Return the stage context variable.
+
+        Returns:
+            StageProtocol: The stage, as defined in context.
+        """
         try:
             stage = STAGE_CONTEXT_VAR.get()
         except LookupError:
@@ -258,8 +292,12 @@ class UpstageBase:
         return stage
 
     def get_actors(self) -> list["NamedUpstageEntity"]:
-        """Return all actors that the director knows."""
-        ans: list["NamedUpstageEntity"] = []
+        """Return all actors that the director knows.
+
+        Returns:
+            list[NamedUpstageEntity]: List of actors in the simulation.
+        """
+        ans: list[NamedUpstageEntity] = []
         try:
             ans = ACTOR_CONTEXT_VAR.get()
         except LookupError:
@@ -267,16 +305,30 @@ class UpstageBase:
         return ans
 
     def get_entity_group(self, group_name: str) -> list["NamedUpstageEntity"]:
-        ans: list["NamedUpstageEntity"] = []
+        """Get a single entity group by name.
+
+        Args:
+            group_name (str): The name of the entity group.
+
+        Returns:
+            list[NamedUpstageEntity]: List of entities in the group.
+        """
+        ans: list[NamedUpstageEntity] = []
         try:
-            grps: dict[str, list["NamedUpstageEntity"]] = ENTITY_CONTEXT_VAR.get()
+            grps: dict[str, list[NamedUpstageEntity]] = ENTITY_CONTEXT_VAR.get()
             ans = grps.get(group_name, [])
         except LookupError:
             raise UpstageError("Undefined context variable: use EnvironmentContext")
         return ans
 
     def get_all_entity_groups(self) -> dict[str, list["NamedUpstageEntity"]]:
-        grps: dict[str, list["NamedUpstageEntity"]] = {}
+        """Get all entity groups.
+
+        Returns:
+            dict[str, list[NamedUpstageEntity]]: Entity group names and associated
+                entities.
+        """
+        grps: dict[str, list[NamedUpstageEntity]] = {}
         try:
             grps = ENTITY_CONTEXT_VAR.get()
         except LookupError:
@@ -334,9 +386,7 @@ class NamedUpstageEntity(UpstageBase):
         old_init = cls.__init__
 
         @wraps(old_init)
-        def the_actual_init(
-            inst: NamedUpstageEntity, *args: Any, **kwargs: Any
-        ) -> None:
+        def the_actual_init(inst: NamedUpstageEntity, *args: Any, **kwargs: Any) -> None:
             inst._add_entity(entity_group)
             old_init(inst, *args, **kwargs)
 
@@ -369,9 +419,7 @@ class NamedUpstageEntity(UpstageBase):
                 ans = ENTITY_CONTEXT_VAR.get()
                 ans.setdefault(group_name, [])
                 if self in ans[group_name]:
-                    raise UpstageError(
-                        f"Entity: {self} already recorded in the environment"
-                    )
+                    raise UpstageError(f"Entity: {self} already recorded in the environment")
                 ans[group_name].append(self)
             except LookupError:
                 entity_groups = {group_name: [self]}
@@ -379,12 +427,20 @@ class NamedUpstageEntity(UpstageBase):
 
 
 class SettableEnv(UpstageBase):
+    """A mixin class for allowing the instance's environment to change."""
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Passthrough for the mixed classes."""
         self._new_env: MockEnvironment | None = None
         super().__init__(*args, **kwargs)
 
     @property  # type: ignore [override]
     def env(self) -> SimpyEnv | MockEnvironment:
+        """Get the relevant environment.
+
+        Returns:
+            SimpyEnv | MockEnvironment: Real or mocked environment.
+        """
         if self._new_env is not None:
             return self._new_env
         return super().env
@@ -399,7 +455,7 @@ class SettableEnv(UpstageBase):
 
 
 class EnvironmentContext:
-    """A context manager to create a safe, globally (in context) referencable environment and data.
+    """A context manager to create a safe, globally (in context) referenceable environment and data.
 
     The environment created is of type simpy.Environment
 
@@ -438,9 +494,19 @@ class EnvironmentContext:
     def __init__(
         self,
         initial_time: float = 0.0,
-        random_seed: Optional[int] = None,
-        random_gen: Optional[Any] = None,
-    ):
+        random_seed: int | None = None,
+        random_gen: Any | None = None,
+    ) -> None:
+        """Create an environment context.
+
+        random_seed is ignored if random_gen is given. Otherwise random.Random is
+        used.
+
+        Args:
+            initial_time (float, optional): Time to start the clock at. Defaults to 0.0.
+            random_seed (int | None, optional): Seed for RNG. Defaults to None.
+            random_gen (Any | None, optional): RNG object. Defaults to None.
+        """
         self.env_ctx = ENV_CONTEXT_VAR
         self.actor_ctx = ACTOR_CONTEXT_VAR
         self.entity_ctx = ENTITY_CONTEXT_VAR

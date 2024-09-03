@@ -3,43 +3,48 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from typing import Any, cast
+
 import pytest
-from simpy import Container, Store
+from simpy import Container, Environment, Store
 
 import upstage.api as UP
 import upstage.resources.monitoring as monitor
 from upstage.actor import Actor
 from upstage.api import EnvironmentContext, SimulationError, UpstageError
 from upstage.states import LinearChangingState, ResourceState, State
+from upstage.type_help import SIMPY_GEN
 
 
 class StateTest:
-    state_one = State()
-    state_two = State(recording=True)
-    lister = State(default=[])
-    diction = State(default={})
-    setstate = State(default=set())
+    state_one = State[Any]()
+    state_two = State[Any](recording=True)
+    lister = State[list](default=[])
+    diction = State[dict](default={})
+    setstate = State[set](default=set())
 
-    def __init__(self, env):
+    def __init__(self, env: Environment | None) -> None:
+        cast(UP.Actor, self)
         self.env = env
         # including for compatibility
-        self._mimic_states = {}
+        self._mimic_states: dict[str, Any] = {}
         self._state_listener = None
+        self._state_histories: dict[str, list[tuple[float, Any]]] = {}
 
-    def set_one(self, val):
-        self.state_one = val
+    def set_one(self, val: Any) -> None:
+        self.state_one = val  # type: ignore [arg-type]
 
-    def set_two(self, val):
-        self.state_two = val
+    def set_two(self, val: Any) -> None:
+        self.state_two = val  # type: ignore [arg-type]
 
 
 class StateTestActor(Actor):
-    state_one = State()
-    state_two = State(recording=True)
-    state_three = LinearChangingState(recording=True)
+    state_one = State[Any]()
+    state_two = State[Any](recording=True)
+    state_three = LinearChangingState[float](recording=True)
 
 
-def test_state_fails_without_env():
+def test_state_fails_without_env() -> None:
     """Test that recording states need the class to have an env attribute"""
     tester = StateTest(None)
     # the first one should not raise an error
@@ -49,49 +54,49 @@ def test_state_fails_without_env():
         tester.set_two(1)
 
 
-def test_state_values():
+def test_state_values() -> None:
     """Test that we get the right state values we input"""
     with EnvironmentContext(initial_time=1.5) as env:
         tester = StateTest(env)
-        tester.state_one = 1
-        assert tester.state_one == 1
-        tester.state_two = 2
-        assert tester.state_two == 2
+        tester.state_one = 1  # type: ignore [arg-type]
+        assert tester.state_one == 1  # type: ignore [arg-type]
+        tester.state_two = 2  # type: ignore [arg-type]
+        assert tester.state_two == 2  # type: ignore [arg-type]
 
 
-def test_state_recording():
+def test_state_recording() -> None:
     with EnvironmentContext(initial_time=1.5) as env:
         tester = StateTest(env)
-        tester.state_two = 2
-        assert hasattr(tester, "_state_two_history")
+        tester.state_two = 2  # type: ignore [arg-type]
+        assert "state_two" in tester._state_histories
         env.run(until=2.5)
-        tester.state_two = 3
-        assert len(tester._state_two_history) == 2
-        assert tester._state_two_history[0] == (1.5, 2)
-        assert tester._state_two_history[1] == (2.5, 3)
+        tester.state_two = 3  # type: ignore [arg-type]
+        assert len(tester._state_histories["state_two"]) == 2
+        assert tester._state_histories["state_two"][0] == (1.5, 2)
+        assert tester._state_histories["state_two"][1] == (2.5, 3)
 
 
-def test_state_mutable_default():
+def test_state_mutable_default() -> None:
     with EnvironmentContext(initial_time=1.5) as env:
         tester = StateTest(env)
         tester2 = StateTest(env)
-        assert id(tester.lister) != id(tester2.lister)
-        tester.lister.append(1)
-        assert len(tester2.lister) == 0
-        assert len(tester.lister) == 1
+        assert id(tester.lister) != id(tester2.lister)  # type: ignore [arg-type]
+        tester.lister.append(1)  # type: ignore [arg-type]
+        assert len(tester2.lister) == 0  # type: ignore [arg-type]
+        assert len(tester.lister) == 1  # type: ignore [arg-type]
 
-        assert id(tester.diction) != id(tester2.diction)
-        tester2.diction[1] = 2
-        assert len(tester.diction) == 0
-        assert len(tester2.diction) == 1
+        assert id(tester.diction) != id(tester2.diction)  # type: ignore [arg-type]
+        tester2.diction[1] = 2  # type: ignore [arg-type]
+        assert len(tester.diction) == 0  # type: ignore [arg-type]
+        assert len(tester2.diction) == 1  # type: ignore [arg-type]
 
-        assert id(tester.setstate) != id(tester2.setstate)
-        tester2.setstate.add(1)
-        assert len(tester.setstate) == 0
-        assert len(tester2.setstate) == 1
+        assert id(tester.setstate) != id(tester2.setstate)  # type: ignore [arg-type]
+        tester2.setstate.add(1)  # type: ignore [arg-type]
+        assert len(tester.setstate) == 0  # type: ignore [arg-type]
+        assert len(tester2.setstate) == 1  # type: ignore [arg-type]
 
 
-def test_state_values_from_init():
+def test_state_values_from_init() -> None:
     with EnvironmentContext() as env:
         tester = StateTestActor(
             name="testing",
@@ -104,11 +109,11 @@ def test_state_values_from_init():
         assert tester.state_two == 2
         assert tester.state_three == 4
         tester.state_three = 3
-        assert hasattr(tester, "_state_three_history")
-        assert tester._state_three_history == [(0.0, 4), (1.5, 3)]
+        assert "state_three" in tester._state_histories
+        assert tester._state_histories["state_three"] == [(0.0, 4), (1.5, 3)]
 
 
-def test_linear_changing_state():
+def test_linear_changing_state() -> None:
     state_three_init = 3
     init_time = 1.5
     rate = 3.1
@@ -122,7 +127,7 @@ def test_linear_changing_state():
             state_three=state_three_init,
         )
 
-        task = "SomeTask"
+        task = UP.Task()
 
         tester.activate_state(state="state_three", task=task, rate=rate)
         assert "state_three" in tester._active_states
@@ -141,7 +146,7 @@ def test_linear_changing_state():
         assert tester.state_three == rate * timestep * 2 + state_three_init
 
 
-def test_resource_state_valid_types():
+def test_resource_state_valid_types() -> None:
     class Holder(Actor):
         res = ResourceState(valid_types=Store)
 
@@ -160,15 +165,15 @@ def test_resource_state_valid_types():
         with pytest.raises(UpstageError):
 
             class _(Actor):
-                res = ResourceState(valid_types=(1,))
+                res = ResourceState(valid_types=(1,))  # type: ignore [arg-type]
 
         with pytest.raises(UpstageError):
 
-            class _(Actor):
+            class _(Actor):  # type: ignore [no-redef]
                 res = ResourceState(valid_types=(Actor,))
 
 
-def test_resource_state_set_protection():
+def test_resource_state_set_protection() -> None:
     class Holder(Actor):
         res = ResourceState(valid_types=(Store))
 
@@ -181,7 +186,7 @@ def test_resource_state_set_protection():
             h.res = 1.0
 
 
-def test_resource_state_no_default_init():
+def test_resource_state_no_default_init() -> None:
     class Holder(Actor):
         res = ResourceState()
 
@@ -204,7 +209,7 @@ def test_resource_state_no_default_init():
         assert isinstance(h.res, Store)
 
 
-def test_resource_state_default_init():
+def test_resource_state_default_init() -> None:
     class Holder(Actor):
         res = ResourceState(default=Store)
 
@@ -217,7 +222,7 @@ def test_resource_state_default_init():
         assert h.res.capacity == 10
 
 
-def test_resource_state_kind_init():
+def test_resource_state_kind_init() -> None:
     class Holder(Actor):
         res = ResourceState()
 
@@ -242,20 +247,20 @@ def test_resource_state_kind_init():
             assert h.res.capacity == 99
 
 
-def test_resource_state_simpy_store_running():
+def test_resource_state_simpy_store_running() -> None:
     class Holder(Actor):
-        res = ResourceState()
+        res = ResourceState[Store]()
 
     with EnvironmentContext() as env:
         h = Holder(name="Example", res={"kind": Store, "capacity": 10})
 
-        def put_process(entity):
+        def put_process(entity: Holder) -> SIMPY_GEN:
             for i in range(11):
                 yield env.timeout(1.0)
                 yield entity.res.put(f"Item {i}")
             return "Done"
 
-        def get_process(entity):
+        def get_process(entity: Holder) -> SIMPY_GEN:
             res = yield entity.res.get()
             return res
 
@@ -266,34 +271,34 @@ def test_resource_state_simpy_store_running():
         assert proc_1.value == "Done"
 
 
-def test_resource_clone():
+def test_resource_clone() -> None:
     class Holder(Actor):
-        res = ResourceState(default=Store)
+        res = ResourceState[Store](default=Store)
+
+    class Holder2(Actor):
+        res = ResourceState[Container](default=Container)
 
     with EnvironmentContext():
         holder = Holder(name="example")
         holder_2 = holder.clone()
         assert id(holder_2.res.items) != id(holder.res.items)
 
-        class Holder(Actor):
-            res = ResourceState(default=Container)
-
-        holder = Holder(name="example")
+        holder = Holder2(name="example")
         holder_2 = holder.clone()
         assert id(holder_2.res.level) != id(holder.res.level)
 
 
 class HelperCallback:
-    def __init__(self):
-        self.cbacks = []
+    def __init__(self) -> None:
+        self.cbacks: list[tuple[Any, Any]] = []
 
-    def _callbacker(self, instance, value):
+    def _callbacker(self, instance: Any, value: Any) -> None:
         self.cbacks.append((instance, value))
 
 
-def test_state_callback():
+def test_state_callback() -> None:
     class CbackActor(Actor):
-        state_one = State(recording=True)
+        state_one = State[Any](recording=True)
 
     helper = HelperCallback()
     with EnvironmentContext():
@@ -312,7 +317,7 @@ def test_state_callback():
         assert len(helper.cbacks) == 1
 
 
-def test_matching_states():
+def test_matching_states() -> None:
     """Test the state matching code.
     At this time, state matching only works with CommunicationStore. It's the
     only state with a special attribute attached to it.
@@ -329,7 +334,8 @@ def test_matching_states():
             UP.CommunicationStore,
             {"_mode": "loudspeaker"},
         )
-        store = getattr(worker, store_name)
+        assert store_name is not None
+        store = getattr(worker, store_name, "")
         assert store is worker.intercom, "Wrong state retrieved"
         assert store is not worker.walkie, "Wrong state retrieved"
 
@@ -337,6 +343,7 @@ def test_matching_states():
         state_name = worker._get_matching_state(
             UP.State,
         )
+        assert state_name is not None
         value = getattr(worker, state_name)
         assert value == worker.sleepiness, "Wrong state retrieved"
 
@@ -344,5 +351,6 @@ def test_matching_states():
         state_name = worker._get_matching_state(
             UP.CommunicationStore,
         )
+        assert state_name is not None
         value = getattr(worker, state_name)
         assert value is worker.walkie, "Wrong state retrieved"

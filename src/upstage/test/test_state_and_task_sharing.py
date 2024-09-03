@@ -3,6 +3,8 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from typing import Any
+
 import pytest
 
 from upstage.api import (
@@ -10,38 +12,46 @@ from upstage.api import (
     CartesianLocationChangingState,
     EnvironmentContext,
     GeodeticLocationChangingState,
+    InterruptStates,
     LinearChangingState,
     State,
     Task,
     Wait,
     add_stage_variable,
 )
-from upstage.geography import Spherical
 from upstage.data_types import CartesianLocation, GeodeticLocation
+from upstage.geography import Spherical
+from upstage.type_help import TASK_GEN
 
 
-class _Mover(Actor):
-    speed = State(recording=True)
-    fuel = LinearChangingState(recording=True)
-    fuel_burn = State(recording=True)
+class Mover(Actor):
+    location = CartesianLocationChangingState(recording=True)
+    speed = State[float](recording=True)
+    fuel = LinearChangingState[float](recording=True)
+    fuel_burn = State[float](recording=True)
 
-    def get_distance(self, waypoints):
+    def get_distance(self, waypoints: list[CartesianLocation]) -> float:
         d = waypoints[0] - self.location
         for i in range(1, len(waypoints)):
             d += waypoints[i] - waypoints[i - 1]
         return d
 
 
-class Mover(_Mover):
-    location = CartesianLocationChangingState(recording=True)
-
-
-class MoverGeo(_Mover):
+class MoverGeo(Actor):
     location = GeodeticLocationChangingState(recording=True)
+    speed = State[float](recording=True)
+    fuel = LinearChangingState[float](recording=True)
+    fuel_burn = State[float](recording=True)
+
+    def get_distance(self, waypoints: list[GeodeticLocation]) -> float:
+        d = waypoints[0] - self.location
+        for i in range(1, len(waypoints)):
+            d += waypoints[i] - waypoints[i - 1]
+        return d
 
 
 class MoveTask(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Mover | MoverGeo) -> TASK_GEN:
         destinations = list(self.get_actor_knowledge(actor, "destinations"))
         actor.activate_state(
             state="location",
@@ -59,7 +69,7 @@ class MoveTask(Task):
         yield Wait(time)
         actor.deactivate_all_states(task=self)
 
-    def on_interrupt(self, *, actor: Actor, cause):
+    def on_interrupt(self, *, actor: Mover | MoverGeo, cause: Any) -> InterruptStates:
         if cause == "restart":
             rem_wypts = actor.get_remaining_waypoints(
                 location_state="location",
@@ -91,7 +101,7 @@ WAYPOINTS_GEO = [
 ]
 
 
-def test_regular_run():
+def test_regular_run() -> None:
     with EnvironmentContext() as env:
         add_stage_variable("distance_units", "nmi")
         add_stage_variable("altitude_units", "ft")
@@ -114,7 +124,7 @@ def test_regular_run():
         assert pytest.approx(d) == 0
 
 
-def test_first_interrupt():
+def test_first_interrupt() -> None:
     with EnvironmentContext() as env:
         add_stage_variable("altitude_units", "ft")
         add_stage_variable("distance_units", "nmi")
@@ -139,7 +149,7 @@ def test_first_interrupt():
         assert pytest.approx(d) == 0
 
 
-def test_second_interrupt():
+def test_second_interrupt() -> None:
     with EnvironmentContext() as env:
         add_stage_variable("altitude_units", "ft")
         add_stage_variable("distance_units", "nmi")
@@ -164,7 +174,7 @@ def test_second_interrupt():
         assert pytest.approx(d) == 0
 
 
-def test_regular_run_geo():
+def test_regular_run_geo() -> None:
     with EnvironmentContext() as env:
         add_stage_variable("altitude_units", "ft")
         add_stage_variable("distance_units", "nmi")
@@ -187,7 +197,7 @@ def test_regular_run_geo():
         assert pytest.approx(d) == 0
 
 
-def test_first_interrupt_geo():
+def test_first_interrupt_geo() -> None:
     with EnvironmentContext() as env:
         add_stage_variable("altitude_units", "ft")
         add_stage_variable("distance_units", "nmi")
@@ -212,7 +222,7 @@ def test_first_interrupt_geo():
         assert pytest.approx(d) == 0
 
 
-def test_second_interrupt_geo():
+def test_second_interrupt_geo() -> None:
     with EnvironmentContext() as env:
         add_stage_variable("altitude_units", "ft")
         add_stage_variable("distance_units", "nmi")

@@ -2,19 +2,20 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+"""WGS84 Earth model."""
 
-from math import sin, cos, tan, atan, atan2, radians, sqrt, degrees
+from math import atan, atan2, cos, degrees, radians, sin, sqrt, tan
 
 from upstage.units import unit_convert
+
 from .conversions import WGS84_A, WGS84_B, WGS84_F, WGS84Conversions
 from .spherical import LAT_LON, POSITIONS
 
 
 class WGS84(WGS84Conversions):
-    """A class containing methods for doing geographical math using elliptical
-    coordinates for Earth.
+    """Geographical math using elliptical coordinates for Earth.
 
-    Based on Vincenty's methods.
+    Based on Vincenty's methods and WGS84 parameters.
     """
 
     @classmethod
@@ -51,7 +52,7 @@ class WGS84(WGS84Conversions):
         tol: float = 1e-12,
         max_iter: int = 200,
     ) -> float:
-        """Calculate the forward bearing (in degrees) from loc1 to loc2
+        """Calculate the forward bearing (in degrees) from loc1 to loc2.
 
         Args:
             loc1 (LAT_LON): Starting point (degrees)
@@ -87,7 +88,6 @@ class WGS84(WGS84Conversions):
         Returns:
             tuple[float, float]: Distance and Bearing
         """
-
         if loc1[0] == loc2[0] and loc1[1] == loc2[1]:
             return 0.0, 0.0
         # reduced latitudes
@@ -105,8 +105,7 @@ class WGS84(WGS84Conversions):
             sin_lambda = sin(lambda_lon)
             cos_lambda = cos(lambda_lon)
             sin_sigma = sqrt(
-                (cos_u2 * sin_lambda) ** 2
-                + (cos_u1 * sin_u2 - sin_u1 * cos_u2 * cos_lambda) ** 2
+                (cos_u2 * sin_lambda) ** 2 + (cos_u1 * sin_u2 - sin_u1 * cos_u2 * cos_lambda) ** 2
             )
 
             cos_sigma = sin_u1 * sin_u2 + cos_u1 * cos_u2 * cos_lambda
@@ -120,10 +119,7 @@ class WGS84(WGS84Conversions):
             c = WGS84_F / 16 * cos_sq_alpha * (4 + WGS84_F * (4 - 3 * cos_sq_alpha))
             _lambdaPrev = lambda_lon
             lambda_lon = delta_lon + (1 - c) * WGS84_F * sin_alpha * (
-                sigma
-                + c
-                * sin_sigma
-                * (cos2_sigma_m + c * cos_sigma * (-1 + 2 * cos2_sigma_m**2))
+                sigma + c * sin_sigma * (cos2_sigma_m + c * cos_sigma * (-1 + 2 * cos2_sigma_m**2))
             )
             if abs(lambda_lon - _lambdaPrev) < tol:
                 break  # successful convergence
@@ -142,11 +138,7 @@ class WGS84(WGS84Conversions):
                 / 4
                 * (
                     cos_sigma * (-1 + 2 * cos2_sigma_m**2)
-                    - b
-                    / 6
-                    * cos2_sigma_m
-                    * (-3 + 4 * sin_sigma**2)
-                    * (-3 + 4 * cos2_sigma_m**2)
+                    - b / 6 * cos2_sigma_m * (-3 + 4 * sin_sigma**2) * (-3 + 4 * cos2_sigma_m**2)
                 )
             )
         )
@@ -242,10 +234,7 @@ class WGS84(WGS84Conversions):
         )
         C = f / 16 * cos_sq_alpha * (4 + f * (4 - 3 * cos_sq_alpha))
         L = lam - (1 - C) * f * sin_alpha * (
-            sigma
-            + C
-            * sin_alpha
-            * (cos2_sigma_m + C * cos_sigma * (-1 + 2 * cos2_sigma_m**2))
+            sigma + C * sin_alpha * (cos2_sigma_m + C * cos_sigma * (-1 + 2 * cos2_sigma_m**2))
         )
         lambda_2 = lambda_1 + L
 
@@ -399,7 +388,5 @@ class WGS84(WGS84Conversions):
         latlons = cls.geo_linspace(start, finish, num_segments=segments)
         delta_alt = finish_alt - start_alt
         alts = [start_alt + delta_alt * i / segments for i in range(segments + 1)]
-        lla: POSITIONS = [
-            (latlon[0], latlon[1], alt) for latlon, alt in zip(latlons, alts)
-        ]
+        lla: POSITIONS = [(latlon[0], latlon[1], alt) for latlon, alt in zip(latlons, alts)]
         return cls.lla2ecef(lla), lla

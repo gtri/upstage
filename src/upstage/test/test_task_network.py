@@ -3,7 +3,10 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from collections.abc import Sequence
+
 import pytest
+from simpy import Environment
 from simpy import Resource as sp_resource
 from simpy import Store as sp_store
 
@@ -15,32 +18,126 @@ from upstage.api import (
     EnvironmentContext,
     Event,
     Get,
+    InterruptStates,
     LinearChangingState,
     Put,
     ResourceHold,
     State,
     Task,
+    TaskLinks,
     TaskNetworkFactory,
     Wait,
+    add_stage_variable,
 )
 from upstage.data_types import CartesianLocation, Location
 from upstage.task import process
+from upstage.type_help import SIMPY_GEN, TASK_GEN
+
+
+class Base:
+    def __init__(
+        self,
+        env: Environment,
+        name: str,
+        x: float,
+        y: float,
+        num_runways: int = 1,
+        parking_max: int = 10,
+    ) -> None:
+        self.env = env
+        self.name = name
+        self.location = CartesianLocation(x=x, y=y)
+        self.runway = sp_resource(self.env, capacity=num_runways)
+        self.maintenance_queue = sp_store(self.env)
+        self.parking = sp_store(self.env, parking_max)
+        self.parking_tokens = sp_store(self.env, parking_max)
+        self.parking_tokens.items = [(self, self.parking_tokens, i) for i in range(parking_max)]
+        self.operational = True
+
+        # yes, this is weird
+        self.location = CartesianLocation(x, y)
+
+        self.parking_max = parking_max
+        self.curr_parked: int = 0
+        self.claimed_parking: int = 0
+        self._parking_claims: list[Any] = []
+        self._parked: list[Any] = []
+
+    def claim_parking(self, plane: Any) -> None:
+        self._parking_claims.append(plane)
+        self.claimed_parking += 1
+
+    def has_parking(self, plane: Any) -> int:
+        return self.curr_parked + self.claimed_parking < self.parking_max
+
+    @process
+    def run_maintenance(self) -> SIMPY_GEN:
+        while True:
+            # TODO: THIS IS CLUNKY
+            plane = yield Get(self.maintenance_queue).as_event()
+            yield Wait(1.6).as_event()
+            mx_wait = plane.get_knowledge("mx_wait")
+            # alter the plane's code
+            plane.code = 0
+            mx_wait.succeed()
+
+    def __repr__(self) -> str:
+        return f"{self.name}:{super().__repr__()}"
+
+
+class World:
+    """A helper class for data storage and environment analysis"""
+
+    def __init__(self, bases: Sequence[Base]) -> None:
+        self.bases = bases
+
+    def nearest_base(self, loc: CartesianLocation) -> Base:
+        b = min(self.bases, key=lambda x: x.location - loc)
+        return b
+
+    def bases_by_location(self, loc: CartesianLocation) -> Base:
+        x, y = (loc.x, loc.y)
+        return [b for b in self.bases if b.location.x == x and b.location.y == y][0]
+
+
+class Aircraft(Actor):
+    base = State[Base | None](default=None)
+    location = CartesianLocationChangingState(recording=True)
+    speed = State[float]()
+    landing_time = State[float]()
+    takeoff_time = State[float]()
+    code = State[int]()
+    fuel = LinearChangingState[float](recording=True)
+    fuel_burn = State[float]()
+    parking_token = State[int]()
+    parking_spot = State[int]()
+    command_data = State[Any]()
+    world = State[World]()
+
+    def calculate_bingo(self, max_time: float = float("inf")) -> float:
+        # get the farthest base
+        farthest: Base = max(self.world.bases, key=lambda x: self.location - x.location)
+        dist = self.location - farthest.location
+        time = dist / self.speed
+        fuel_needed = self.fuel_burn * time
+        time_until_bingo = (self.fuel - fuel_needed) / self.fuel_burn
+        return min(time_until_bingo, max_time)
 
 
 class CodeFour(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         wait = Event(rehearsal_time_to_complete=float("inf"))
         yield wait
 
 
 class GroundWait(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         wait = Event(rehearsal_time_to_complete=0.0)
         yield wait
 
 
 class GroundTakeoffWait(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         destination = self.get_actor_knowledge(actor, "destination")
         if not isinstance(destination, Location):
             destination = destination.location
@@ -55,8 +152,9 @@ class GroundTakeoffWait(Task):
 
 
 class Takeoff(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         base = actor.base
+        assert base is not None
         runway_request = ResourceHold(base.runway)
         yield runway_request
         takeoff_time = Wait(actor.takeoff_time)
@@ -66,18 +164,19 @@ class Takeoff(Task):
         # what if it's a parking spot token? A token state?
         parking_event = Put(base.parking_tokens, actor.parking_spot)
         yield parking_event
-        actor.parking_spot = None
+        actor.parking_spot = -1
         # set our current location as above the base
         actor.base = None
 
-    def on_interrupt(self, *, actor, cause):
+    def on_interrupt(self, *, actor: Aircraft, cause: str) -> InterruptStates:
         director = self.get_actor_knowledge(actor, "director")
         if director is not None:
             director.report_failure(actor)
+        return self.INTERRUPT.END
 
 
 class Fly(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         destination = self.get_actor_knowledge(actor, "destination")
         if not isinstance(destination, Location):
             destination = destination.location
@@ -114,7 +213,7 @@ class Fly(Task):
                 ],
             )
 
-    def on_interrupt(self, *, actor, cause):
+    def on_interrupt(self, *, actor: Aircraft, cause: str) -> InterruptStates:
         # For testing a restart, this flying is fine, since there is only one
         # final destination.
         if cause == "restart":
@@ -125,7 +224,7 @@ class Fly(Task):
 
 
 class Loiter(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         # calculate bingo
         time = actor.calculate_bingo()
         loiter_wait = Wait(time)
@@ -139,16 +238,16 @@ class Loiter(Task):
             state="fuel",
             task=self,
         )
-        # TODO: Do we say here what action comes next, or do we let that be a part of the command structure?
 
 
 class Mission(Task):
-    def task(self, *, actor, commander):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         # tell the mission folks you are here
         # they'll give you an event to watch to leave
+        commander = self.get_actor_knowledge(actor, "commander", must_exist=True)
         leave_event = commander.arrival(actor)
         # set up an alternate bingo leave event
-        time = actor.calculate_bingo(max_time=actor.on_mission_time)
+        time = actor.calculate_bingo()
         bingo_wait = Wait(time)
 
         stop_mission = Any(leave_event, bingo_wait)
@@ -162,14 +261,14 @@ class Mission(Task):
 
 
 class LandingLocationSelection(DecisionTask):
-    def rehearse_decision(self, *, actor):
-        base = actor.env.WORLD.bases[0]
+    def rehearse_decision(self, *, actor: Aircraft) -> None:
+        base = actor.stage.world.bases[0]
         self.set_actor_knowledge(actor, "destination", base)
         self.set_actor_knowledge(actor, "intent", "land")
 
-    def make_decision(self, *, actor):
+    def make_decision(self, *, actor: Aircraft) -> None:
         # These kinds of cognitive tasks must be zero-time (no yields!)
-        landable_bases = [b for b in actor.env.WORLD.bases if b.has_parking(actor)]
+        landable_bases = [b for b in actor.stage.world.bases if b.has_parking(actor)]
         base = landable_bases[0]
 
         self.set_actor_knowledge(actor, "destination", base)
@@ -177,7 +276,7 @@ class LandingLocationSelection(DecisionTask):
 
 
 class LandingLocationPrep(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         base = self.get_actor_knowledge(actor, "destination")
         token_event = Get(base.parking_tokens)
         parking_token = yield token_event
@@ -199,10 +298,10 @@ class LandingCheck(DecisionTask):
         "MaintenanceWait",
     ]
 
-    def rehearse_decision(self, *, actor):
+    def rehearse_decision(self, *, actor: Aircraft) -> None:
         return None
 
-    def make_decision(self, *, actor):
+    def make_decision(self, *, actor: Aircraft) -> None:
         # get base from the actor's destination
         base = self.get_actor_knowledge(actor, "destination")
         # assert that the base can be landed at
@@ -220,7 +319,7 @@ class LandingCheck(DecisionTask):
 
 
 class Land(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         base = self.get_actor_knowledge(actor, "destination")
         self.clear_actor_knowledge(actor, "destination")
         runway_request = ResourceHold(base.runway)
@@ -250,7 +349,7 @@ class Land(Task):
         self.clear_actor_knowledge(actor, "parking_token")
         self.clear_actor_knowledge(actor, "intent")
 
-    def on_interrupt(self, *, actor, cause):
+    def on_interrupt(self, *, actor: Aircraft, cause: str) -> InterruptStates:
         # if interrupted, find a new place to land
         # figure out where we were in the task based on the marker
         marker = self.get_marker()
@@ -276,6 +375,7 @@ class Land(Task):
             ]
             self.clear_actor_task_queue(actor)
             self.set_actor_task_queue(actor, return_task_list)
+            return self.INTERRUPT.END
         elif marker in [
             "during landing",
         ]:
@@ -299,7 +399,7 @@ class Land(Task):
 
 
 class MaintenanceWait(Task):
-    def task(self, *, actor):
+    def task(self, *, actor: Aircraft) -> TASK_GEN:
         base = self.get_actor_knowledge(actor, "base")
         maintenance_put = Put(base.maintenance_queue, actor)
         yield maintenance_put
@@ -309,99 +409,8 @@ class MaintenanceWait(Task):
         self.clear_actor_knowledge(actor, "mx_wait")
         # TODO: How to check or set the new MX code in testing
 
-    def on_interrupt(self, *, actor, **kwargs):
-        pass
-
-
-class Aircraft(Actor):
-    location = CartesianLocationChangingState(recording=True)
-    speed = State()
-    landing_time = State()
-    takeoff_time = State()
-    code = State()
-    fuel = LinearChangingState(recording=True)
-    fuel_burn = State()
-    parking_token = State()
-    parking_spot = State()
-    command_data = State()
-    world = State()
-
-    def calculate_bingo(self, max_time=float("inf")):
-        # get the farthest base
-        farthest = max(self.world.bases, key=lambda x: self.location - x.location)
-        dist = self.location - farthest.location
-        time = dist / self.speed
-        fuel_needed = self.fuel_burn * time
-        time_until_bingo = (self.fuel - fuel_needed) / self.fuel_burn
-        return min(time_until_bingo, max_time)
-
-
-class Base:
-    def __init__(
-        self,
-        env,
-        name: str,
-        x: float,
-        y: float,
-        num_runways: int = 1,
-        parking_max: int = 10,
-    ):
-        self.env = env
-        self.name = name
-        self.location = CartesianLocation(x=x, y=y)
-        self.runway = sp_resource(self.env, capacity=num_runways)
-        self.maintenance_queue = sp_store(self.env)
-        self.parking = sp_store(self.env, parking_max)
-        self.parking_tokens = sp_store(self.env, parking_max)
-        self.parking_tokens.items = [
-            (self, self.parking_tokens, i) for i in range(parking_max)
-        ]
-        self.operational = True
-
-        # yes, this is weird
-        self.location = CartesianLocation(x, y)
-
-        self.parking_max = parking_max
-        self.curr_parked = 0
-        self.claimed_parking = 0
-        self._parking_claims = []
-        self._parked = []
-
-    def claim_parking(self, plane):
-        self._parking_claims.append(plane)
-        self.claimed_parking += 1
-
-    def has_parking(self, plane):
-        return self.curr_parked + self.claimed_parking < self.parking_max
-
-    @process
-    def run_maintenance(self):
-        while True:
-            # TODO: THIS IS CLUNKY
-            plane = yield Get(self.maintenance_queue).as_event()
-            yield Wait(1.6).as_event()
-            mx_wait = plane.get_knowledge("mx_wait")
-            # alter the plane's code
-            plane.code = 0
-            mx_wait.succeed()
-
-    def __repr__(self):
-        return f"{self.name}:{super().__repr__()}"
-
-
-class World:
-    """A helper class for data storage and environment analysis"""
-
-    def __init__(self, bases):
-        self.bases = bases
-
-    def nearest_base(self, loc):
-        b = min(self.bases, key=lambda x: x - loc)
-        return b
-
-    def bases_by_location(self, loc):
-        x, y = (loc.x, loc.y)
-        return [b for b in self.bases if b.x == x and b.y == y][0]
+    def on_interrupt(self, *, actor: Actor, cause: Any) -> InterruptStates:
+        return InterruptStates.IGNORE
 
 
 BASE_LOCATIONS = [
@@ -426,7 +435,7 @@ task_classes = {
     "MaintenanceWait": MaintenanceWait,
     "Code4": CodeFour,
 }
-task_links = {
+_task_links = {
     "GroundWait": [
         "Takeoff",
         "Code4",
@@ -484,12 +493,13 @@ task_links = {
     "Code4": [],
 }
 # quick fix for new task network link style
-for k, v in task_links.items():
-    new = {"default": v[0] if v else None, "allowed": v}
+task_links: dict[str, TaskLinks] = {}
+for k, v in _task_links.items():
+    new = TaskLinks(default=v[0] if v else None, allowed=v)
     task_links[k] = new
 
 
-def _build_test(env) -> Aircraft:
+def _build_test(env: Environment) -> Aircraft:
     bases = []
     for i in range(len(BASE_LOCATIONS)):
         x, y = BASE_LOCATIONS[i]
@@ -498,10 +508,11 @@ def _build_test(env) -> Aircraft:
         b.run_maintenance()
 
     world = World(bases)
-    env.WORLD = world
+    add_stage_variable("world", world)
 
     p = Aircraft(
         name="my plane",
+        base=None,
         location=CartesianLocation(0, 0),
         speed=12,
         landing_time=5 / 60,
@@ -519,7 +530,7 @@ def _build_test(env) -> Aircraft:
     return p
 
 
-def test_plane_bingo():
+def test_plane_bingo() -> None:
     with EnvironmentContext() as env:
         p = _build_test(env)
         bingo_hours = 5.14
@@ -527,7 +538,7 @@ def test_plane_bingo():
         assert pytest.approx(bingo_result, abs=0.01) == bingo_hours
 
 
-def test_creating_network():
+def test_creating_network() -> None:
     with EnvironmentContext():
         task_fact = TaskNetworkFactory(
             "plane_net",
@@ -537,7 +548,7 @@ def test_creating_network():
         _ = task_fact.make_network()
 
 
-def test_rehearsing_network():
+def test_rehearsing_network() -> None:
     with EnvironmentContext() as env:
         actor = _build_test(env)
         task_fact = TaskNetworkFactory(
@@ -567,7 +578,7 @@ def test_rehearsing_network():
 
         # Did the new actor do what we wanted it to?
         base = new_actor.get_knowledge("base")
-        base2 = env.WORLD.bases[0]
+        base2 = actor.stage.world.bases[0]
         # Notice that due to copying the actor, the bases aren't exactly the same
         assert base.name == base2.name, "Wrong base selected"
         assert len(new_actor._knowledge) == 1, "Too much knowledge left"
@@ -580,11 +591,11 @@ def test_rehearsing_network():
 
         assert new_actor.env.now > 2.0, "Cloned actor environment at the wrong time"
 
-        task_name = actor.get_running_task("plane_net")["name"]
-        assert task_name == "GroundWait"
+        task = actor.get_running_task("plane_net")
+        assert task is not None and task.name == "GroundWait"
 
 
-def test_rehearsing_from_actor():
+def test_rehearsing_from_actor() -> None:
     with EnvironmentContext() as env:
         actor = _build_test(env)
         task_fact = TaskNetworkFactory(
@@ -618,7 +629,7 @@ def test_rehearsing_from_actor():
 
         # Did the new actor do what we wanted it to?
         base = new_actor.get_knowledge("base")
-        base2 = env.WORLD.bases[0]
+        base2 = actor.stage.world.bases[0]
         # Notice that due to copying the actor, the bases aren't exactly the same
         assert base.name == base2.name, "Wrong base selected"
         assert len(new_actor._knowledge) == 2, "Too much knowledge left"
@@ -631,7 +642,7 @@ def test_rehearsing_from_actor():
         assert new_actor.env.now > 2.0, "Cloned actor environment at the wrong time"
 
 
-def test_running_simple_network():
+def test_running_simple_network() -> None:
     with EnvironmentContext() as env:
         actor = _build_test(env)
         task_fact = TaskNetworkFactory(
@@ -662,14 +673,14 @@ def test_running_simple_network():
         env.run()
 
         base = actor.get_knowledge("base")
-        base2 = env.WORLD.bases[0]
+        base2 = actor.stage.world.bases[0]
         assert base is base2, "Wrong base selected"
         assert len(actor._knowledge) == 1, "Too much knowledge left"
         assert pytest.approx(actor.fuel, abs=0.01) == 86.199
         assert actor.code == 0, "Wrong MX code"
 
 
-def test_interrupting_network():
+def test_interrupting_network() -> None:
     with EnvironmentContext() as env:
         actor = _build_test(env)
         task_fact = TaskNetworkFactory(
@@ -694,10 +705,13 @@ def test_interrupting_network():
         actor.set_task_queue("plane_net", task_name_list)
 
         # create a process that interrupts the plane during different times
-        def interrupting_proc(env, actor, interrupt_time):
+        def interrupting_proc(
+            env: Environment, actor: Aircraft, interrupt_time: float
+        ) -> SIMPY_GEN:
             yield env.timeout(interrupt_time)
             # get the process
             network = actor._task_networks["plane_net"]
+            assert network._current_task_proc is not None
             network._current_task_proc.interrupt(cause="a reason")
 
         # run the queue with the network
@@ -710,7 +724,7 @@ def test_interrupting_network():
         assert actor.code == 0, "Actor didn't get maintained"
 
 
-def test_interrupting_network_with_cause():
+def test_interrupting_network_with_cause() -> None:
     with EnvironmentContext() as env:
         actor = _build_test(env)
         task_fact = TaskNetworkFactory(
@@ -735,7 +749,9 @@ def test_interrupting_network_with_cause():
         actor.set_task_queue("plane_net", task_name_list)
 
         # create a process that interrupts the plane during different times
-        def interrupting_proc(env, actor, interrupt_time):
+        def interrupting_proc(
+            env: Environment, actor: Aircraft, interrupt_time: float
+        ) -> SIMPY_GEN:
             yield env.timeout(interrupt_time)
             # get the process
             # network = actor._task_networks["plane_net"]
@@ -748,7 +764,7 @@ def test_interrupting_network_with_cause():
         env.run()
 
 
-def test_interrupting_network_with_restart():
+def test_interrupting_network_with_restart() -> None:
     with EnvironmentContext() as env:
         actor = _build_test(env)
         task_fact = TaskNetworkFactory(
@@ -773,11 +789,14 @@ def test_interrupting_network_with_restart():
         actor.set_task_queue("plane_net", task_name_list)
 
         # create a process that interrupts the plane during different times
-        def interrupting_proc(env, actor, interrupt_time):
+        def interrupting_proc(
+            env: Environment, actor: Aircraft, interrupt_time: float
+        ) -> SIMPY_GEN:
             yield env.timeout(interrupt_time)
             # get the process
             network = actor._task_networks["plane_net"]
-            assert network._current_task_name == "Fly"
+            assert network._current_task_name is not None and network._current_task_name == "Fly"
+            assert network._current_task_proc is not None
             network._current_task_proc.interrupt(cause="restart")
 
         # run the queue with the network
@@ -791,12 +810,12 @@ def test_interrupting_network_with_restart():
         assert pytest.approx(env.now, abs=0.0001) == 21.464767
 
 
-def test_rehearsal_time():
+def test_rehearsal_time() -> None:
     class Thing(Actor):
-        the_time = LinearChangingState(recording=True)
+        the_time = LinearChangingState[float](recording=True)
 
     class ThingWait(Task):
-        def task(self, *, actor):
+        def task(self, *, actor: Thing) -> TASK_GEN:
             actor.activate_state(
                 state="the_time",
                 task=self,
@@ -807,7 +826,7 @@ def test_rehearsal_time():
 
     with EnvironmentContext():
         tasks = {"ThingWait": ThingWait}
-        task_links = {"ThingWait": {"default": "ThingWait", "allowed": ["ThingWait"]}}
+        task_links = {"ThingWait": TaskLinks(default="ThingWait", allowed=["ThingWait"])}
         factory = TaskNetworkFactory("fact", tasks, task_links)
 
         thing = Thing(name="Actor", the_time=0)

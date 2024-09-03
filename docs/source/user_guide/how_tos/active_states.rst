@@ -82,7 +82,7 @@ They accept a speed and list of waypoints in their activation.
 
     class FlatlandCar(UP.Actor):
         location: UP.CartesianLocation = UP.CartesianLocationChangingState()
-        top_speed: float = UP.State(valid_types=float, frozen=True)
+        top_speed = UP.State[float](valid_types=float, frozen=True)
 
 
     class Move(UP.Task):

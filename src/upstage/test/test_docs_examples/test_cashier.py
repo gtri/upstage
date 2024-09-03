@@ -3,38 +3,39 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
-from typing import Generator, Any
-import upstage.api as UP
+from collections.abc import Generator
+
 import simpy as SIM
 
-TASK_GEN = Generator[UP.Event, Any, None]
+import upstage.api as UP
+from upstage.type_help import TASK_GEN
 
 
 class Cashier(UP.Actor):
-    scan_speed: float = UP.State(
+    scan_speed = UP.State[float](
         valid_types=(float,),
         frozen=True,
     )
-    time_until_break: float = UP.State(
+    time_until_break = UP.State[float](
         default=120.0,
         valid_types=(float,),
         frozen=True,
     )
-    breaks_until_done: int = UP.State(default=2, valid_types=int)
-    breaks_taken: int = UP.State(default=0, valid_types=int, recording=True)
-    items_scanned: int = UP.State(
+    breaks_until_done = UP.State[int](default=2, valid_types=int)
+    breaks_taken = UP.State[int](default=0, valid_types=int, recording=True)
+    items_scanned = UP.State[int](
         default=0,
         valid_types=(int,),
         recording=True,
     )
-    time_scanning: float = UP.LinearChangingState(
+    time_scanning = UP.LinearChangingState[float](
         default=0.0,
         valid_types=(float,),
     )
 
 
 class CheckoutLane(UP.Actor):
-    customer_queue: UP.SelfMonitoringStore = UP.ResourceState(
+    customer_queue = UP.ResourceState[UP.SelfMonitoringStore](
         default=UP.SelfMonitoringStore,
     )
 
@@ -123,7 +124,7 @@ class DoCheckout(UP.Task):
 
 
 class Break(UP.DecisionTask):
-    def make_decision(self, *, actor: Cashier):
+    def make_decision(self, *, actor: Cashier) -> None:
         """Decide what kind of break we are taking."""
         actor.breaks_taken += 1
         if actor.breaks_taken == actor.breaks_until_done:
@@ -159,35 +160,15 @@ task_classes = {
 }
 
 task_links = {
-    "GoToWork": {
-        "default": "TalkToBoss",
-        "allowed": ["TalkToBoss"],
-    },
-    "TalkToBoss": {
-        "default": "WaitInLane",
-        "allowed": ["WaitInLane"],
-    },
-    "WaitInLane": {
-        "default": "DoCheckout",
-        "allowed": ["DoCheckout", "Break"],
-    },
-    "DoCheckout": {
-        "default": "WaitInLane",
-        "allowed": ["WaitInLane"],
-    },
-    "Break": {
-        "default": "ShortBreak",
-        "allowed": ["ShortBreak", "NightBreak"],
-    },
-    "ShortBreak": {
-        "default": "WaitInLane",
-        "allowed": ["WaitInLane"],
-    },
-    "NightBreak": {
-        "default": "GoToWork",
-        "allowed": ["GoToWork"],
-    },
+    "GoToWork": UP.TaskLinks(default="TalkToBoss", allowed=["TalkToBoss"]),
+    "TalkToBoss": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane"]),
+    "WaitInLane": UP.TaskLinks(default="DoCheckout", allowed=["DoCheckout", "Break"]),
+    "DoCheckout": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane"]),
+    "Break": UP.TaskLinks(default="ShortBreak", allowed=["ShortBreak", "NightBreak"]),
+    "ShortBreak": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane"]),
+    "NightBreak": UP.TaskLinks(default="GoToWork", allowed=["GoToWork"]),
 }
+
 
 cashier_task_network = UP.TaskNetworkFactory(
     name="CashierJob",
@@ -240,7 +221,7 @@ def test_cashier_example() -> None:
 
         env.run(until=20 * 60)
 
-    for line in cashier.log():
+    for line in cashier.get_log():
         print(line)
 
 

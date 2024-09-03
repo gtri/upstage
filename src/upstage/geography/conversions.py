@@ -5,8 +5,7 @@
 
 """Geodetic frame conversions."""
 
-from math import sqrt, sin, cos, degrees, radians, atan2
-
+from math import atan2, cos, degrees, radians, sin, sqrt
 
 POSITION = tuple[float, float, float]
 POSITIONS = list[POSITION]
@@ -88,7 +87,7 @@ class BaseConversions:
 
     @classmethod
     def _ecef2lla(cls, ecef: POSITION, radians_out: bool = False) -> POSITION:
-        """Convert ECEF to Lat/Lon/Altitude
+        """Convert ECEF to Lat/Lon/Altitude.
 
         Args:
             ecef (POSITION): ECEF point
@@ -138,7 +137,7 @@ class BaseConversions:
 
     @classmethod
     def ecef2lla(cls, ecef: POSITIONS, radians_out: bool = False) -> POSITIONS:
-        """Convert ECEF to Lat/Lon/Altitude
+        """Convert ECEF to Lat/Lon/Altitude.
 
         Args:
             ecef (POSITIONS): ECEF points
