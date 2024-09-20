@@ -107,7 +107,7 @@ class Aircraft(Actor):
     landing_time = State[float]()
     takeoff_time = State[float]()
     code = State[int]()
-    fuel = LinearChangingState[float](recording=True)
+    fuel = LinearChangingState(recording=True)
     fuel_burn = State[float]()
     parking_token = State[int]()
     parking_spot = State[int]()
@@ -812,7 +812,7 @@ def test_interrupting_network_with_restart() -> None:
 
 def test_rehearsal_time() -> None:
     class Thing(Actor):
-        the_time = LinearChangingState[float](recording=True)
+        the_time = LinearChangingState(recording=True)
 
     class ThingWait(Task):
         def task(self, *, actor: Thing) -> TASK_GEN:

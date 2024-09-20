@@ -81,7 +81,7 @@ def add_draw(
     time_on: float,
 ) -> SIMPY_GEN:
     class Dummy(UP.Actor):
-        messages = UP.ResourceState(default=SIM.Store)
+        messages = UP.ResourceState[SIM.Store](default=SIM.Store)
 
     d = Dummy(name="a_vehicle")
     yield env.timeout(time_to)

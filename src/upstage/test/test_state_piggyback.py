@@ -13,12 +13,12 @@ from upstage.type_help import TASK_GEN
 
 
 class Piggy(Actor):
-    a_level = LinearChangingState[float](recording=True)
+    a_level = LinearChangingState(recording=True)
     location = State[str]()
 
 
 class Rider(Actor):
-    b_level = LinearChangingState[float](recording=True)
+    b_level = LinearChangingState(recording=True)
     location = State[str]()
     piggy = State[Piggy]()
 

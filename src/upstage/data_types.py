@@ -348,6 +348,15 @@ class GeodeticLocation(Location):
         """
         return (self.lat, self.lon, self.alt)
 
+    def latlon(self) -> tuple[float, float]:
+        """Return a tuple of just lat/lon as degrees.
+
+        Returns:
+            tuple[float, float]: Latitude and longitude in degrees.
+        """
+        s = self.to_degrees()
+        return (s.lat, s.lon)
+
     def to_radians(self) -> "GeodeticLocation":
         """Convert to radians, if already in radians, return self.
 

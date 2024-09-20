@@ -27,7 +27,7 @@ from upstage.type_help import TASK_GEN
 class Mover(Actor):
     location = CartesianLocationChangingState(recording=True)
     speed = State[float](recording=True)
-    fuel = LinearChangingState[float](recording=True)
+    fuel = LinearChangingState(recording=True)
     fuel_burn = State[float](recording=True)
 
     def get_distance(self, waypoints: list[CartesianLocation]) -> float:
@@ -40,7 +40,7 @@ class Mover(Actor):
 class MoverGeo(Actor):
     location = GeodeticLocationChangingState(recording=True)
     speed = State[float](recording=True)
-    fuel = LinearChangingState[float](recording=True)
+    fuel = LinearChangingState(recording=True)
     fuel_burn = State[float](recording=True)
 
     def get_distance(self, waypoints: list[GeodeticLocation]) -> float:

@@ -13,7 +13,7 @@ from upstage.utils import waypoint_time_and_dist
 class Plane(UP.Actor):
     speed = UP.State[float]()
     location = UP.CartesianLocationChangingState()
-    fuel = UP.LinearChangingState[float]()
+    fuel = UP.LinearChangingState()
     fuel_burn = UP.State[float]()
 
 

@@ -41,7 +41,7 @@ class StateTest:
 class StateTestActor(Actor):
     state_one = State[Any]()
     state_two = State[Any](recording=True)
-    state_three = LinearChangingState[float](recording=True)
+    state_three = LinearChangingState(recording=True)
 
 
 def test_state_fails_without_env() -> None:
@@ -148,7 +148,7 @@ def test_linear_changing_state() -> None:
 
 def test_resource_state_valid_types() -> None:
     class Holder(Actor):
-        res = ResourceState(valid_types=Store)
+        res = ResourceState[Store](valid_types=Store)
 
     with EnvironmentContext():
         Holder(
@@ -165,17 +165,17 @@ def test_resource_state_valid_types() -> None:
         with pytest.raises(UpstageError):
 
             class _(Actor):
-                res = ResourceState(valid_types=(1,))  # type: ignore [arg-type]
+                res = ResourceState[Store](valid_types=(1,))  # type: ignore [arg-type]
 
         with pytest.raises(UpstageError):
 
             class _(Actor):  # type: ignore [no-redef]
-                res = ResourceState(valid_types=(Actor,))
+                res = ResourceState[Store](valid_types=(Actor,))
 
 
 def test_resource_state_set_protection() -> None:
     class Holder(Actor):
-        res = ResourceState(valid_types=(Store))
+        res = ResourceState[Store](valid_types=(Store))
 
     with EnvironmentContext():
         h = Holder(
@@ -188,7 +188,7 @@ def test_resource_state_set_protection() -> None:
 
 def test_resource_state_no_default_init() -> None:
     class Holder(Actor):
-        res = ResourceState()
+        res = ResourceState[Store]()
 
     with EnvironmentContext():
         with pytest.raises(UpstageError, match="Missing values for states"):
@@ -211,7 +211,7 @@ def test_resource_state_no_default_init() -> None:
 
 def test_resource_state_default_init() -> None:
     class Holder(Actor):
-        res = ResourceState(default=Store)
+        res = ResourceState[Store](default=Store)
 
     with EnvironmentContext():
         h = Holder(name="Example")
@@ -224,7 +224,7 @@ def test_resource_state_default_init() -> None:
 
 def test_resource_state_kind_init() -> None:
     class Holder(Actor):
-        res = ResourceState()
+        res = ResourceState[Store]()
 
     with EnvironmentContext():
         h = Holder(name="Example", res={"kind": Store, "capacity": 10})

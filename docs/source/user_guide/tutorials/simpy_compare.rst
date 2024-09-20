@@ -250,7 +250,7 @@ Also note that we aren't setting up the comms receive task yet. That's later.
     class Cashier(UP.Actor):
         ...
         # Messages store for when we do comms
-        messages: UP.SelfMonitoringStore = UP.ResourceState(
+        messages = UP.ResourceState[UP.SelfMonitoringStore](
             default=UP.SelfMonitoringStore,
         )
 

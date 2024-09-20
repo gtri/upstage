@@ -20,7 +20,7 @@ class ActorForTest(Actor):
 
 
 class StateActor(Actor):
-    fuel = LinearChangingState[float](recording=True)
+    fuel = LinearChangingState(recording=True)
     fuel_burn = State[float](recording=True)
 
 

@@ -11,7 +11,7 @@ from upstage.type_help import SIMPY_GEN, TASK_GEN
 
 class CPU(UP.Actor):
     n_procs = UP.State[int](default=0, valid_types=int, recording=True)
-    jobs = UP.ResourceState(default=SIM.Store)
+    jobs = UP.ResourceState[SIM.Store](default=SIM.Store)
 
     @staticmethod
     def time_from_data(process_data: dict[str, float]) -> float:

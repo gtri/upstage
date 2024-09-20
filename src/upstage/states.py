@@ -331,7 +331,7 @@ class ActiveState(State, Generic[ST]):
         return False
 
 
-class LinearChangingState(ActiveState[ST], Generic[ST]):
+class LinearChangingState(ActiveState[float]):
     """A state whose value changes linearly over time.
 
     When activating:
@@ -783,7 +783,7 @@ class GeodeticLocationChangingState(ActiveState[GeodeticLocation]):
         return super().deactivate(instance, task)
 
 
-T = TypeVar("T", Store, Container)
+T = TypeVar("T", bound=Store | Container)
 
 
 class ResourceState(State, Generic[T]):
@@ -807,8 +807,8 @@ class ResourceState(State, Generic[T]):
 
     Example:
         >>> class Warehouse(Actor):
-        >>>     shelf = ResourceState(default=Store)
-        >>>     bucket = ResourceState(
+        >>>     shelf = ResourceState[Store](default=Store)
+        >>>     bucket = ResourceState[Container](
         >>>         default=Container,
         >>>         valid_types=(Container, SelfMonitoringContainer),
         >>>     )
@@ -919,7 +919,7 @@ class ResourceState(State, Generic[T]):
         if self.name not in instance.__dict__:
             self._set_default(instance)
         obj = instance.__dict__[self.name]
-        if not isinstance(obj, Store | Container):
+        if not issubclass(type(obj), Store | Container):
             raise UpstageError("Bad type of ResourceStatee")
         return cast(T, obj)
 
@@ -941,7 +941,7 @@ class ResourceState(State, Generic[T]):
         if isinstance(copy, Container) and isinstance(new, Container):
             # This is a particularity of simpy containers
             new._level = float(copy.level)
-        return new
+        return cast(T, new)
 
 
 class CommunicationStore(ResourceState[Store]):

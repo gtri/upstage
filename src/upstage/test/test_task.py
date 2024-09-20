@@ -23,7 +23,7 @@ class ActorForTest(Actor):
 
 
 class ActorChangeForTest(Actor):
-    dummy = LinearChangingState[float]()
+    dummy = LinearChangingState()
 
 
 class WorkingTask(Task):
@@ -344,7 +344,7 @@ def test_terminal_task_rehearse(
 class Dummy(Actor):
     status = State[str]()
     rate = State[float]()
-    changer = LinearChangingState[float](recording=True)
+    changer = LinearChangingState(recording=True)
 
 
 class Restartable(Task):

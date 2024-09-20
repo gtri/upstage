@@ -30,7 +30,7 @@ class Cashier(UP.Actor):
         valid_types=(int,),
         recording=True,
     )
-    time_scanning = UP.LinearChangingState[float](
+    time_scanning = UP.LinearChangingState(
         default=0.0,
         valid_types=(float,),
     )

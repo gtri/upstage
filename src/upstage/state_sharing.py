@@ -10,7 +10,7 @@ from upstage.states import ActiveState
 from upstage.task import Task
 
 
-class SharedLinearChangingState(ActiveState):
+class SharedLinearChangingState(ActiveState[float]):
     """A state whose value changes linearly over time.
 
     Allows for multiple users of the state, keyed on actor and task.

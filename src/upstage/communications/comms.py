@@ -59,7 +59,7 @@ class CommsManager(UpstageBase):
 
     Example:
         >>> class Talker(UP.Actor):
-        >>>     comms = UP.ResourceState(default=SIM.Store)
+        >>>     comms = UP.ResourceState[SIM.Store](default=SIM.Store)
         >>>
         >>> talker1 = Talker(name='MacReady')
         >>> talker2 = Talker(name='Childs')

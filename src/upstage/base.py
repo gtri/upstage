@@ -58,6 +58,14 @@ class EarthProtocol(Protocol):
     ) -> list[tuple[float, float, float]]:
         """Get ECEF coordinates from lat lon alt."""
 
+    def geo_linspace(
+        self,
+        start: tuple[float, float],
+        end: tuple[float, float],
+        num_segments: int,
+    ) -> list[tuple[float, float]]:
+        """Get evenly spaced coordinates between lat/lon pairs."""
+
 
 INTERSECTION_LOCATION_CALLABLE = Callable[
     [
