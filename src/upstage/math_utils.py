@@ -10,51 +10,51 @@ from math import sqrt
 VECTOR = list[float] | tuple[float, ...]
 
 
-def _vector_subtract(A: VECTOR, B: VECTOR) -> list[float]:
+def _vector_subtract(vector_a: VECTOR, vector_b: VECTOR) -> list[float]:
     """Subtract equal-sized vectors.
 
     Args:
-        A (list[float]): Left vector
-        B (list[float]): Right vector
+        vector_a (list[float]): Left vector
+        vector_b (list[float]): Right vector
 
     Returns:
         list[float]: Subtracted vector
     """
-    if not (len(A) == len(B)):
+    if not (len(vector_a) == len(vector_b)):
         raise ValueError("Vectors are not the same size")
 
-    ret = [a - b for a, b in zip(A, B)]
+    ret = [a - b for a, b in zip(vector_a, vector_b)]
     return ret
 
 
-def _vector_add(A: VECTOR, B: VECTOR) -> list[float]:
+def _vector_add(vector_a: VECTOR, vector_b: VECTOR) -> list[float]:
     """Add equal-sized vectors.
 
     Args:
-        A (list[float]): Left vector
-        B (list[float]): Right vector
+        vector_a (list[float]): Left vector
+        vector_b (list[float]): Right vector
 
     Returns:
         list[float]: Added vector
     """
-    if not (len(A) == len(B)):
+    if not (len(vector_a) == len(vector_b)):
         raise ValueError("Vectors are not the same size")
 
-    ret = [a + b for a, b in zip(A, B)]
+    ret = [a + b for a, b in zip(vector_a, vector_b)]
     return ret
 
 
-def _vector_dot(A: VECTOR, B: VECTOR) -> float:
+def _vector_dot(vector_a: VECTOR, vector_b: VECTOR) -> float:
     """Inner product of two vectors.
 
     Args:
-        A (VECTOR): Left vector
-        B (VECTOR): Right vector
+        vector_a (VECTOR): Left vector
+        vector_b (VECTOR): Right vector
 
     Returns:
         float: inner product
     """
-    return sum(a * b for a, b in zip(A, B))
+    return sum(a * b for a, b in zip(vector_a, vector_b))
 
 
 def _vector_norm(arr: VECTOR) -> float:
@@ -91,21 +91,21 @@ def _roots(a: float, b: float, c: float) -> list[float]:
     return [root1, root2]
 
 
-def _col_mat_mul(col: VECTOR, M: list[list[float]]) -> list[float]:
+def _col_mat_mul(col: VECTOR, mat: list[list[float]]) -> list[float]:
     """Do a matrix multiplication of a column against a matrix.
 
-    Does col @ M
+    Does col @ mat
 
     Args:
         col (VECTOR): The left vector
-        M (list[list[float]]): The matrix
+        mat (list[list[float]]): The matrix
 
     Returns:
         list[float]: The multiplied result
     """
-    if len(col) != len(M):
-        raise ValueError("Number of values in col must equal number of rows in M")
+    if len(col) != len(mat):
+        raise ValueError("Number of values in col must equal number of rows in mat")
 
-    result = [sum(x * y for x, y in zip(col, c)) for c in zip(*M)]
+    result = [sum(x * y for x, y in zip(col, c)) for c in zip(*mat)]
 
     return result

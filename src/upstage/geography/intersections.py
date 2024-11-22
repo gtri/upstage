@@ -13,6 +13,12 @@ from .spherical import Spherical
 from .wgs84 import WGS84
 
 
+class IntersectionError(Exception):
+    """An exception when intersection code fails."""
+
+    ...
+
+
 def _preprocess(
     start_lla: LAT_LON_ALT,
     finish_lla: LAT_LON_ALT,
@@ -39,7 +45,9 @@ def _preprocess(
     while points <= 2:
         dist_between = dist_between / 2.0
         if dist_between < 100:
-            raise Exception(f"Intersetion Segment {start_lla} -> {finish_lla} is too small!")
+            raise IntersectionError(
+                f"Intersetion Segment {start_lla} -> {finish_lla} is too small!"
+            )
         points = int(dist / dist_between) + 1
     ecef_point = earth.lla2ecef([point_lla])[0]
     assert len(ecef_point) == 3
@@ -178,11 +186,11 @@ def _split_down(
             distance_between,
         )
         if len(split_data) != 3:
-            raise ValueError(
-                "A subdivide split shouldn't have 2 crossovers" " in intersections with a sphere"
+            raise IntersectionError(
+                "A subdivide split shouldn't have 2 crossovers in intersections with a sphere"
             )
         if split_data[1].kind not in ["EXIT", "ENTER"]:
-            raise ValueError("Subdividing an intersection check gave an invalid Direction")
+            raise IntersectionError("Subdividing an intersection check gave an invalid Direction")
         assert split_data[1].end is not None
         begin, end = split_data[1].begin, split_data[1].end
 
@@ -254,7 +262,7 @@ def get_intersection_locations(
             subdivide_levels=subdivide_levels,
         )
         if new_condition.kind != condition.kind:
-            raise ValueError("Subdividing the intersection switched directions")
+            raise IntersectionError("Subdividing the intersection switched directions")
         use_lla = new_condition.begin if condition.kind == "EXIT" else new_condition.end
         assert use_lla is not None
         intersections.append(CrossingCondition(kind=condition.kind, begin=use_lla))

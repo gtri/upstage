@@ -75,7 +75,7 @@ class BaseEvent(UpstageBase):
             SIM.Event: The upstage event as a simpy event.
         """
         raise NotImplementedError(
-            "Events must specify how to convert to " ":class:`simpy.events.Event`"
+            "Events must specify how to convert to :class:`simpy.events.Event`"
         )
 
     def is_complete(self) -> bool:
@@ -125,7 +125,7 @@ class BaseEvent(UpstageBase):
         """
         if not self._rehearsing:
             raise SimulationError(
-                "Trying to finish testing event but event " "testing was not started`"
+                "Trying to finish testing event but event testing was not started`"
             )
         self._done_rehearsing = complete
 

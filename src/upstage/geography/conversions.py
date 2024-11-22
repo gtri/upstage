@@ -37,8 +37,8 @@ wF = WGS84_F
 class BaseConversions:
     """Base class for converting in geodetic frames."""
 
-    R_e = 0.0
-    R_p = 0.0
+    radius_e = 0.0
+    radius_p = 0.0
     e_2 = 0.0
     ep_2 = 0.0
     e = 0.0
@@ -61,8 +61,7 @@ class BaseConversions:
             rad_lat = radians(rad_lat)  # sometimes denoted as lambda
             rad_lon = radians(rad_lon)  # sometimes denoted as phi
 
-        N = cls.R_e / sqrt(1 - (cls.e_2 * sin(rad_lat) ** 2))
-        N = cls.R_e / sqrt(1 - (cls.e_2 * sin(rad_lat) ** 2))
+        N = cls.radius_e / sqrt(1 - (cls.e_2 * sin(rad_lat) ** 2))
         temp1 = (N + ht) * cos(rad_lat)
         temp2 = N * (1 - cls.f) ** 2 + ht
         x = temp1 * cos(rad_lon)
@@ -102,8 +101,8 @@ class BaseConversions:
         e2 = cls.e_2
         r2 = X**2 + Y**2
         r = sqrt(r2)
-        a = cls.R_e
-        b = cls.R_p
+        a = cls.radius_e
+        b = cls.radius_p
         a2 = a**2
         b2 = b**2
         E2 = a2 - b2
@@ -150,8 +149,8 @@ class BaseConversions:
 class SphericalConversions(BaseConversions):
     """Conversions on a spherical globe."""
 
-    R_e = sR_e
-    R_p = sR_p
+    radius_e = sR_e
+    radius_p = sR_p
     e_2 = se_2
     ep_2 = sep_2
     e = se
@@ -175,7 +174,7 @@ class SphericalConversions(BaseConversions):
             rad_lon = radians(rad_lon)  # sometimes denoted as phi
 
         ht = lla[2]
-        rad = cls.R_e + ht
+        rad = cls.radius_e + ht
         clat = cos(rad_lat)
         x = rad * cos(rad_lon) * clat
         y = rad * clat * sin(rad_lon)
@@ -213,14 +212,14 @@ class SphericalConversions(BaseConversions):
         p = sqrt(x**2 + y**2)
         # Latitude (rads)
         lat = atan2(z, p)
-        h = p / cos(lat) - cls.R_e
+        h = p / cos(lat) - cls.radius_e
 
         # correct for numerical instability in altitude near exact poles:
         # (after this correction, error is about 2 millimeters, which is about
         # the same as the numerical precision of the overall function)
         k = (abs(x) < 1) & (abs(y) < 1)
         if k:
-            h = abs(z) - cls.R_p
+            h = abs(z) - cls.radius_p
 
         if not radians_out:
             lon = degrees(lon)
@@ -246,8 +245,8 @@ class SphericalConversions(BaseConversions):
 class WGS84Conversions(BaseConversions):
     """WGS84 coordinate conversions."""
 
-    R_e = wR_e
-    R_p = wR_p
+    radius_e = wR_e
+    radius_p = wR_p
     e_2 = we_2
     ep_2 = wep_2
     e = we

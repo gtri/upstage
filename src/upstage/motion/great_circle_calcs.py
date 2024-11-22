@@ -88,28 +88,28 @@ def get_pos_from_points_and_distance(
 
 @lru_cache
 def get_great_circle_points(
-    pointA: GeodeticLocation,
-    pointB: GeodeticLocation,
-    pointD: GeodeticLocation,
+    point_a: GeodeticLocation,
+    point_b: GeodeticLocation,
+    point_d: GeodeticLocation,
     dist: float,
 ) -> tuple[list[tuple[float, float]], list[float]] | None:
     """Let points A and B define a great circle route and D be a third point.
 
     Find the points on the great circle through A and B that lie a distance d from D, if they exist.
 
-    :param pointA: GeodeticLocation of start of great circle
-    :param pointB: GeodeticLocation of end of great circle
-    :param pointD: GeodeticLocation, third point of interest (the center of sphere)
+    :param point_a: GeodeticLocation of start of great circle
+    :param point_b: GeodeticLocation of end of great circle
+    :param point_d: GeodeticLocation, third point of interest (the center of sphere)
     :param dist: (float) distance from third to point to find intersection on great circle (radians)
     """
-    pointA = pointA.to_radians()
-    pointB = pointB.to_radians()
-    pointD = pointD.to_radians()
-    course_ad = get_course_rad(pointA, pointD)
-    course_ab = get_course_rad(pointA, pointB)
+    point_a = point_a.to_radians()
+    point_b = point_b.to_radians()
+    point_d = point_d.to_radians()
+    course_ad = get_course_rad(point_a, point_d)
+    course_ab = get_course_rad(point_a, point_b)
 
     a = course_ad - course_ab
-    b = get_dist_rad(pointA, pointD)
+    b = get_dist_rad(point_a, point_d)
 
     r = (cos(b) ** 2 + sin(b) ** 2 * cos(a) ** 2) ** (
         1 / 2
@@ -117,7 +117,7 @@ def get_great_circle_points(
 
     atd = atan2(sin(b) * cos(a), cos(b))  # the along track distance
 
-    dist_ab = get_dist_rad(pointA, pointB)
+    dist_ab = get_dist_rad(point_a, point_b)
 
     if cos(dist) ** 2 > r**2:
         # no points exist
@@ -135,8 +135,8 @@ def get_great_circle_points(
         if dist_ab < d1 or d2 < 0:
             return None
 
-        p1 = get_pos_from_points_and_distance(pointA, pointB, d1)
-        p2 = get_pos_from_points_and_distance(pointA, pointB, d2)
+        p1 = get_pos_from_points_and_distance(point_a, point_b, d1)
+        p2 = get_pos_from_points_and_distance(point_a, point_b, d2)
 
     else:
         return None

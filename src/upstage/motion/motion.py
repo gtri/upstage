@@ -461,7 +461,6 @@ class SensorMotionManager(UpstageBase):
         if self._debug and mover not in self._debug_data:
             self._debug_data[mover] = []
         # TODO: Waypoints need to start with the movers current location
-        # TODO: Enforce a name for the location state
         self._movers[mover] = (speed, waypoints, self.env.now)
         self._find_intersections(mover_list=[mover], sensor_list=None)
         return None

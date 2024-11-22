@@ -310,7 +310,7 @@ class ContinuousContainer:
         if level == 0 and self.error_empty:
             raise ContainerEmptyError("Container is empty!")
         elif level < 0.0:
-            raise ContainerError(f"Container level is less than 0 " f"({level:.3f})!")
+            raise ContainerError(f"Container level is less than 0 ({level:.3f})!")
         return to_rem, rate
 
     def _check_full(self) -> tuple[list[ContinuousPut], float]:

@@ -80,6 +80,15 @@ class SteppedMotionManager(UpstageBase):
         self._debug_log: list[Any] = []
         self._is_running = False
 
+    def _do_log(self, msg: Any) -> None:
+        """Write to a log list.
+
+        Args:
+            msg (Any): Anything to append.
+        """
+        if self._debug:
+            self._debug_log.append(msg)
+
     def _update_awareness(self, sensor: SensorType, object: Actor, visible: bool) -> None:
         """Modify sensor/object awareness.
 
@@ -114,6 +123,26 @@ class SteppedMotionManager(UpstageBase):
         visibility: bool = getattr(detectable, detect_state)
         return visibility
 
+    @staticmethod
+    def _detect_dist(loc1: LOC_TYPES, radius: float, loc2: LOC_TYPES, sensor: SensorType) -> bool:
+        """Run a detectability check, including sensor custom function.
+
+        Args:
+            loc1 (LOC_TYPES): Sensor location
+            radius (float): Sensor radius
+            loc2 (LOC_TYPES): Target location
+            sensor (SensorType): Sensor object
+
+        Returns:
+            bool: If it's detectable
+        """
+        if hasattr(sensor, "detection_checker"):
+            visible = sensor.detection_checker(loc2)
+        else:
+            dist = loc1.straight_line_distance(loc2)
+            visible = dist <= radius
+        return cast(bool, visible)
+
     def _run_detectable(
         self,
         sensor_req: list[SensorType] | None = None,
@@ -125,25 +154,20 @@ class SteppedMotionManager(UpstageBase):
             sensor_req (list[SensorType] | None, optional): Sensors. Defaults to None.
             detectable_req (list[Actor] | None, optional): Detectables. Defaults to None.
         """
-        sensor_req = sensor_req or list(self._sensors)
-        detectable_req = detectable_req or list(self._detectables)
-        for sensor in sensor_req:
-            rad_f, loc_f = self._sensors[sensor]
-            radius, loc = rad_f(), loc_f()
-            for detectable in detectable_req:
+        sensor_req = list(self._sensors) if sensor_req is None else sensor_req
+        sensor_radii = [self._sensors[s][0]() for s in sensor_req]
+        sensor_locs = [self._sensors[s][1]() for s in sensor_req]
+
+        detectable_req = list(self._detectables) if detectable_req is None else detectable_req
+        detectable_req = [d for d in detectable_req if self._test_detect(d)]
+        detect_locs = [self._detectables[d]() for d in detectable_req]
+
+        for sensor, radius, loc in zip(sensor_req, sensor_radii, sensor_locs):
+            for detectable, d_loc in zip(detectable_req, detect_locs):
                 if detectable is sensor:
                     continue
-                if not self._test_detect(detectable):
-                    continue
-                d_loc_f = self._detectables[detectable]
-                d_loc = d_loc_f()
-                if not hasattr(sensor, "detection_checker"):
-                    dist = loc.straight_line_distance(d_loc)
-                    visible = dist <= radius
-                else:
-                    visible = sensor.detection_checker(d_loc)
-                if self._debug:
-                    self._debug_log.append((self.env.now, sensor, loc, detectable, d_loc))
+                visible = self._detect_dist(loc, radius, d_loc, sensor)
+                self._do_log((self.env.now, sensor, loc, detectable, d_loc))
                 self._update_awareness(sensor, detectable, visible)
 
     def _only_event_test(self) -> bool:
@@ -188,7 +212,6 @@ class SteppedMotionManager(UpstageBase):
         while True:
             yield self.env.timeout(rate)
             self._run_detectable(sensor_req=None, detectable_req=[detectable])
-            # TODO: Determine the best way to stop this process
 
     def add_sensor(
         self,
@@ -211,7 +234,7 @@ class SteppedMotionManager(UpstageBase):
                 raise NotImplementedError(f"Sensor {sensor} does not have '{req}' method!")
         for attr in required_attrs:
             if not hasattr(sensor, attr):
-                raise SimulationError(f"Sensor {sensor} doesn't have" f"attribute {attr}")
+                raise SimulationError(f"Sensor {sensor} doesn't have attribute {attr}")
 
         def get_radius() -> float:
             return cast(float, getattr(sensor, radius_attr_name))
@@ -240,7 +263,7 @@ class SteppedMotionManager(UpstageBase):
         """
         if not hasattr(detectable, location_attr_name):
             raise SimulationError(
-                f"Detectable {detectable} doesn't have" f"attribute {location_attr_name}"
+                f"Detectable {detectable} doesn't have attribute {location_attr_name}"
             )
         try:
             self._test_detect(detectable)
@@ -280,13 +303,12 @@ class SteppedMotionManager(UpstageBase):
             self.run()
         if mover in self._detectables:
             return
-        # state_name = mover._get_matching_state(Location)
         state_name_1 = mover._get_matching_state(GeodeticLocationChangingState)
         state_name_2 = mover._get_matching_state(CartesianLocationChangingState)
 
         use_state = state_name_1 or state_name_2
         if use_state is None:
-            raise SimulationError(f"Mover {mover} doesn't have" "a Location state")
+            raise SimulationError(f"Mover {mover} doesn't have a Location state")
 
         self.add_detectable(mover, use_state)
 

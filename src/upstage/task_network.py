@@ -180,7 +180,7 @@ class TaskNetwork:
                 follow_on = task_name_list[task_idx + 1]
                 if not self.is_feasible(task_name, follow_on):
                     raise SimulationError(  # pragma: no cover
-                        f"Task {follow_on} not allowed after " f"'{task_name}' in network"
+                        f"Task {follow_on} not allowed after '{task_name}' in network"
                     )
             task_idx += 1
         # reset the internal parameters

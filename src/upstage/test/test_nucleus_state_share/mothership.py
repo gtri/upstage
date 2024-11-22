@@ -65,8 +65,6 @@ class CrewMember(UP.Task):
         if draw == 0:
             ports = self._user_remove(actor, vehicle)
         else:
-            # TODO: If ports would exceed some number,
-            # force that thing to pause.. preserving the desire
             ports = self._user_add(actor, vehicle, draw)
             # kill some time to send a message back
             yield UP.Wait(5 / 60)

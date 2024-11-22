@@ -114,29 +114,29 @@ class Spherical(SphericalConversions):
         return (lat, lon)
 
     @classmethod
-    def _ll2cart(cls, lat: float, lon: float, R: float = 1.0) -> POSITION:
+    def _ll2cart(cls, lat: float, lon: float, radius: float = 1.0) -> POSITION:
         """Latitude and longitude to cartesian on a spherical earth.
 
         Args:
             lat (float | list[float]): Latitude
             lon (float | list[float]): Longitude
-            R (float, optional): Sphere radius. Defaults to 1.
+            radius (float, optional): Sphere radius. Defaults to 1.
 
         Returns:
             POSITION: XYZ coordinates
         """
         theta, lam = radians(lon), radians(lat)
         cl = cos(lam)
-        v = (R * cos(theta) * cl, R * sin(theta) * cl, R * sin(lam))
+        v = (radius * cos(theta) * cl, radius * sin(theta) * cl, radius * sin(lam))
         return v
 
     @classmethod
-    def _cart2lla(cls, cart: POSITION, R: float = 1.0) -> POSITION:
+    def _cart2lla(cls, cart: POSITION, radius: float = 1.0) -> POSITION:
         """Convert XYZ to lat/lon.
 
         Args:
             cart (POSITION): Cartesian (XYZ) point.
-            R (float, optional): Radius of the sphere. Defaults to 1.0.
+            radius (float, optional): Radius of the sphere. Defaults to 1.0.
 
         Returns:
             POSITION: Latitude and longitude (degrees), and altitude (meters)
@@ -144,7 +144,7 @@ class Spherical(SphericalConversions):
         a, b, c = cart
         lam = asin(c)
         theta = atan2(b, a)
-        alt = sum(x**2 for x in cart) - R
+        alt = sum(x**2 for x in cart) - radius
         return degrees(lam), degrees(theta), alt
 
     @classmethod

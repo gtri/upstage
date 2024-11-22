@@ -2,9 +2,6 @@ name: lint
 
 on: [push, pull_request]
 
-# TODO: remove all of the if: success() || failure()
-# that code is for debug only
-
 jobs:
   build:
     runs-on: ubuntu-latest

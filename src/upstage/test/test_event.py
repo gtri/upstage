@@ -216,7 +216,6 @@ def test_resource_events() -> None:
         new_request.as_event()
         env.run()
 
-        # TODO: A better name might be needed, since this request hasn't succeeded yet
         assert new_request._stage == "release", "Request object in wrong state"
         assert new_request._request is not None
         assert not new_request._request.processed, "Request went through when it shouldn't"
@@ -375,7 +374,6 @@ def test_rehearse_process_in_multi() -> None:
                 task.rehearse(actor=t)
 
 
-# # TODO: Test how to retrieve event items
 def run_one(env: SIM.Environment, event: Event) -> SIMPY_GEN:
     yield env.timeout(1.0)
     event.succeed(data="here")

@@ -73,9 +73,8 @@ class Location(UpstageBase):
             name (str): Attribute name
             value (Any): Attribute value
         """
-        if hasattr(self, "_no_override"):
-            if name in self._no_override:
-                raise FrozenInstanceError(f"Locations are disallowed from setting {name}")
+        if hasattr(self, "_no_override") and name in self._no_override:
+            raise FrozenInstanceError(f"Locations are disallowed from setting {name}")
         return super().__setattr__(name, value)
 
     def __sub__(self, other: object) -> float:

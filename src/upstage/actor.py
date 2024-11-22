@@ -287,7 +287,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
             # be associated with this state
             if task not in self._tasks_by_state[state]:
                 raise SimulationError(
-                    f"State `{state}` isn't locked by '{task}', " "but it's trying to be unlocked."
+                    f"State `{state}` isn't locked by '{task}', but it's trying to be unlocked."
                 )
             self._states_by_task[task].remove(state)
             self._tasks_by_state[state].remove(task)
@@ -329,7 +329,6 @@ class Actor(SettableEnv, NamedUpstageEntity):
         if state in self._active_states and not ignore:
             del self._active_states[state]
 
-    # TODO: should this method be a task specific method?
     def deactivate_all_states(self, *, task: Task) -> None:
         """Deactivate all states in the actor for a given task.
 
@@ -385,18 +384,14 @@ class Actor(SettableEnv, NamedUpstageEntity):
             task (Task): The task during which the state is mimiced.
         """
         caller = get_caller_object()
-        if isinstance(caller, Task):
-            if caller._rehearsing:
-                raise UpstageError(
-                    "Mimic state activated on rehearsal. This is unsupported/unstable"
-                )
+        if isinstance(caller, Task) and caller._rehearsing:
+            raise UpstageError("Mimic state activated on rehearsal. This is unsupported/unstable")
         if self_state in self._mimic_states:
             raise UpstageError(f"{self_state} already mimicked")
         self._mimic_states[self_state] = (mimic_actor, mimic_state)
         self._mimic_states_by_task[task].add(self_state)
 
         state = self._state_defs[self_state]
-        # TODO: UUID of actors would help here.
         self_state_name = self._mimic_state_name(self_state)
         if state.is_recording:
 
@@ -576,9 +571,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         """
         self._log_caller("set_task_queue")
         if self._task_queue[network_name]:
-            raise SimulationError(
-                f"Task queue on {self.name} is already set. " f"Use append or clear."
-            )
+            raise SimulationError(f"Task queue on {self.name} is already set. Use append or clear.")
         self._task_queue[network_name] = list(task_list)
 
     def get_task_queue(self, network_name: str) -> list[str]:
@@ -924,6 +917,19 @@ class Actor(SettableEnv, NamedUpstageEntity):
             raise NotImplementedError("Only 1 state of type DetectabilityState allowed for now")
         return None if not detection else detection[0]
 
+    def _match_attr(self, name: str) -> str | None:
+        """Test if self has a matching attribute name.
+
+        Args:
+            name (str): The attribute to find
+
+        Returns:
+            str | None: The name if it has it, None otherwise.
+        """
+        if not hasattr(self, name):
+            return None
+        return name
+
     def _get_matching_state(
         self,
         state_class: type[State],
@@ -942,23 +948,24 @@ class Actor(SettableEnv, NamedUpstageEntity):
             str | None: The name of the state (for getattr)
         """
 
-        def matcher(nm: str, val: Any, state: State) -> bool:
+        def match_tester(nm: str, val: Any, state: State) -> bool:
             if hasattr(state, nm):
                 matching: bool = getattr(state, nm) == val
                 return matching
             return False
 
         for name, state in self._state_defs.items():
-            if isinstance(state, state_class):
-                if attr_matches is None:
-                    if not hasattr(self, name):
-                        return None
-                    return name
+            if not isinstance(state, state_class):
+                continue
 
-                if all(matcher(nm, val, state) for nm, val in attr_matches.items()):
-                    if not hasattr(self, name):
-                        return None
-                    return name
+            if attr_matches is None:
+                return self._match_attr(name)
+
+            has_attribute_matches = all(
+                match_tester(nm, val, state) for nm, val in attr_matches.items()
+            )
+            if has_attribute_matches:
+                return self._match_attr(name)
         return None
 
     def create_knowledge_event(
@@ -1005,7 +1012,6 @@ class Actor(SettableEnv, NamedUpstageEntity):
             name (str): Event knowledge name.
             **kwargs (Any): Any payload to send to the event. Defaults to None
         """
-        # TODO: Ensure this works in rehearsal
         event = self.get_knowledge(name)
         if event is None:
             raise SimulationError(f"No knowledge named {name} to succeed")

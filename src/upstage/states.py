@@ -108,7 +108,7 @@ class State(Generic[ST]):
         env = getattr(instance, "env", None)
         if env is None:
             raise SimulationError(
-                f"Actor {instance} does not have an `env` attribute " f"for state {self.name}"
+                f"Actor {instance} does not have an `env` attribute for state {self.name}"
             )
         # get the instance time here
         to_append = (env.now, value)
@@ -136,7 +136,6 @@ class State(Generic[ST]):
             value (Any): The state's value
         """
         # broadcast changes to the instance
-        # TODO: This might break when the sets are happening early.
         if instance._state_listener is not None:
             instance._state_listener.send_change(name, value)
 
@@ -883,13 +882,13 @@ class ResourceState(State, Generic[T]):
 
         if self._types and not issubclass(resource_type, self._types):
             raise UpstageError(
-                f"{resource_type} is of type {type(resource_type)} " f"not of type {self._types}"
+                f"{resource_type} is of type {type(resource_type)} not of type {self._types}"
             )
 
         env = getattr(instance, "env", None)
         if env is None:
             raise UpstageError(
-                f"Actor {instance} does not have an `env` attribute " f"for state {self.name}"
+                f"Actor {instance} does not have an `env` attribute for state {self.name}"
             )
         kwargs = {k: v for k, v in value.items() if k != "kind"}
         try:

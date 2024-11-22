@@ -29,6 +29,9 @@ TASK_TYPE = Generator[BaseEvent | Process, Any, None]
 __all__ = ("DecisionTask", "Task", "process", "TerminalTask", "TASK_TYPE", "InterruptStates")
 
 
+NOT_IMPLEMENTED_MSG = "User must define the actions performed when executing this task"
+
+
 class InterruptStates(IntFlag):
     """Class that describes how to behave after an interrupt."""
 
@@ -111,7 +114,7 @@ class Task(SettableEnv):
 
     def task(self, *, actor: Any) -> TASK_TYPE:
         """Define the process this task follows."""
-        raise NotImplementedError("User must define the actions performed when executing this task")
+        raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
     def on_interrupt(self, *, actor: Any, cause: Any) -> InterruptStates:
         """Define any actions to take on the actor if this task is interrupted.
@@ -327,7 +330,6 @@ class Task(SettableEnv):
         self._rehearsing = True
         generator = self.task(actor=understudy, **kwargs)
         returned_item = None
-        # TODO: Make this easier to understand
         while True:
             try:
                 if returned_item is None:
@@ -337,7 +339,7 @@ class Task(SettableEnv):
                     returned_item = None
                 if not issubclass(next_event.__class__, BaseEvent):
                     raise SimulationError(
-                        f"Task {self} event {next_event} must " f"be a subclass of BaseEvent!"
+                        f"Task {self} event {next_event} must be a subclass of BaseEvent!"
                     )
                 time_advance, returned_item = next_event.rehearse()
                 mocked_env.now += time_advance
@@ -479,11 +481,11 @@ class DecisionTask(Task):
 
     def rehearse_decision(self, *, actor: Any) -> None:
         """Define the process this task follows."""
-        raise NotImplementedError("User must define the actions performed when executing this task")
+        raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
     def make_decision(self, *, actor: Any) -> None:
         """Define the process this task follows."""
-        raise NotImplementedError("User must define the actions performed when executing this task")
+        raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
     def rehearse(
         self,
@@ -563,7 +565,7 @@ class TerminalTask(Task):
             cause (Any): Additional data sent to the interrupt.
         """
         raise SimulationError(
-            f"Cannot interrupt a terminal task {self} on {actor}. " f"Kwargs sent: {cause}"
+            f"Cannot interrupt a terminal task {self} on {actor}. Kwargs sent: {cause}"
         )
         return InterruptStates.END
 

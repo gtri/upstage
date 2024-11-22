@@ -476,7 +476,6 @@ def test_background_motion() -> None:
         # so does the sensor
         assert len(motion._debug_data[mover]) == 3
         assert len(sensor.data) == 6
-        # TODO: TEST EQUIVALENT POINTS: I MISSED THAT ONE
 
 
 def test_background_rehearse() -> None:

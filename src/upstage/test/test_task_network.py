@@ -73,7 +73,6 @@ class Base:
     @process
     def run_maintenance(self) -> SIMPY_GEN:
         while True:
-            # TODO: THIS IS CLUNKY
             plane = yield Get(self.maintenance_queue).as_event()
             yield Wait(1.6).as_event()
             mx_wait = plane.get_knowledge("mx_wait")
@@ -407,7 +406,6 @@ class MaintenanceWait(Task):
         self.set_actor_knowledge(actor, "mx_wait", mx_wait)
         yield mx_wait
         self.clear_actor_knowledge(actor, "mx_wait")
-        # TODO: How to check or set the new MX code in testing
 
     def on_interrupt(self, *, actor: Actor, cause: Any) -> InterruptStates:
         return InterruptStates.IGNORE
@@ -446,7 +444,6 @@ _task_links = {
         "LandingLocationSelection",
         "Code4",
     ],
-    # TODO: Can there be a 'task group' the makes it easier to define 'Land'?
     "Loiter": [
         "Fly",
         "Mission",

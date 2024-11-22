@@ -20,14 +20,13 @@ from simpy import Environment as SimpyEnv
 from upstage.geography import INTERSECTION_LOCATION_CALLABLE, EarthProtocol
 from upstage.units import unit_convert
 
-if TYPE_CHECKING:
-    pass
+CONTEXT_ERROR_MSG = "Undefined context variable: use EnvironmentContext"
 
 
-class dotdict(dict):
+class DotDict(dict):
     """A dictionary that supports dot notation as well as dictionary access notation.
 
-    Usage: d = dotdict({'val1':'first'})
+    Usage: d = DotDict({'val1':'first'})
     set attributes: d.val2 = 'second' or d['val2'] = 'second'
     get attributes: d.val2 or d['val2'] would both produce 'second'
     """
@@ -174,7 +173,7 @@ class MockEnvironment:
 ENV_CONTEXT_VAR: ContextVar[SimpyEnv] = ContextVar("Environment")
 ACTOR_CONTEXT_VAR: ContextVar[list["NamedUpstageEntity"]] = ContextVar("Actors")
 ENTITY_CONTEXT_VAR: ContextVar[dict[str, list["NamedUpstageEntity"]]] = ContextVar("Entities")
-STAGE_CONTEXT_VAR: ContextVar[dotdict] = ContextVar("Stage")
+STAGE_CONTEXT_VAR: ContextVar[DotDict] = ContextVar("Stage")
 
 
 SKIP_GROUPS: list[str] = ["Task", "Location", "CartesianLocation", "GeodeticLocation"]
@@ -233,7 +232,7 @@ class UpstageBase:
         try:
             ans = ACTOR_CONTEXT_VAR.get()
         except LookupError:
-            raise UpstageError("Undefined context variable: use EnvironmentContext")
+            raise UpstageError(CONTEXT_ERROR_MSG)
         return ans
 
     def get_entity_group(self, group_name: str) -> list["NamedUpstageEntity"]:
@@ -250,7 +249,7 @@ class UpstageBase:
             grps: dict[str, list[NamedUpstageEntity]] = ENTITY_CONTEXT_VAR.get()
             ans = grps.get(group_name, [])
         except LookupError:
-            raise UpstageError("Undefined context variable: use EnvironmentContext")
+            raise UpstageError(CONTEXT_ERROR_MSG)
         return ans
 
     def get_all_entity_groups(self) -> dict[str, list["NamedUpstageEntity"]]:
@@ -264,7 +263,7 @@ class UpstageBase:
         try:
             grps = ENTITY_CONTEXT_VAR.get()
         except LookupError:
-            raise UpstageError("Undefined context variable: use EnvironmentContext")
+            raise UpstageError(CONTEXT_ERROR_MSG)
         return grps
 
     @property
@@ -446,7 +445,7 @@ class EnvironmentContext:
         self.env_token: Token[SimpyEnv]
         self.actor_token: Token[list[NamedUpstageEntity]]
         self.entity_token: Token[dict[str, list[NamedUpstageEntity]]]
-        self.stage_token: Token[dotdict]
+        self.stage_token: Token[DotDict]
         self._env: SimpyEnv | None = None
         self._initial_time: float = initial_time
         self._random_seed: int | None = random_seed
@@ -462,7 +461,7 @@ class EnvironmentContext:
         self.env_token = self.env_ctx.set(self._env)
         self.actor_token = self.actor_ctx.set([])
         self.entity_token = self.entity_ctx.set(defaultdict(list))
-        stage = dotdict()
+        stage = DotDict()
         self.stage_token = self.stage_ctx.set(stage)
         if self._random_gen is None:
             random = Random(self._random_seed)
@@ -477,7 +476,7 @@ class EnvironmentContext:
         self.actor_ctx.reset(self.actor_token)
         self.entity_ctx.reset(self.entity_token)
         self.stage_ctx.reset(self.stage_token)
-        # self._env = None
+        self._env = None
 
 
 def add_stage_variable(varname: str, value: Any) -> None:

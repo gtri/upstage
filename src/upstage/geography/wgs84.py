@@ -119,11 +119,11 @@ class WGS84(WGS84Conversions):
             except ZeroDivisionError:
                 cos2_sigma_m = 0
             c = WGS84_F / 16 * cos_sq_alpha * (4 + WGS84_F * (4 - 3 * cos_sq_alpha))
-            _lambdaPrev = lambda_lon
+            _lambda_prev = lambda_lon
             lambda_lon = delta_lon + (1 - c) * WGS84_F * sin_alpha * (
                 sigma + c * sin_sigma * (cos2_sigma_m + c * cos_sigma * (-1 + 2 * cos2_sigma_m**2))
             )
-            if abs(lambda_lon - _lambdaPrev) < tol:
+            if abs(lambda_lon - _lambda_prev) < tol:
                 break  # successful convergence
         else:
             raise ValueError("Could not converge distance/bearing calculation.")
@@ -277,17 +277,6 @@ class WGS84(WGS84Conversions):
         lons = []
         for fraction in range(0, num_segments + 1):
             f = fraction / num_segments
-            if fraction == 0:
-                loc = start
-            elif fraction == num_segments:
-                loc = end
-            else:
-                loc = cls.point_from_bearing_dist(
-                    start,
-                    bearing,
-                    dist * f,
-                    distance_units="km",
-                )
             if fraction == 0:
                 loc = start
             elif fraction == num_segments:
