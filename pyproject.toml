@@ -1,7 +1,7 @@
 [build-system]
 build-backend = "flit_core.buildapi"
 requires = [
-  "flit-core<4,>=3.7.1",
+  "flit-core>=3.7.1,<4",
 ]
 
 [project]
@@ -35,6 +35,7 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -48,7 +49,7 @@ optional-dependencies.docs = [
 ]
 optional-dependencies.lint = [
   "mypy",
-  "pyproject-fmt!=0.9.1",
+  "pyproject-fmt>=2.5",
   "pytest",
   "ruff>=0.6",
   "ssort>=0.12",

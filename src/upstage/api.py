@@ -18,6 +18,8 @@ from upstage.base import (
     UpstageBase,
     UpstageError,
     add_stage_variable,
+    get_stage,
+    get_stage_variable,
 )
 
 # Comms
@@ -27,7 +29,13 @@ from upstage.communications.comms import CommsManager, Message, MessageContent
 from upstage.constants import PLANNING_FACTOR_OBJECT
 
 # Data types
-from upstage.data_types import CartesianLocation, GeodeticLocation, Location
+from upstage.data_types import (
+    CartesianLocation,
+    CartesianLocationData,
+    GeodeticLocation,
+    GeodeticLocationData,
+    Location,
+)
 
 # Events
 from upstage.events import All, Any, Event, FilterGet, Get, Put, ResourceHold, Wait
@@ -90,6 +98,8 @@ __all__ = [
     "NamedUpstageEntity",
     "EnvironmentContext",
     "add_stage_variable",
+    "get_stage_variable",
+    "get_stage",
     "All",
     "Any",
     "Event",
@@ -114,6 +124,8 @@ __all__ = [
     "CartesianLocation",
     "GeodeticLocation",
     "Location",
+    "CartesianLocationData",
+    "GeodeticLocationData",
     "LinearChangingState",
     "CartesianLocationChangingState",
     "State",

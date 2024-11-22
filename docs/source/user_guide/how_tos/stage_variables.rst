@@ -66,3 +66,21 @@ actors and tasks. The following snippets shows how you might use it for pure Sim
                 yield self.env.timeout(process_time)
             
             self.env.process(_proc())
+
+
+Accessing Stage through upstage.api
+===================================
+
+For convenience, you can also do the following:
+
+.. code-block:: python
+
+    import upstage.api as UP
+
+    with UP.EnvironmentContext() as env:
+        UP.add_stage_variable("altitude_units", "centimeters")
+
+        stage = UP.get_stage()
+        assert stage.altitude_units == "centimeters"
+        altitude_units = UP.get_stage_variable("altitude_units")
+        assert altitude_units == "centimeters"

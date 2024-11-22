@@ -6,98 +6,22 @@
 """Base classes and exceptions for UPSTAGE."""
 
 from collections import defaultdict
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from contextvars import ContextVar, Token
 from functools import wraps
 from math import floor
 from random import Random
 from time import gmtime, strftime
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Protocol, Union
 from warnings import warn
 
 from simpy import Environment as SimpyEnv
 
-from upstage.geography import LAT_LON_ALT, CrossingCondition
+from upstage.geography import INTERSECTION_LOCATION_CALLABLE, EarthProtocol
 from upstage.units import unit_convert
 
 if TYPE_CHECKING:
-    from upstage.data_types import CartesianLocation, GeodeticLocation
-
-
-class EarthProtocol(Protocol):
-    """Protocol for defining an earth model interface."""
-
-    def distance(
-        self,
-        loc1: tuple[float, float],
-        loc2: tuple[float, float],
-        units: str,
-    ) -> float:
-        """Get the distance between two lat/lon (degrees) points."""
-
-    def distance_and_bearing(
-        self,
-        loc1: tuple[float, float],
-        loc2: tuple[float, float],
-        units: str,
-    ) -> tuple[float, float]:
-        """Get the distance between two lat/lon (degrees) points."""
-
-    def point_from_bearing_dist(
-        self,
-        point: tuple[float, float],
-        bearing: float,
-        distance: float,
-        distance_units: str = "nmi",
-    ) -> tuple[float, float]:
-        """Get a lat/lon in degrees from a point, bearing, and distance."""
-
-    def lla2ecef(
-        self,
-        locs: list[tuple[float, float, float]],
-    ) -> list[tuple[float, float, float]]:
-        """Get ECEF coordinates from lat lon alt."""
-
-    def geo_linspace(
-        self,
-        start: tuple[float, float],
-        end: tuple[float, float],
-        num_segments: int,
-    ) -> list[tuple[float, float]]:
-        """Get evenly spaced coordinates between lat/lon pairs."""
-
-
-INTERSECTION_LOCATION_CALLABLE = Callable[
-    [
-        LAT_LON_ALT,
-        LAT_LON_ALT,
-        LAT_LON_ALT,
-        float,
-        str,
-        EarthProtocol,
-        float | None,
-        list[int] | None,
-    ],
-    list[CrossingCondition],
-]
-
-LOC_INPUT = TypeVar("LOC_INPUT", "GeodeticLocation", "CartesianLocation")
-
-INTERSECTION_TIMING_CALLABLE = Callable[
-    [
-        LOC_INPUT,
-        LOC_INPUT,
-        float,
-        LOC_INPUT,
-        float,
-    ],
-    tuple[
-        list[LOC_INPUT],
-        list[float],
-        list[str],
-        float,
-    ],
-]
+    pass
 
 
 class dotdict(dict):
@@ -572,3 +496,34 @@ def add_stage_variable(varname: str, value: Any) -> None:
     if varname in stage:
         raise UpstageError(f"Variable '{varname}' already exists in the stage")
     setattr(stage, varname, value)
+
+
+def get_stage_variable(varname: str) -> Any:
+    """Get a variable from the context's stage.
+
+    Args:
+        varname (str): Name of the variable
+
+    Returns:
+        Any: The variable's value
+    """
+    try:
+        stage = STAGE_CONTEXT_VAR.get()
+    except LookupError:
+        raise ValueError("Stage should have been set.")
+    if varname not in stage:
+        raise UpstageError(f"Variable '{varname}' does not exist in the stage")
+    return getattr(stage, varname)
+
+
+def get_stage() -> StageProtocol:
+    """Return the entire stage object.
+
+    Returns:
+        StageProtocol: The stage
+    """
+    try:
+        stage = STAGE_CONTEXT_VAR.get()
+    except LookupError:
+        raise ValueError("Stage should have been set.")
+    return stage

@@ -13,7 +13,13 @@ from upstage.base import UpstageBase
 from upstage.math_utils import _vector_norm, _vector_subtract
 from upstage.units import unit_convert
 
-__all__ = ("CartesianLocation", "GeodeticLocation", "Location")
+__all__ = (
+    "CartesianLocation",
+    "GeodeticLocation",
+    "Location",
+    "CartesianLocationData",
+    "GeodeticLocationData",
+)
 
 
 class Location(UpstageBase):
@@ -514,3 +520,80 @@ class GeodeticLocation(Location):
             int: The hash.
         """
         return hash(self._key())
+
+
+class CartesianLocationData:
+    """Object for storing caretesian data without an environment."""
+
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        z: float = 0.0,
+        *,
+        use_altitude_units: bool = True,
+    ) -> None:
+        """Cartesian data storage.
+
+        Args:
+            x (float): _description_
+            y (float): _description_
+            z (float, optional): _description_. Defaults to 0.0.
+            use_altitude_units (bool, optional): _description_. Defaults to True.
+        """
+        self.x = x
+        self.y = y
+        self.z = z
+        self.use_altitude_unts = use_altitude_units
+
+    def make_location(self) -> CartesianLocation:
+        """Create a location from the data.
+
+        Do this inside an environment contex.t
+
+        Returns:
+            CartesianLocation: The location object.
+        """
+        return CartesianLocation(
+            x=self.x, y=self.y, z=self.z, use_altitude_units=self.use_altitude_unts
+        )
+
+
+class GeodeticLocationData:
+    """Object for storing geodetic data without an environment."""
+
+    def __init__(
+        self,
+        lat: float,
+        lon: float,
+        alt: float = 0.0,
+        *,
+        in_radians: bool = False,
+    ) -> None:
+        """Geodetic data storage.
+
+        Args:
+            lat (float): _description_
+            lon (float): _description_
+            alt (float, optional): _description_. Defaults to 0.0.
+            in_radians (bool, optional): _description_. Defaults to False.
+        """
+        self.lat = lat
+        self.lon = lon
+        self.alt = alt
+        self.in_radians = in_radians
+
+    def make_location(self) -> GeodeticLocation:
+        """Create a location from the data.
+
+        Do this inside an environment contex.t
+
+        Returns:
+            GeodeticLocation: The location object.
+        """
+        return GeodeticLocation(
+            lat=self.lat,
+            lon=self.lon,
+            alt=self.alt,
+            in_radians=self.in_radians,
+        )

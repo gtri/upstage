@@ -5,25 +5,12 @@
 
 """Functions for finding intersections in geodetics."""
 
-from dataclasses import dataclass
-
 from upstage.math_utils import _vector_norm, _vector_subtract
 from upstage.units import unit_convert
 
-from .conversions import POSITION, POSITIONS
+from .geo_types import LAT_LON_ALT, POSITION, POSITIONS, CrossingCondition
 from .spherical import Spherical
 from .wgs84 import WGS84
-
-LAT_LON_ALT = POSITION
-
-
-@dataclass
-class CrossingCondition:
-    """Data about an intersection."""
-
-    kind: str
-    begin: LAT_LON_ALT
-    end: LAT_LON_ALT | None = None
 
 
 def _preprocess(

@@ -6,9 +6,9 @@
 
 from math import sqrt
 
-from upstage.base import INTERSECTION_LOCATION_CALLABLE
 from upstage.data_types import GeodeticLocation
 from upstage.geography import (
+    INTERSECTION_LOCATION_CALLABLE,
     CrossingCondition,
     Spherical,
 )

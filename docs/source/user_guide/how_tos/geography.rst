@@ -14,7 +14,7 @@ For most simulations, these small differences have no effect on the results or b
 the install dependencies to ``SimPy``. 
 
 
-Geographic DataTypes and State
+Geographic Data Types and State
 ===============================
 
 These are the built-in features that use geography:
@@ -58,6 +58,8 @@ Location instances *must* be created within an :py:class:`~upstage.base.Environm
 * OPTIONAL: ``altitude_units``: One of: "m", "km", "mi", "nmi", or "ft". Altitude can be different, because feet or meters are typical for altitude, while mi/nmi/km are typical for point to point distances.
    
    * Include this for any geographic features using intersections or for the ``GeodeticLocationChangingState``
+
+See the bottom of this page for a method to store geographic data conveniently without needing an environment context.
 
 The distance between two points is the great circle distance, and altitude is ignored. This is a design choice for simplicity, where altitude change doesn't affect timing, especially over long distances. This also means
 that any speeds you specify are implicitly ground speed, which is more useful.
@@ -235,3 +237,15 @@ The intersections are calculated by taking evenly spaced points along the great 
 the two points where the intersection is between. The number of point in the subdividing process is an input through ``subdivide_levels``, which default to 10 and 20. Before the subdivision happens, the code uses
 ``dist_between`` to do the first division. The default is 5 nautical miles. If you have a 5 nmi distance, then do 10 and 20 subdivisions, the distance of each segment is roughly 152 feet, which is the maximum error
 of the intersection point in that case.
+
+
+Storing Geographic Data
+=======================
+
+While the storage and instantiation of geographic objects is mostly within your control, the main caveat is that a ``GeodeticLocation`` requires the stage to exist.
+This means that you can only create a ``GeodeticLocation`` within an ``EnvironmentContext``. 
+
+To store data in an easily passable format, UPSTAGE has a :py:class:`~upstage.data_types.GeodeticLocationData` class.
+
+This class instantiates with the same inputs as the ``GeodeticLocation``, and has a single method: ``make_location()``. That method generates the ``GeodeticLocation``,
+letting you pass around the data object until you're ready for it inside an environment context.

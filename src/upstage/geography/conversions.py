@@ -7,9 +7,7 @@
 
 from math import atan2, cos, degrees, radians, sin, sqrt
 
-POSITION = tuple[float, float, float]
-POSITIONS = list[POSITION]
-
+from .geo_types import POSITION, POSITIONS
 
 # Constants for the earth
 spherical_radius: float = 6378137.0

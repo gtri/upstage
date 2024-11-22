@@ -4,8 +4,8 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 """This file contains a queueing motion manager for sensor/mover intersections."""
 
-from collections.abc import Generator
-from typing import Any, Protocol
+from collections.abc import Callable, Generator
+from typing import Any, Protocol, TypeVar
 from warnings import warn
 
 from simpy import Event as SimpyEvent
@@ -13,7 +13,6 @@ from simpy import Interrupt, Process
 
 from upstage.actor import Actor
 from upstage.base import (
-    INTERSECTION_TIMING_CALLABLE,
     MotionAndDetectionError,
     SimulationError,
     UpstageBase,
@@ -30,6 +29,24 @@ VALID = [
 
 LOC_TYPES = CartesianLocation | GeodeticLocation
 LOC_LIST = list[CartesianLocation] | list[GeodeticLocation]
+
+LOC_INPUT = TypeVar("LOC_INPUT", "GeodeticLocation", "CartesianLocation")
+
+INTERSECTION_TIMING_CALLABLE = Callable[
+    [
+        LOC_INPUT,
+        LOC_INPUT,
+        float,
+        LOC_INPUT,
+        float,
+    ],
+    tuple[
+        list[LOC_INPUT],
+        list[float],
+        list[str],
+        float,
+    ],
+]
 
 
 class SensorType(Protocol):

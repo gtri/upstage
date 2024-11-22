@@ -9,7 +9,7 @@ from math import atan, atan2, cos, degrees, radians, sin, sqrt, tan
 from upstage.units import unit_convert
 
 from .conversions import WGS84_A, WGS84_B, WGS84_F, WGS84Conversions
-from .spherical import LAT_LON, POSITIONS
+from .geo_types import GEO_POINT, LAT_LON, POSITIONS, _convert_geo
 
 
 class WGS84(WGS84Conversions):
@@ -21,8 +21,8 @@ class WGS84(WGS84Conversions):
     @classmethod
     def distance(
         cls,
-        loc1: LAT_LON,
-        loc2: LAT_LON,
+        loc1: LAT_LON | GEO_POINT,
+        loc2: LAT_LON | GEO_POINT,
         units: str = "nmi",
         tol: float = 1e-12,
         max_iter: int = 200,
@@ -47,8 +47,8 @@ class WGS84(WGS84Conversions):
     @classmethod
     def bearing(
         cls,
-        loc1: LAT_LON,
-        loc2: LAT_LON,
+        loc1: LAT_LON | GEO_POINT,
+        loc2: LAT_LON | GEO_POINT,
         tol: float = 1e-12,
         max_iter: int = 200,
     ) -> float:
@@ -70,8 +70,8 @@ class WGS84(WGS84Conversions):
     @classmethod
     def distance_and_bearing(
         cls,
-        loc1: LAT_LON,
-        loc2: LAT_LON,
+        loc1: LAT_LON | GEO_POINT,
+        loc2: LAT_LON | GEO_POINT,
         units: str = "nmi",
         tol: float = 1e-12,
         max_iter: int = 200,
@@ -88,6 +88,8 @@ class WGS84(WGS84Conversions):
         Returns:
             tuple[float, float]: Distance and Bearing
         """
+        loc1 = _convert_geo(loc1)
+        loc2 = _convert_geo(loc2)
         if loc1[0] == loc2[0] and loc1[1] == loc2[1]:
             return 0.0, 0.0
         # reduced latitudes
@@ -154,7 +156,7 @@ class WGS84(WGS84Conversions):
     @classmethod
     def point_from_bearing_dist(
         cls,
-        point: LAT_LON,
+        point: LAT_LON | GEO_POINT,
         bearing: float,
         distance: float,
         distance_units: str = "nmi",
@@ -174,6 +176,7 @@ class WGS84(WGS84Conversions):
         Returns:
             LAT_LON: The point in degrees
         """
+        point = _convert_geo(point)
         s = unit_convert(distance, distance_units, "km") * 1000
         phi_1 = radians(point[0])
         lambda_1 = radians(point[1])
@@ -244,8 +247,8 @@ class WGS84(WGS84Conversions):
     @classmethod
     def geo_linspace(
         cls,
-        start: LAT_LON,
-        end: LAT_LON,
+        start: LAT_LON | GEO_POINT,
+        end: LAT_LON | GEO_POINT,
         num_segments: int = 10,
     ) -> list[LAT_LON]:
         """Make a discrete great circle path between two points.
@@ -262,6 +265,8 @@ class WGS84(WGS84Conversions):
         Returns:
            list[LAT_LON]: Lattiude and Longitude (degrees)
         """
+        start = _convert_geo(start)
+        end = _convert_geo(end)
         if num_segments < 2:
             raise ValueError("Not enough points for interpolation")
 
@@ -302,7 +307,7 @@ class WGS84(WGS84Conversions):
     @classmethod
     def geo_circle(
         cls,
-        center: LAT_LON,
+        center: LAT_LON | GEO_POINT,
         radius: float,
         radius_units: str = "nmi",
         num_points: int = 10,
@@ -320,6 +325,7 @@ class WGS84(WGS84Conversions):
         Returns:
             list[LAT_LON]: Latitude and Longitude (degrees) of the circle
         """
+        center = _convert_geo(center)
         lats = []
         lons = []
         for fraction in range(0, num_points + 1):
@@ -339,8 +345,8 @@ class WGS84(WGS84Conversions):
     @classmethod
     def ecef_linspace(
         cls,
-        start: LAT_LON,
-        finish: LAT_LON,
+        start: LAT_LON | GEO_POINT,
+        finish: LAT_LON | GEO_POINT,
         start_alt: float,
         finish_alt: float,
         segments: int,
@@ -357,6 +363,8 @@ class WGS84(WGS84Conversions):
         Returns:
             POSITIONS: ECEF coordinates
         """
+        start = _convert_geo(start)
+        finish = _convert_geo(finish)
         lats, lons = cls.geo_linspace(start, finish, num_segments=segments)
         delta_alt = finish_alt - start_alt
         alts = [start_alt + delta_alt * i / segments for i in range(segments + 1)]
@@ -366,8 +374,8 @@ class WGS84(WGS84Conversions):
     @classmethod
     def ecef_and_geo_linspace(
         cls,
-        start: LAT_LON,
-        finish: LAT_LON,
+        start: LAT_LON | GEO_POINT,
+        finish: LAT_LON | GEO_POINT,
         start_alt: float,
         finish_alt: float,
         segments: int,
@@ -385,6 +393,8 @@ class WGS84(WGS84Conversions):
             POSITIONS: ECEF coordinates
             list[tuple[float, float, float]]: Lat/Lon/Alt (degrees)
         """
+        start = _convert_geo(start)
+        finish = _convert_geo(finish)
         latlons = cls.geo_linspace(start, finish, num_segments=segments)
         delta_alt = finish_alt - start_alt
         alts = [start_alt + delta_alt * i / segments for i in range(segments + 1)]

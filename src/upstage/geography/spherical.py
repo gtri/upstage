@@ -9,9 +9,8 @@ from math import acos, asin, atan, atan2, cos, degrees, radians, sin, sqrt
 from upstage.math_utils import _vector_dot
 from upstage.units import unit_convert
 
-from .conversions import POSITION, POSITIONS, SphericalConversions, spherical_radius
-
-LAT_LON = tuple[float, float]
+from .conversions import SphericalConversions, spherical_radius
+from .geo_types import GEO_POINT, LAT_LON, POSITION, POSITIONS, _convert_geo
 
 
 class Spherical(SphericalConversions):
@@ -38,8 +37,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def bearing(
         cls,
-        origin: LAT_LON,
-        destination: LAT_LON,
+        origin: LAT_LON | GEO_POINT,
+        destination: LAT_LON | GEO_POINT,
     ) -> float:
         """Calculate the forward bearing from origin to destination.
 
@@ -50,6 +49,8 @@ class Spherical(SphericalConversions):
         Returns:
             float: The forward bearing (0 is north)
         """
+        origin = _convert_geo(origin)
+        destination = _convert_geo(destination)
         positions = [origin[1], origin[0], destination[1], destination[0]]
         lon1, lat1, lon2, lat2 = map(radians, positions)
 
@@ -90,8 +91,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def point_along(
         cls,
-        origin: LAT_LON,
-        destination: LAT_LON,
+        origin: LAT_LON | GEO_POINT,
+        destination: LAT_LON | GEO_POINT,
         f: float,
     ) -> LAT_LON:
         """Find the location fractionally along a great circle path.
@@ -104,6 +105,8 @@ class Spherical(SphericalConversions):
         Returns:
             LAT_LON: Point between origin and destination (degrees)
         """
+        origin = _convert_geo(origin)
+        destination = _convert_geo(destination)
         positions = [origin[1], origin[0], destination[1], destination[0]]
         lon1, lat1, lon2, lat2 = map(radians, positions)
         d = cls.distance(origin, destination, units="m") / spherical_radius
@@ -147,8 +150,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def geo_linspace(
         cls,
-        start: LAT_LON,
-        end: LAT_LON,
+        start: LAT_LON | GEO_POINT,
+        end: LAT_LON | GEO_POINT,
         num_segments: int = 10,
     ) -> list[LAT_LON]:
         """Make a discrete great circle path between two points.
@@ -165,6 +168,8 @@ class Spherical(SphericalConversions):
         Returns:
            list[LAT_LON]: Lattiude and Longitude (degrees)
         """
+        start = _convert_geo(start)
+        end = _convert_geo(end)
         lats, lons, _ = cls.geo_linspace_with_ecef(start, end, num_segments)
         latlon: list[LAT_LON] = [(la, lo) for la, lo in zip(lats, lons)]
         return latlon
@@ -172,8 +177,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def geo_linspace_with_ecef(
         cls,
-        start: LAT_LON,
-        end: LAT_LON,
+        start: LAT_LON | GEO_POINT,
+        end: LAT_LON | GEO_POINT,
         num_segments: int = 10,
     ) -> tuple[list[float], list[float], POSITIONS]:
         """Make a discrete great circle path between two points.
@@ -190,6 +195,8 @@ class Spherical(SphericalConversions):
         Returns:
             tuple[list[float], list[float], POSITIONS]: Latitude, Longitude, and ECEF points.
         """
+        start = _convert_geo(start)
+        end = _convert_geo(end)
         if num_segments < 2:
             raise ValueError("Not enough segments for interpolation")
         # We keep the earth radius to be 1 since we're interpolating along radians only
@@ -233,7 +240,7 @@ class Spherical(SphericalConversions):
     @classmethod
     def geo_circle(
         cls,
-        center: LAT_LON,
+        center: LAT_LON | GEO_POINT,
         radius: float,
         radius_units: str = "nmi",
         num_points: int = 10,
@@ -251,6 +258,7 @@ class Spherical(SphericalConversions):
         Returns:
             list[LAT_LON]: Latitude and Longitude (degrees) of the circle
         """
+        center = _convert_geo(center)
         lats: list[float] = []
         lons: list[float] = []
         for fraction in range(0, num_points + 1):
@@ -271,8 +279,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def distance(
         cls,
-        loc1: LAT_LON,
-        loc2: LAT_LON,
+        loc1: LAT_LON | GEO_POINT,
+        loc2: LAT_LON | GEO_POINT,
         units: str = "nmi",
     ) -> float:
         """Find distance between two points.
@@ -287,6 +295,8 @@ class Spherical(SphericalConversions):
         Returns:
             float: Distances in the defined units
         """
+        loc1 = _convert_geo(loc1)
+        loc2 = _convert_geo(loc2)
         positions = [loc1[1], loc1[0], loc2[1], loc2[0]]
         lon1, lat1, lon2, lat2 = map(radians, positions)
         a = sin(0.5 * (lat2 - lat1)) ** 2 + cos(lat1) * cos(lat2) * sin(0.5 * (lon2 - lon1)) ** 2
@@ -297,8 +307,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def distance_and_bearing(
         cls,
-        loc1: LAT_LON,
-        loc2: LAT_LON,
+        loc1: LAT_LON | GEO_POINT,
+        loc2: LAT_LON | GEO_POINT,
         units: str = "nmi",
     ) -> tuple[float, float]:
         """Find great circle distance and forward bearing between two points.
@@ -318,7 +328,7 @@ class Spherical(SphericalConversions):
     @classmethod
     def point_from_bearing_dist(
         cls,
-        point: LAT_LON,
+        point: LAT_LON | GEO_POINT,
         bearing: float,
         distance: float,
         distance_units: str = "nmi",
@@ -334,6 +344,7 @@ class Spherical(SphericalConversions):
         Returns:
             LAT_LON: The point
         """
+        point = _convert_geo(point)
         bearing = radians(bearing)
         dist = unit_convert(distance, distance_units, "m")
 
@@ -356,9 +367,9 @@ class Spherical(SphericalConversions):
     @classmethod
     def cross_track_distance(
         cls,
-        origin: LAT_LON,
-        destination: LAT_LON,
-        point: LAT_LON,
+        origin: LAT_LON | GEO_POINT,
+        destination: LAT_LON | GEO_POINT,
+        point: LAT_LON | GEO_POINT,
         units: str = "nmi",
     ) -> float:
         """Find the minimum distance from a point to a great circle path.
@@ -372,6 +383,9 @@ class Spherical(SphericalConversions):
         Returns:
             float: Distance from point to origin->destination great circle
         """
+        origin = _convert_geo(origin)
+        destination = _convert_geo(destination)
+        point = _convert_geo(point)
         delta_1_3 = cls.distance(origin, point, units="m") / spherical_radius
         theta_1_3 = radians(cls.bearing(origin, point))
         theta_1_2 = radians(cls.bearing(origin, destination))
@@ -382,9 +396,9 @@ class Spherical(SphericalConversions):
     @classmethod
     def cross_track_point(
         cls,
-        origin: LAT_LON,
-        destination: LAT_LON,
-        point: LAT_LON,
+        origin: LAT_LON | GEO_POINT,
+        destination: LAT_LON | GEO_POINT,
+        point: LAT_LON | GEO_POINT,
     ) -> LAT_LON:
         """Find the point on a great circle that minimizes the distance to another point.
 
@@ -396,6 +410,9 @@ class Spherical(SphericalConversions):
         Returns:
             LAT_LON: Location on great circle closest to a point
         """
+        origin = _convert_geo(origin)
+        destination = _convert_geo(destination)
+        point = _convert_geo(point)
         delta_1_3 = cls.distance(origin, point, units="m") / spherical_radius
         theta_1_3 = radians(cls.bearing(origin, point))
         theta_1_2 = radians(cls.bearing(origin, destination))
@@ -413,8 +430,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def ecef_linspace(
         cls,
-        start: LAT_LON,
-        finish: LAT_LON,
+        start: LAT_LON | GEO_POINT,
+        finish: LAT_LON | GEO_POINT,
         start_alt: float,
         finish_alt: float,
         segments: int,
@@ -431,6 +448,8 @@ class Spherical(SphericalConversions):
         Returns:
             POSITIONS: ECEF coordinates
         """
+        start = _convert_geo(start)
+        finish = _convert_geo(finish)
         lats, lons = cls.geo_linspace(start, finish, num_segments=segments)
         delta_alt = finish_alt - start_alt
         alts = [start_alt + delta_alt * i / segments for i in range(segments + 1)]
@@ -440,8 +459,8 @@ class Spherical(SphericalConversions):
     @classmethod
     def ecef_and_geo_linspace(
         cls,
-        start: LAT_LON,
-        finish: LAT_LON,
+        start: LAT_LON | GEO_POINT,
+        finish: LAT_LON | GEO_POINT,
         start_alt: float,
         finish_alt: float,
         segments: int,
@@ -459,6 +478,8 @@ class Spherical(SphericalConversions):
             POSITIONS: ECEF coordinates
             POSITIONS: Lat/Lon/Alt (degrees)
         """
+        start = _convert_geo(start)
+        finish = _convert_geo(finish)
         lats, lons, _ = cls.geo_linspace_with_ecef(start, finish, num_segments=segments)
         delta_alt = finish_alt - start_alt
         alts = [start_alt + delta_alt * i / segments for i in range(segments + 1)]
