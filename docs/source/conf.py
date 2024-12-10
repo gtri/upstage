@@ -7,7 +7,7 @@ import sys
 
 from datetime import datetime
 
-import upstage
+import upstage_des
 
 sys.path.insert(0, os.path.abspath("../../src"))
 
@@ -15,9 +15,9 @@ sys.path.insert(0, os.path.abspath("../../src"))
 # https://www.sphinx-doc.org/en/mast er/usage/configuration.html#project-information
 
 project = "UPSTAGE"
-copyright = f"{datetime.now().year}, {upstage.__authors__}"
-author = upstage.__authors__
-release = upstage.__version__
+copyright = f"{datetime.now().year}, {upstage_des.__authors__}"
+author = upstage_des.__authors__
+release = upstage_des.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

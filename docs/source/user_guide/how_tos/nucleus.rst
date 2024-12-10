@@ -146,4 +146,4 @@ it is just running on SimPy and you can do what you like. Here are some issues/c
 * Using a ``DecisionTask`` helps avoid an ``if`` statement in the ``CPUProcess`` task to add the network to the nucleus
 * The business logic of the task is overpowered by assistance code, which UPSTAGE tries to avoid as much as possible.
 
-.. literalinclude:: ../../../../src/upstage/test/test_docs_examples/test_nucleus_sharing.py
+.. literalinclude:: ../../../../src/upstage_des/test/test_docs_examples/test_nucleus_sharing.py

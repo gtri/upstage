@@ -5,7 +5,7 @@ requires = [
 ]
 
 [project]
-name = "upstage"
+name = "upstage-des"
 version = "0.1.1"
 description = "A library for behavior-driven discrete event simulation."
 readme = "README.md"
@@ -86,10 +86,10 @@ lint.select = [
 lint.ignore = [
   "D105",
 ]
-lint.per-file-ignores."src/upstage/test/__*.py" = [
+lint.per-file-ignores."src/upstage_des/test/__*.py" = [
   "D",
 ]
-lint.per-file-ignores."src/upstage/test/test*.py" = [
+lint.per-file-ignores."src/upstage_des/test/test*.py" = [
   "D",
 ]
 lint.pydocstyle.convention = "google"
@@ -99,7 +99,7 @@ junit_family = "xunit2"
 cache_dir = "build/.pytest_cache"
 addopts = [
   "--pyargs",
-  "upstage",
+  "upstage_des",
   # for contributors
   "--cov-report=term-missing:skip-covered",
   "--color=yes",
@@ -110,7 +110,7 @@ addopts = [
   "--cov-report=xml:build/reports/coverage.xml",
   "--cov-context=test",
   # coverage
-  "--cov=upstage",
+  "--cov=upstage_des",
   "--no-cov-on-fail",
   # for robots
   "--junitxml=build/reports/pytest.xunit.xml",
@@ -125,16 +125,16 @@ data_file = "build/reports/.coverage"
 omit = [
   "*/test/test*.py",
   "*/test/test_nucleus_state_share/*.py",
-  "*/upstage/utils.py",
+  "*/upstage_des/utils.py",
 ]
 
 [tool.coverage.html]
 show_contexts = true
 
 [tool.coverage.paths]
-upstage = [
-  "src/upstage",
-  "*/src/upstage",
+upstage_des = [
+  "src/upstage_des",
+  "*/src/upstage_des",
 ]
 
 [tool.coverage.report]
@@ -166,7 +166,7 @@ warn_unused_ignores = true
 disable_error_code = "type-abstract"
 # disallow_any_unimported = true
 #exclude = [
-#  "^.+/upstage/test.+\\.py$",
+#  "^.+/upstage_des/test.+\\.py$",
 #]
 
 [[tool.mypy.overrides]]

@@ -32,7 +32,7 @@ python -m pip install --upgrade pip
 Next, clone the repo locally:
 
 ```bash
-cd /path/to/upstage_dev
+cd /path/to/upstage_des
 git clone https://github.com/gtri/upstage.git
 cd upstage
 ```
@@ -64,12 +64,12 @@ pyproject-fmt pyproject.toml
 ssort src
 ruff format src
 ruff check --fix src
-mypy --show-error-codes -p upstage
+mypy --show-error-codes -p upstage_des
 ```
 
 ### Testing
 
-To run the unit tests in `src/upstage/test`, run:
+To run the unit tests in `src/upstage_des/test`, run:
 
 ```bash
 pytest
@@ -86,7 +86,7 @@ Documentation is built from autodocs first, then the source build.
 From the top level of the repo:
 
 ```bash
-sphinx-apidoc -o ./docs/source ./src/upstage ./src/upstage/test
+sphinx-apidoc -o ./docs/source ./src/upstage_des ./src/upstage_des/test
 sphinx-build -b html ./docs/source ./build/docs
 ```
 

@@ -24,4 +24,4 @@ jobs:
     - name: Run Ruff linter
       run: ruff check --output-format=github src
     - name: Run mypy
-      run: mypy --show-error-codes -p upstage
+      run: mypy --show-error-codes -p upstage_des
