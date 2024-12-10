@@ -79,7 +79,7 @@ user_guide/index
 
 ## Contributing
 
-To contribute to UPSTAGE, or to learn the steps for building documentation and running tests, see [CONTRIBUTING.MD](https://github.com/JamesArruda/upstage/blob/main/CONTRIBUTING.md))
+To contribute to UPSTAGE, or to learn the steps for building documentation and running tests, see [CONTRIBUTING.MD](https://github.com/gtri/upstage/blob/main/CONTRIBUTING.md))
 
 ## License and Attribution
 
