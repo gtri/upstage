@@ -7,7 +7,7 @@ import sys
 
 from datetime import datetime
 
-import upstage
+import upstage_des
 
 sys.path.insert(0, os.path.abspath("../../src"))
 
@@ -15,9 +15,9 @@ sys.path.insert(0, os.path.abspath("../../src"))
 # https://www.sphinx-doc.org/en/mast er/usage/configuration.html#project-information
 
 project = "UPSTAGE"
-copyright = f"{datetime.now().year}, {upstage.__authors__}"
-author = upstage.__authors__
-release = upstage.__version__
+copyright = f"{datetime.now().year}, {upstage_des.__authors__}"
+author = upstage_des.__authors__
+release = upstage_des.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -42,19 +42,19 @@ myst_enable_extensions = ["colon_fence", "substitution"]
 myst_heading_anchors = 2
 myst_substitutions = {
     "rtd": "[Read the Docs](https://readthedocs.org/)",
-    "Actor": "{py:class}`Actor <upstage.actor.Actor>`",
-    "State": "{py:class}`~upstage.states.State`",
-    "Task": "{py:class}`~upstage.task.Task`",
-    "TaskNetwork": "{py:class}`~upstage.task_network.TaskNetwork`",
-    "EnvironmentContext": "{py:class}`~upstage.base.EnvironmentContext`",
-    "UpstageBase": "{py:class}`~upstage.base.UpstageBase`",
-    "NamedEntity": "{py:class}`~upstage.base.NamedUpstageEntity`",
-    "LinearChangingState": "{py:class}`~upstage.states.LinearChangingState`",
-    "CartesianLocation": "{py:class}`~upstage.data_types.CartesianLocation`",
-    "GeodeticLocationChangingState": "{py:class}`~upstage.states.GeodeticLocationChangingState`",
-    "ResourceState": "{py:class}`~upstage.states.ResourceState`",
-    "SelfMonitoringStore": "{py:class}`~upstage.stores.SelfMonitoringStore`",
-    "DecisionTask": "{py:class}`~upstage.task.DecisionTask`",
+    "Actor": "{py:class}`Actor <upstage_des.actor.Actor>`",
+    "State": "{py:class}`~upstage_des.states.State`",
+    "Task": "{py:class}`~upstage_des.task.Task`",
+    "TaskNetwork": "{py:class}`~upstage_des.task_network.TaskNetwork`",
+    "EnvironmentContext": "{py:class}`~upstage_des.base.EnvironmentContext`",
+    "UpstageBase": "{py:class}`~upstage_des.base.UpstageBase`",
+    "NamedEntity": "{py:class}`~upstage_des.base.NamedUpstageEntity`",
+    "LinearChangingState": "{py:class}`~upstage_des.states.LinearChangingState`",
+    "CartesianLocation": "{py:class}`~upstage_des.data_types.CartesianLocation`",
+    "GeodeticLocationChangingState": "{py:class}`~upstage_des.states.GeodeticLocationChangingState`",
+    "ResourceState": "{py:class}`~upstage_des.states.ResourceState`",
+    "SelfMonitoringStore": "{py:class}`~upstage_des.stores.SelfMonitoringStore`",
+    "DecisionTask": "{py:class}`~upstage_des.task.DecisionTask`",
 }
 
 

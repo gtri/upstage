@@ -8,12 +8,12 @@ All events accept a ``rehearsal_time_to_complete`` argument.
 
 The available UPSTAGE events are:
 
-:py:class:`~upstage.events.Event`
+:py:class:`~upstage_des.events.Event`
 ---------------------------------
 
 Mimics SimPy's raw ``Event``, useful for marking pauses until a success.
 
-See :py:meth:`~upstage.actor.Actor.create_knowledge_event` for a use case.
+See :py:meth:`~upstage_des.actor.Actor.create_knowledge_event` for a use case.
 
 One use case is the knowledge event, which enables a way to publish and event to an actor, and have some other source ``succeed`` it.
 
@@ -31,7 +31,7 @@ One use case is the knowledge event, which enables a way to publish and event to
             subordinate.succeed_knowledge_event(name="pause", some_data={...})
 
 
-:py:class:`~upstage.events.Wait`
+:py:class:`~upstage_des.events.Wait`
 --------------------------------
 A standard SimPy timeout. Can be explicit or generate from a random uniform distribution.
 
@@ -44,7 +44,7 @@ The random uniform distribution accepts an input for the rehearsal time, while t
     yield UP.Wait.from_random_uniform(low, high, rehearsal_time_to_complete=high)
 
 
-:py:class:`~upstage.events.Get`
+:py:class:`~upstage_des.events.Get`
 -------------------------------
 Get from a store or container.
 
@@ -60,7 +60,7 @@ Get from a store or container.
     assert get_event.get_value() == amount
 
 
-:py:class:`~upstage.events.FilterGet`
+:py:class:`~upstage_des.events.FilterGet`
 -------------------------------------
 A get with a filter function, used for SimPy's ``FilterStore``.
 
@@ -70,9 +70,9 @@ A get with a filter function, used for SimPy's ``FilterStore``.
     item = yield get_event
 
 
-:py:class:`~upstage.resources.sorted.SortedFilterGet`
+:py:class:`~upstage_des.resources.sorted.SortedFilterGet`
 -----------------------------------------------------
-A get with a filter or sorting function, used with :py:class:`~upstage.resources.sorted.SortedFilterStore`, and others.
+A get with a filter or sorting function, used with :py:class:`~upstage_des.resources.sorted.SortedFilterStore`, and others.
 
 .. code-block:: python
 
@@ -84,7 +84,7 @@ A get with a filter or sorting function, used with :py:class:`~upstage.resources
     item = yield get_event
 
 
-:py:class:`~upstage.events.Put`
+:py:class:`~upstage_des.events.Put`
 -------------------------------
 Put something into a store or container
 
@@ -99,7 +99,7 @@ Put something into a store or container
     yield UP.Put(some_store, amount)
 
 
-:py:class:`~upstage.events.ResourceHold`
+:py:class:`~upstage_des.events.ResourceHold`
 ----------------------------------------
 Put and release holds on limited resources.
 
@@ -114,7 +114,7 @@ Put and release holds on limited resources.
     # Now you've given it back
 
 
-:py:class:`~upstage.events.All`
+:py:class:`~upstage_des.events.All`
 -------------------------------
 Succeed when all passed events succeed.
 
@@ -128,7 +128,7 @@ Succeed when all passed events succeed.
     assert wait_event.is_complete()
 
 
-:py:class:`~upstage.events.Any`
+:py:class:`~upstage_des.events.Any`
 -------------------------------
 Succeed when any passed events succeed
 

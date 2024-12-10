@@ -4,7 +4,7 @@ State Sharing
 
 State sharing is a way to share a state on an actor between multiple task networks.
 
-The only currently implemented feature that shares state is the :py:class:`~upstage.state_sharing.SharedLinearChangingState`.
+The only currently implemented feature that shares state is the :py:class:`~upstage_des.state_sharing.SharedLinearChangingState`.
 
 This is an advanced feature that will require a user to subclass and create their own sharing state for their specific use case.
 
@@ -12,7 +12,7 @@ This is an advanced feature that will require a user to subclass and create thei
 Shared Linear Changing State
 ----------------------------
 
-The :py:class:`~upstage.state_sharing.SharedLinearChangingState` allows multiple networks to draw from a linear changing state. See the ``test_nucleus_state_share`` test for a complete example.
+The :py:class:`~upstage_des.state_sharing.SharedLinearChangingState` allows multiple networks to draw from a linear changing state. See the ``test_nucleus_state_share`` test for a complete example.
 
 In that example, a mothership refuels a flyer, both of which draw from the same ``SharedLinearChangingState`` fuel level. In that example, the flyer actor doesn't directly draw from the mothership.
 Instead, the flyer tells the mothership that a draw will happen, and the mothership creates a new task network that draws that fuel from itself. That fuel is in addition to fuel burned while flying.

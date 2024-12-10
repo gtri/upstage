@@ -2,12 +2,12 @@
 Named Entities
 ==============
 
-Named entities are an :py:class:`~upstage.base.EnvironmentContext` and :py:class:`~upstage.base.NamedUpstageEntity` enabled feature where you can store instances in particular "entity groups" to gather
-them from later. UPSTAGE's :py:class:`~upstage.actor.Actor` inherits from :py:class:`~upstage.base.NamedUpstageEntity`, giving all Actors the feature.
+Named entities are an :py:class:`~upstage_des.base.EnvironmentContext` and :py:class:`~upstage_des.base.NamedUpstageEntity` enabled feature where you can store instances in particular "entity groups" to gather
+them from later. UPSTAGE's :py:class:`~upstage_des.actor.Actor` inherits from :py:class:`~upstage_des.base.NamedUpstageEntity`, giving all Actors the feature.
 
-All Actors are retrievable with the :py:meth:`~upstage.base.UpstageBase.get_actors` method if they inherit from Actor.
+All Actors are retrievable with the :py:meth:`~upstage_des.base.UpstageBase.get_actors` method if they inherit from Actor.
 
-Entities are retrievable with :py:meth:`~upstage.base.UpstageBase.get_all_entity_groups` and :py:meth:`~upstage.base.UpstageBase.get_entity_group`.
+Entities are retrievable with :py:meth:`~upstage_des.base.UpstageBase.get_all_entity_groups` and :py:meth:`~upstage_des.base.UpstageBase.get_entity_group`.
 
 Defining a named entity is done in the class definition:
 

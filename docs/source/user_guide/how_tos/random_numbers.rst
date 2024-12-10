@@ -4,14 +4,14 @@ Random Numbers
 
 Random numbers are not supplied by UPSTAGE, you are responsible for rolling dice on your own.
 
-However, UPSTAGE does use them in one area, which is in :py:class:`~upstage.events.Wait`, in the :py:meth:`~upstage.events.Wait.from_random_uniform` method.
+However, UPSTAGE does use them in one area, which is in :py:class:`~upstage_des.events.Wait`, in the :py:meth:`~upstage_des.events.Wait.from_random_uniform` method.
 
 The built-in python ``random`` module is used by default, and you can find it on ``stage.random``. It can be instantiated in a few ways:
 
 .. code-block:: python
 
     from random import Random
-    from upstage.api import UpstageBase, EnvironmentContext
+    from upstage_des.api import UpstageBase, EnvironmentContext
 
     base = UpstageBase()
 

@@ -22,7 +22,7 @@ We prefer this syntax for importing UPSTAGE and SimPy:
 
 .. code-block:: python
 
-    import upstage.api as UP
+    import upstage_des.api as UP
     import simpy as SIM
 
     print("hello world")
@@ -58,7 +58,7 @@ The ``scan_speed`` state is defined to require a ``float`` type (UPSTAGE will th
 state is similar, except that a default value of 120 minutes is supplied.
 
 .. note::
-    There is no explicit time dimension in UPSTAGE. The clock units are up to the user, and the user must ensure that all times are properly defined. If you set a stage variable of ``time_unit``, 
+    There is no explicit time dimension in upstage_des. The clock units are up to the user, and the user must ensure that all times are properly defined. If you set a stage variable of ``time_unit``, 
     it will correct the time for debug logging strings (into hours) only.
 
 
@@ -170,7 +170,7 @@ Let's define the tasks that wait for a customer and check the customer out.
     :linenos:
 
     from typing import Generator
-    from upstage.type_help import TASK_GEN
+    from upstage_des.type_help import TASK_GEN
 
 
     class WaitInLane(UP.Task):
@@ -309,23 +309,23 @@ All ``Task`` s should yield UPSTAGE events, with one exception. A SimPy ``Proces
 
 The event types are:
 
-#. :py:class:`~upstage.events.Event`: Mimics SimPy's raw ``Event``, useful for marking pauses until a success.
+#. :py:class:`~upstage_des.events.Event`: Mimics SimPy's raw ``Event``, useful for marking pauses until a success.
 
-   * See :py:meth:`~upstage.actor.Actor.create_knowledge_event` for a use case.
+   * See :py:meth:`~upstage_des.actor.Actor.create_knowledge_event` for a use case.
 
-#. :py:class:`~upstage.events.All`: Succeed when all passed events succeed
+#. :py:class:`~upstage_des.events.All`: Succeed when all passed events succeed
 
-#. :py:class:`~upstage.events.Any`: Succeed when any passed events succeed
+#. :py:class:`~upstage_des.events.Any`: Succeed when any passed events succeed
 
-#. :py:class:`~upstage.events.Get`: Get from a store or container
+#. :py:class:`~upstage_des.events.Get`: Get from a store or container
 
-#. :py:class:`~upstage.events.FilterGet`: A get with a filter function
+#. :py:class:`~upstage_des.events.FilterGet`: A get with a filter function
 
-#. :py:class:`~upstage.events.Put`: Put something into a store or container
+#. :py:class:`~upstage_des.events.Put`: Put something into a store or container
 
-#. :py:class:`~upstage.events.ResourceHold`: Put and release holds on limited resources
+#. :py:class:`~upstage_des.events.ResourceHold`: Put and release holds on limited resources
 
-#. :py:class:`~upstage.events.Wait`: A standard SimPy timeout
+#. :py:class:`~upstage_des.events.Wait`: A standard SimPy timeout
 
 
 ------------------------------------
@@ -391,17 +391,17 @@ You can either start a loop on a single task, or define an initial queue through
 A note on TaskNetworkFactory
 ----------------------------
 
-The :py:class:`~upstage.task_network.TaskNetworkFactory` class has some convience methods for creating factories from typical use cases:
+The :py:class:`~upstage_des.task_network.TaskNetworkFactory` class has some convience methods for creating factories from typical use cases:
 
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_single_looping`: From a single task, make a network that loops itself.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: From a single task, make a network that loops itself.
 
    * Useful for a Singleton task that, for example, receives communications and farms them out or manages other task networks.
 
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_single_terminating`: A network that does one task, then freezes for the rest of the simulation.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_terminating`: A network that does one task, then freezes for the rest of the simulation.
 
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_ordered_looping`: A series of tasks with no branching that loops.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_ordered_looping`: A series of tasks with no branching that loops.
 
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_single_looping`: A series of tasks with no branching that terminates at the end.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: A series of tasks with no branching that terminates at the end.
 
 
 --------------------

@@ -23,7 +23,7 @@ The obvious question is, why? The following works just fine:
 
 .. code-block:: python
 
-    import upstage.api as UP
+    import upstage_des.api as UP
     import simpy as SIM
 
     class CheckoutLane(UP.Actor):

@@ -52,7 +52,7 @@ Alternatively, you can download UPSTAGE and install it manually. Clone, or downl
 Note that the tests include the two full examples from the documentation.
 
 ```console
-(venv) $ pip install uptage[test]
+(venv) $ pip install upstage-des[test]
 (venv) $ pytest
 ```
 
@@ -61,8 +61,8 @@ Note that the tests include the two full examples from the documentation.
 Unless you're adding to the codebase, you won't need to run the `sphinx-apidoc` command.
 
 ```console
-(venv) $ pip install upstage[docs]
-(venv) $ sphinx-apidoc -o .\docs\source\ .\src\upstage\ .\src\upstage\test\
+(venv) $ pip install upstage-des[docs]
+(venv) $ sphinx-apidoc -o .\docs\source\ .\src\upstage_des\ .\src\upstage_des\test\
 (venv) $ sphinx-build -b html .\docs\source\ .\docs\build\
 ```
 
