@@ -60,9 +60,9 @@ optional-dependencies.test = [
   "pytest-json-report",
   "pytest-xdist",
 ]
-urls."Bug Tracker" = "https://github.com/JamesArruda/upstage/issues"
-urls.Documentation = "https://JamesArruda.github.io/upstage"
-urls."Source" = "https://github.com/JamesArruda/upstage"
+urls."Bug Tracker" = "https://github.com/gtri/upstage/issues"
+urls.Documentation = "https://gtri.github.io/upstage"
+urls."Source" = "https://github.com/gtri/upstage"
 
 [tool.flit.sdist]
 exclude = [

@@ -85,4 +85,4 @@ For information on how to style your code, see the [Style Guide][style-guide].
 [style-guide]: ./STYLE_GUIDE.md
 [simpy-docs]: https://simpy.readthedocs.io/en/latest/
 [simpy-repo]: https://gitlab.com/team-simpy/simpy/
-[upstage-docs]: https://JamesArruda.github.io/upstage
+[upstage-docs]: https://gtri.github.io/upstage

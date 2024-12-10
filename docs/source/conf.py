@@ -74,7 +74,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/JamesArruda/upstage/",
+            "url": "https://github.com/gtri/upstage/",
             "icon": "fa-brands fa-square-github",
             "type": "fontawesome",
         },
