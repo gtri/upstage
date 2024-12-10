@@ -2,11 +2,11 @@
 Communications
 ==============
 
-UPSTAGE provides a built-in method for passing communications between actors. The :py:class:`~upstage.communications.comms.CommsManager` class
+UPSTAGE provides a built-in method for passing communications between actors. The :py:class:`~upstage_des.communications.comms.CommsManager` class
 allows actors to send messages while allowing for simplified retry attempts and timeouts. It also allows for communications
 blocking to be turned on and off on a point to point basis.
 
-The :py:class:`~upstage.communications.comms.Message` class is used to describe a message, although strings and dictionaries can
+The :py:class:`~upstage_des.communications.comms.Message` class is used to describe a message, although strings and dictionaries can
 also be passed as messages, and UPSTAGE will convert them into the ``Message`` class.
 
 The communications manager needs to be instantiated and run, and any number of them can be run, to represent different modes of
@@ -15,7 +15,7 @@ comms managers.
 
 .. code-block:: python
 
-    import upstage.api as UP
+    import upstage_des.api as UP
 
     class Worker(UP.Actor):
         walkie = UP.CommunicationStore(mode="UHF")
@@ -36,7 +36,7 @@ comms managers.
         loudspeaker_comms.run()
 
 The ``CommsManager`` class allows for explicitly connecting actors and the store that will receive messages, but using the
-:py:class:`~upstage.states.CommunicationStore` lets the manager auto-discover the proper store for a communications mode, letting
+:py:class:`~upstage_des.states.CommunicationStore` lets the manager auto-discover the proper store for a communications mode, letting
 the simulation designer only need to pass the source actor, destination actor, and message information to the manager.
 
 To send a message, use the comm manager's ``make_put`` method to return an UPSTAGE event to yield on to send the message.

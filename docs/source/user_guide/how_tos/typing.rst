@@ -31,11 +31,11 @@ Later, your IDE will know that any ``Gardener`` instance's ``skill_level`` attri
 
 These states already have an assigned type, or have a limited scope of types:
 
-1. :py:class:`~upstage.states.DetectabilityState`: This state is a boolean
-2. :py:class:`~upstage.states.CartesianLocationChangingState`: The output is of type ``CartesianLocation``
-3. :py:class:`~upstage.states.GeodeticLocationChangingState`: The output is of type ``GeodeticLocation``
-4. :py:class:`~upstage.states.ResourceState`: The type must be a ``simpy.Store`` or ``simpy.Container`` (or a subclass). You can still define the type.
-5. :py:class:`~upstage.states.CommunicationStore`: This is of type ``simpy.Store``
+1. :py:class:`~upstage_des.states.DetectabilityState`: This state is a boolean
+2. :py:class:`~upstage_des.states.CartesianLocationChangingState`: The output is of type ``CartesianLocation``
+3. :py:class:`~upstage_des.states.GeodeticLocationChangingState`: The output is of type ``GeodeticLocation``
+4. :py:class:`~upstage_des.states.ResourceState`: The type must be a ``simpy.Store`` or ``simpy.Container`` (or a subclass). You can still define the type.
+5. :py:class:`~upstage_des.states.CommunicationStore`: This is of type ``simpy.Store``
 
 ----------------------
 Task and Process Types
@@ -46,8 +46,8 @@ Tasks and simpy processes have output types that are ``Generator`` types. UPSTAG
 .. code-block:: python
 
     from simpy import Environment
-    from upstage.type_help import TASK_GEN, SIMPY_GEN
-    from upstage.api import Task, Actor, process, InterruptStates
+    from upstage_des.type_help import TASK_GEN, SIMPY_GEN
+    from upstage_des.api import Task, Actor, process, InterruptStates
 
     class SomeTask(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:

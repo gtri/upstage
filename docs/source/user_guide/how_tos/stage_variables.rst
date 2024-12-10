@@ -4,7 +4,7 @@ Stage Variables
 
 The ``stage`` is an UPSTAGE feature to allow thread-safe "global" variables accessible by any Actor or Task.
 
-To add variables to the stage, within the :py:class:`~upstage.base.EnvironmentContext` manager use the :py:func:`~upstage.base.add_stage_variable` function.
+To add variables to the stage, within the :py:class:`~upstage_des.base.EnvironmentContext` manager use the :py:func:`~upstage_des.base.add_stage_variable` function.
 
 Once you set a stage variable, it cannot be changed. This is intentional, as the stage is meant to be static. Anything that changes should go through
 SimPy or UPSTAGE tasks, states, or processes. 
@@ -39,14 +39,14 @@ SimPy or UPSTAGE tasks, states, or processes.
 Expected Stage Variables
 ===========================
 
-Some variables are expected to exist on the stage for some features. These are found in the :py:class:`~upstage.base.StageProtocol` protocol,
+Some variables are expected to exist on the stage for some features. These are found in the :py:class:`~upstage_des.base.StageProtocol` protocol,
 and are listed below:
 
-* "altitude_units": A string of "ft", "m", or other distance unit. See :py:func:`~upstage.units.convert.unit_convert` for a list.
+* "altitude_units": A string of "ft", "m", or other distance unit. See :py:func:`~upstage_des.units.convert.unit_convert` for a list.
 * "distance_units": A string of distance units
 * "stage_model": A model to use for Geodetic calculations. See :doc:`geography` for more.
 * "intersection_model": A model to use for motion manager. See :doc:`geography` and :doc:`motion_manager` for more.
-* "time_unit": Units of time. See :py:func:`~upstage.units.convert.unit_convert` for a list.
+* "time_unit": Units of time. See :py:func:`~upstage_des.units.convert.unit_convert` for a list.
 
 If they are not set and you use a feature that needs them, you'll get a warning about not being able to find a stage variable.
 
@@ -54,7 +54,7 @@ If they are not set and you use a feature that needs them, you'll get a warning 
 Accessing Stage through UpstageBase
 ===================================
 
-The :py:class:`~upstage.base.UpstageBase` class can be inherited to provide access to ``self.env`` and ``self.stage`` in any object, not just 
+The :py:class:`~upstage_des.base.UpstageBase` class can be inherited to provide access to ``self.env`` and ``self.stage`` in any object, not just 
 actors and tasks. The following snippets shows how you might use it for pure SimPy capabilities.
 
 .. code-block:: python
@@ -68,14 +68,14 @@ actors and tasks. The following snippets shows how you might use it for pure Sim
             self.env.process(_proc())
 
 
-Accessing Stage through upstage.api
+Accessing Stage through upstage_des.api
 ===================================
 
 For convenience, you can also do the following:
 
 .. code-block:: python
 
-    import upstage.api as UP
+    import upstage_des.api as UP
 
     with UP.EnvironmentContext() as env:
         UP.add_stage_variable("altitude_units", "centimeters")

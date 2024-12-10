@@ -126,15 +126,15 @@ UPSTAGE's interrupt handling system mitigates these key sources of error or frus
 
 To access these features, do the following:
 
-#. Implement ``on_interrupt`` in the :py:class:`~upstage.task.Task` class.
+#. Implement ``on_interrupt`` in the :py:class:`~upstage_des.task.Task` class.
 
 #. Optionally: use the ``marker`` features in the task and interrupt methods.
 
-   * :py:meth:`~upstage.task.Task.set_marker`
+   * :py:meth:`~upstage_des.task.Task.set_marker`
 
-   * :py:meth:`~upstage.task.Task.get_marker`
+   * :py:meth:`~upstage_des.task.Task.get_marker`
 
-   * :py:meth:`~upstage.task.Task.clear_marker`
+   * :py:meth:`~upstage_des.task.Task.clear_marker`
 
 We'll start simple, then add complexity to the interrupt.
 
@@ -143,7 +143,7 @@ Here's what the above process would look like as an UPSTAGE Task:
 .. code-block:: python
     :linenos:
 
-    import upstage.api as UP
+    import upstage_des.api as UP
     import simpy as SIM
     from typing import Any
 
@@ -199,7 +199,7 @@ Then, when you run it:
 
 Now the task is small and informative about what it's supposed to do when its not interrupted. The marker features let us set and get introspection data cleanly.
 
-Notice also that the ``Get()`` call does not need to be cancelled by the user; UPSTAGE does that for us (for all :py:class:`~upstage.events.BaseEvent` subclasses that implement ``cancel``).
+Notice also that the ``Get()`` call does not need to be cancelled by the user; UPSTAGE does that for us (for all :py:class:`~upstage_des.events.BaseEvent` subclasses that implement ``cancel``).
 
 Some additional details:
 
@@ -216,7 +216,7 @@ Some additional details:
 INTERRUPT Types and Setting Markers
 -----------------------------------
 
-Interrupts allow 4 different outcomes to the task, which are signalled by the :py:class:`~upstage.task.InterruptStates` Enum (or :py:class:`~upstage.task.Task.INTERRUPT` as part of ``self``). The first
+Interrupts allow 4 different outcomes to the task, which are signalled by the :py:class:`~upstage_des.task.InterruptStates` Enum (or :py:class:`~upstage_des.task.Task.INTERRUPT` as part of ``self``). The first
 three can be returned from ``on_interrupt`` to define how to handle the interrupt.
 
 #. ``END``: Ends the task right there (and moves on in the task network). This cancels the pending event(s).
@@ -316,7 +316,7 @@ The interrupt automatically deactivates all states, keeping your Actors safe fro
 Getting the Process
 ===================
 
-If an actor is running a task network, you will need to get the current Task process to send an interrupt. Do that with the :py:meth:`upstage.actor.Actor.get_running_tasks` method.
+If an actor is running a task network, you will need to get the current Task process to send an interrupt. Do that with the :py:meth:`upstage_des.actor.Actor.get_running_tasks` method.
 
 .. code-block:: python
 

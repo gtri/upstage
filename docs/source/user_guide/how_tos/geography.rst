@@ -2,7 +2,7 @@
 Geography
 =========
 
-UPSTAGE has built-in features for simple geographic math and behaviors. These features are built up into a :py:class:`~upstage.states.GeodeticLocation` state.
+UPSTAGE has built-in features for simple geographic math and behaviors. These features are built up into a :py:class:`~upstage_des.states.GeodeticLocation` state.
 
 Discrete Event Simulation does not lend itself well to geography and repeated distance checking (for something like a sensor, e.g.), so UPSTAGE provides the capability to
 schedule intersections of moving actors and stationary sensors. Those features are covered in the :doc:`Motion Manager <motion_manager>` documentation.
@@ -19,7 +19,7 @@ Geographic Data Types and State
 
 These are the built-in features that use geography:
 
-:py:class:`~upstage.data_types.GeodeticLocation`
+:py:class:`~upstage_des.data_types.GeodeticLocation`
 ------------------------------------------------
 
 This data type stores a Latitude / Longitude / Altitude (optional) for a point around the globe.
@@ -34,7 +34,7 @@ Two geodetic locations can be subtracted from each other to get their great circ
 
 .. code-block:: python
 
-    from upstage.geography import Spherical
+    from upstage_des.geography import Spherical
 
     with UP.EnvironmentContext():
         UP.add_stage_variable("stage_model", Spherical)
@@ -51,7 +51,7 @@ Two geodetic locations can be subtracted from each other to get their great circ
         straight_line = loc1.straight_line_distance(loc2)
         >>> 1049.3621152419862
 
-Location instances *must* be created within an :py:class:`~upstage.base.EnvironmentContext` context, otherwise they won't have access to the geographic model at runtime. Additionally, these stage variables must be set:
+Location instances *must* be created within an :py:class:`~upstage_des.base.EnvironmentContext` context, otherwise they won't have access to the geographic model at runtime. Additionally, these stage variables must be set:
 
 * ``stage_model`` must be set to be either ``Spherical`` or ``WGS84``, or whatever class performs ``.distance`` on lat/lon/altitude pairs. 
 * ``distance_units``: One of: "m", "km", "mi", "nmi", or "ft"
@@ -65,14 +65,14 @@ The distance between two points is the great circle distance, and altitude is ig
 that any speeds you specify are implicitly ground speed, which is more useful.
 
 However, if a sensor is looking straight up, the distance to an object 30 thousand feet up shouldn't be zero. To account for altitude in the distance, use
-:py:func:`~upstage.data_types.GeodeticLocation.dist_with_altitude` or :py:func:`~upstage.data_types.GeodeticLocation.straight_line_distance`.
+:py:func:`~upstage_des.data_types.GeodeticLocation.dist_with_altitude` or :py:func:`~upstage_des.data_types.GeodeticLocation.straight_line_distance`.
 Note that the intersection models (covered elsewhere) do distance checks in ECEF, not with the ``GeodeticLocation`` subtraction method, so you don't have to worry about this distinction for those motion features.
 
 Once a ``GeodeticLocation`` is created, it cannot be changed. This is for safety of not changing a location from underneath code that expects to use it a certain way. Some methods are provided to help get copies:
 
-* :py:meth:`~upstage.data_types.GeodeticLocation.copy`: Make a copy of the location
-* :py:meth:`~upstage.data_types.GeodeticLocation.to_radians`: Make a copy of the location with the latitude and longitude in radians
-* :py:meth:`~upstage.data_types.GeodeticLocation.to_degrees`: Make a copy of the location with the latitude and longitude in degrees
+* :py:meth:`~upstage_des.data_types.GeodeticLocation.copy`: Make a copy of the location
+* :py:meth:`~upstage_des.data_types.GeodeticLocation.to_radians`: Make a copy of the location with the latitude and longitude in radians
+* :py:meth:`~upstage_des.data_types.GeodeticLocation.to_degrees`: Make a copy of the location with the latitude and longitude in degrees
 
 
 For comparison, here's what ``pyproj`` gets for the calculations (pyproj is not currently a dependency for UPSTAGE):
@@ -80,7 +80,7 @@ For comparison, here's what ``pyproj`` gets for the calculations (pyproj is not 
 .. code-block:: python
 
     import pyproj
-    from upstage.api import unit_convert
+    from upstage_des.api import unit_convert
     # NOTE: Numpy is not a requirement of UPSTAGE
     import numpy as np
 
@@ -107,7 +107,7 @@ Both distances are within .07% of UPSTAGE's calculations.
 
 
 
-:py:class:`~upstage.states.GeodeticLocationChangingState`
+:py:class:`~upstage_des.states.GeodeticLocationChangingState`
 ---------------------------------------------------------
 
 This is a State that allows activation and movement along great-circle waypoints with altitude changing along the waypoints. When initializing, it accepts a ``GeodeticLocation`` object, and it returns those when you ask it for
@@ -115,7 +115,7 @@ the state's value. Here is its basic usage:
 
 .. code-block:: python
 
-    from upstage.utils import waypoint_time_and_dist
+    from upstage_des.utils import waypoint_time_and_dist
 
     class Plane(UP.Actor):
         location: UP.GeodeticLocation = UP.GeodeticLocationChangingState(recording=True)
@@ -147,7 +147,7 @@ the state's value. Here is its basic usage:
         )
         ...
 
-The :py:func:`~upstage.utils.waypoint_time_and_dist` function is a convenience function that gets the great circle distance and time over a set of waypoints to help schedule the arrival time.
+The :py:func:`~upstage_des.utils.waypoint_time_and_dist` function is a convenience function that gets the great circle distance and time over a set of waypoints to help schedule the arrival time.
 
 
 Cartesian Locations
@@ -155,7 +155,7 @@ Cartesian Locations
 
 These aren't geographic, but they serve the same purpose, so we include them here.
 
-:py:class:`~upstage.data_types.CartesianLocation`
+:py:class:`~upstage_des.data_types.CartesianLocation`
 -------------------------------------------------
 
 This data type stores an X / Y / Z (optional) location in 2 or 3D space (z is set to zero if not included).
@@ -189,7 +189,7 @@ We still allow you to set distance and altitude units because the 'z' value coul
 The distance is always implied to be in ``distance_units``, without setting it. If the z component is in a different unit, then we need to know both to get the straight-line distance.
 
 
-:py:class:`~upstage.states.CartesianLocationChangingState`
+:py:class:`~upstage_des.states.CartesianLocationChangingState`
 ----------------------------------------------------------
 
 This active state works the exact same as the ``GeodeticLocationChangingState`` , except that it requires waypoints to be ``CartesianLocation`` s.
@@ -198,9 +198,9 @@ This active state works the exact same as the ``GeodeticLocationChangingState`` 
 Geography Sub-Module
 ====================
 
-The :py:mod:`upstage.geography` module contains:
+The :py:mod:`upstage_des.geography` module contains:
 
-:py:class:`~upstage.geography.spherical.Spherical`
+:py:class:`~upstage_des.geography.spherical.Spherical`
 --------------------------------------------------
 
 This class contains methods for finding distances, positions, and for segmenting great-circle paths on the assumption of a spherical earth.
@@ -209,11 +209,11 @@ Typically, you will not need to use these methods directly, but they are avaiabl
 
 The most useful methods, besides distance, may be:
 
-#. :py:meth:`~upstage.geography.spherical.Spherical.geo_linspace`, which will give you evenly spaced points along a great circle route. 
-#. :py:meth:`~upstage.geography.spherical.Spherical.geo_circle`, which will give you evently spaced points to draw a circle in spherical coordinates
-#. :py:meth:`~upstage.geography.spherical.Spherical.point_from_bearing_dist`, which gives you a point relative to a base location at some distance and bearing.
+#. :py:meth:`~upstage_des.geography.spherical.Spherical.geo_linspace`, which will give you evenly spaced points along a great circle route. 
+#. :py:meth:`~upstage_des.geography.spherical.Spherical.geo_circle`, which will give you evently spaced points to draw a circle in spherical coordinates
+#. :py:meth:`~upstage_des.geography.spherical.Spherical.point_from_bearing_dist`, which gives you a point relative to a base location at some distance and bearing.
 
-:py:class:`~upstage.geography.wgs84.WGS84`
+:py:class:`~upstage_des.geography.wgs84.WGS84`
 -------------------------------------------
 
 This class contains methods for finding distances, positions, and for segmenting great-circle paths on the assumption of a WGS84 ellipsoid. These methods take longer to run than the Spherical version,
@@ -223,14 +223,14 @@ Typically, you will not need to use these methods directly, but they are avaiabl
 
 The most useful methods, besides distance, may be:
 
-#. :py:meth:`~upstage.geography.spherical.WGS84.geo_linspace`, which will give you evenly spaced points along a great circle route. 
-#. :py:meth:`~upstage.geography.spherical.WGS84.geo_circle`, which will give you evently spaced points to draw a circle in spherical coordinates
-#. :py:meth:`~upstage.geography.spherical.WGS84.point_from_bearing_dist`, which gives you a point relative to a base location at some distance and bearing.
+#. :py:meth:`~upstage_des.geography.spherical.WGS84.geo_linspace`, which will give you evenly spaced points along a great circle route. 
+#. :py:meth:`~upstage_des.geography.spherical.WGS84.geo_circle`, which will give you evently spaced points to draw a circle in spherical coordinates
+#. :py:meth:`~upstage_des.geography.spherical.WGS84.point_from_bearing_dist`, which gives you a point relative to a base location at some distance and bearing.
 
-:py:mod:`upstage.geography.intersections`
+:py:mod:`upstage_des.geography.intersections`
 -------------------------------------------
 
-The :py:func:`~upstage.geography.intersections.get_intersection_locations` function calculates an intersection between a great circle path and a sphere. It can be passed an instance of ``Spherical`` or ``WGS84``
+The :py:func:`~upstage_des.geography.intersections.get_intersection_locations` function calculates an intersection between a great circle path and a sphere. It can be passed an instance of ``Spherical`` or ``WGS84``
 to do distance calculations with.
 
 The intersections are calculated by taking evenly spaced points along the great circle path and finding the two points where an intersection occurs between. It then divides that segment more finely, and calculates
@@ -245,7 +245,7 @@ Storing Geographic Data
 While the storage and instantiation of geographic objects is mostly within your control, the main caveat is that a ``GeodeticLocation`` requires the stage to exist.
 This means that you can only create a ``GeodeticLocation`` within an ``EnvironmentContext``. 
 
-To store data in an easily passable format, UPSTAGE has a :py:class:`~upstage.data_types.GeodeticLocationData` class.
+To store data in an easily passable format, UPSTAGE has a :py:class:`~upstage_des.data_types.GeodeticLocationData` class.
 
 This class instantiates with the same inputs as the ``GeodeticLocation``, and has a single method: ``make_location()``. That method generates the ``GeodeticLocation``,
 letting you pass around the data object until you're ready for it inside an environment context.

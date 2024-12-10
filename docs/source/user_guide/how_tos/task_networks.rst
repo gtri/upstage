@@ -68,8 +68,8 @@ Task Networks work by running a defined queue of task names, then by selecting `
 
 You can modify the task network flow using:
 
-* :py:meth:`upstage.actor.Actor.clear_task_queue`: Empty a task queue
-* :py:meth:`upstage.actor.Actor.set_task_queue`: Add tasks to an empty queue (by string name) - you must empty the queue first.
+* :py:meth:`upstage_des.actor.Actor.clear_task_queue`: Empty a task queue
+* :py:meth:`upstage_des.actor.Actor.set_task_queue`: Add tasks to an empty queue (by string name) - you must empty the queue first.
 
 These two methods are preferred since they prevent the risks of appending to a queue without looking at the queue.
 
@@ -78,30 +78,30 @@ Introspecting the Task Network
 
 The task network queues can be viewed using:
 
-* :py:meth:`upstage.actor.Actor.get_task_queue`: This requires the network name.
-* :py:meth:`upstage.actor.Actor.get_all_task_queues`: This will return for all the networks on the actor.
+* :py:meth:`upstage_des.actor.Actor.get_task_queue`: This requires the network name.
+* :py:meth:`upstage_des.actor.Actor.get_all_task_queues`: This will return for all the networks on the actor.
 
 You can get the names and processes of tasks that are running (and their network names) using:
 
-* :py:meth:`upstage.actor.Actor.get_running_task`: Returns a dataclass with the task name and process object of the task on the defined network.
-* :py:meth:`upstage.actor.Actor.get_running_tasks`: Returns the same as above, but keyed on task network names.
+* :py:meth:`upstage_des.actor.Actor.get_running_task`: Returns a dataclass with the task name and process object of the task on the defined network.
+* :py:meth:`upstage_des.actor.Actor.get_running_tasks`: Returns the same as above, but keyed on task network names.
 
-You would want the processes to interrupt them, but you can also use :py:meth:`upstage.actor.Actor.interrupt_network` to do that.
+You would want the processes to interrupt them, but you can also use :py:meth:`upstage_des.actor.Actor.interrupt_network` to do that.
 
 Note that the task queue methods won't return the current tasks, just what's defined to run next. Use the running task methods to find the current task.
 
 A note on TaskNetworkFactory
 ----------------------------
 
-The :py:class:`~upstage.task_network.TaskNetworkFactory` class has some convience methods for creating factories from typical use cases:
+The :py:class:`~upstage_des.task_network.TaskNetworkFactory` class has some convience methods for creating factories from typical use cases:
 
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_single_looping`: From a single task, make a network that loops on it.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: From a single task, make a network that loops on it.
     * Useful for a Singleton task that, for example, receives communications and farms them out or manages other task networks.
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_single_terminating`: A network that does one task, then freezes for the rest of the simulation.
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_ordered_looping`: A series of tasks with no branching that loops.
-#. :py:meth:`~upstage.task_network.TaskNetworkFactory.from_single_looping`: A series of tasks with no branching that terminates at the end.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_terminating`: A network that does one task, then freezes for the rest of the simulation.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_ordered_looping`: A series of tasks with no branching that loops.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: A series of tasks with no branching that terminates at the end.
 
-A terminating task network contains a :py:class:`~upstage.task.TerminalTask` task at the end, which waits on an un-succeedable event in a rehearsal-safe manner.
+A terminating task network contains a :py:class:`~upstage_des.task.TerminalTask` task at the end, which waits on an un-succeedable event in a rehearsal-safe manner.
 
 
 Running Multiple Networks
@@ -110,8 +110,8 @@ Running Multiple Networks
 An actor has no limits to the number of Task Networks it can run. As long as the Actor's states do not overlap in the networks, they can all run in "parallel". Simply keep the network names
 unique.
 
-When adding parallel task networks, you can avoid a name clash with :py:meth:`upstage.actor.Actor.suggest_network_name`, and use the resulting name to add the network. When you are done with a network,
-it can be deleted from the actor's attributes using: :py:meth:`upstage.actor.Actor.delete_task_network`. The task network will still be allowed to run, so make sure it's in a terminal state first. It will
+When adding parallel task networks, you can avoid a name clash with :py:meth:`upstage_des.actor.Actor.suggest_network_name`, and use the resulting name to add the network. When you are done with a network,
+it can be deleted from the actor's attributes using: :py:meth:`upstage_des.actor.Actor.delete_task_network`. The task network will still be allowed to run, so make sure it's in a terminal state first. It will
 de-clutter the task network introspection methods, though.
 
 See :doc:`Nucleus <nucleus>` and :doc:`State Sharing <state_sharing>` for features related to inter-Task Networks "communication".

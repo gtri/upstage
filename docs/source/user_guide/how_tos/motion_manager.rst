@@ -8,7 +8,7 @@ There are two motion managers. One uses intersection calculations to maintain a 
 motion detection for when the "sensor" and the viewed entities are both moving.
 
 The built-in ``<>LocationChangingState`` states work with any of the motion managers in the background, by alerting them when those states are made activate. If you want to control which Actors are visible to the
-motion manager, there is the :py:class:`~upstage.states.DetectabilityState` that can be given to an actor and set to ``False``.
+motion manager, there is the :py:class:`~upstage_des.states.DetectabilityState` that can be given to an actor and set to ``False``.
 
 
 Define the Motion Manager
@@ -17,8 +17,8 @@ Define the Motion Manager
 .. code-block:: python
     :linenos:
 
-    from upstage.motion.geodetic_model import subdivide_intersection
-    from upstage.geography.intersections import get_intersection_locations
+    from upstage_des.motion.geodetic_model import subdivide_intersection
+    from upstage_des.geography.intersections import get_intersection_locations
 
     with UP.EnvironmentContext():
         motion = UP.SensorMotionManager(
@@ -29,8 +29,8 @@ Define the Motion Manager
         UP.add_stage_variable("intersection_model", get_intersection_locations)
 
 * Line 1-2: Import one of the intersection models and a support function (more on this below)
-* Line 5: Create the :py:class:`~upstage.motion.SensorMotionManager` and give it the intersection model
-  * The other option is the :py:class:`~upstage.stepped_motion.SteppedMotionManager` class. (Does not need an intersection)
+* Line 5: Create the :py:class:`~upstage_des.motion.SensorMotionManager` and give it the intersection model
+  * The other option is the :py:class:`~upstage_des.stepped_motion.SteppedMotionManager` class. (Does not need an intersection)
 * Line 9: Add the motion manager to the stage so that the ``<>LocationChangingState`` s can find it.
 * Line 10: Add the intersection helper function to the stage so the SensorMotionManager class can find it.
 
@@ -40,20 +40,20 @@ in the background.
 Intersection Models
 -------------------
 
-There are two intersection models for ``Geodetic`` locations, and one model for ``Cartesian``. The Stepped motion manager does not require one, it uses :py:func:`~upstage.data_types.GeodeticLocation.straight_line_distance` at a given rate.
+There are two intersection models for ``Geodetic`` locations, and one model for ``Cartesian``. The Stepped motion manager does not require one, it uses :py:func:`~upstage_des.data_types.GeodeticLocation.straight_line_distance` at a given rate.
 
-* :py:func:`~upstage.motion.geodetic_model.subdivide_intersection`: The approximate intersection method with subdivided search, good for WGS84 coordinates.
+* :py:func:`~upstage_des.motion.geodetic_model.subdivide_intersection`: The approximate intersection method with subdivided search, good for WGS84 coordinates.
 
   * This requires the stage variable ``intersection_model`` to be set.
-  * The only available intersection model is :py:func:`~upstage.geography.intersections.get_intersection_locations`
+  * The only available intersection model is :py:func:`~upstage_des.geography.intersections.get_intersection_locations`
 
-* :py:func:`~upstage.motion.geodetic_model.analytical_intersection`: An exact intersection using a Spherical earth model. Incompatible with the WGS84 stage model.
-* :py:func:`~upstage.motion.cartesian_model.cartesian_linear_intersection`: An exact intersection using for XYZ cartesian space.
+* :py:func:`~upstage_des.motion.geodetic_model.analytical_intersection`: An exact intersection using a Spherical earth model. Incompatible with the WGS84 stage model.
+* :py:func:`~upstage_des.motion.cartesian_model.cartesian_linear_intersection`: An exact intersection using for XYZ cartesian space.
 
 
-The :py:func:`~upstage.geography.intersections.get_intersection_locations` function, required by the subdividing intersection, is what actually finds the intersections. The ``subdivide_intersection`` is 
+The :py:func:`~upstage_des.geography.intersections.get_intersection_locations` function, required by the subdividing intersection, is what actually finds the intersections. The ``subdivide_intersection`` is 
 a passthrough function that handles the different earth models, stage variables, and conversion to the format UPSTAGE requires in the ``SensorMotionManager``. The intersection model itself does not have
-to know about UPSTAGE. If you created a ``partial`` of a version of the ``subdivide_intersection`` that took the intersection model as an argument, you would get the same result without needing the stage variable.
+to know about upstage_des. If you created a ``partial`` of a version of the ``subdivide_intersection`` that took the intersection model as an argument, you would get the same result without needing the stage variable.
 
 
 Sensor Requirements and Example
@@ -68,8 +68,8 @@ All UPSTAGE does is call one of those methods according to the schedule.
 
 .. code-block:: python
 
-    from upstage.utils import waypoint_time_and_dist
-    from upstage.motion.cartesian_model import cartesian_linear_intersection
+    from upstage_des.utils import waypoint_time_and_dist
+    from upstage_des.motion.cartesian_model import cartesian_linear_intersection
 
     class Bird(UP.Actor):
         location = UP.CartesianLocationChangingState()
@@ -204,5 +204,5 @@ Notice the slight inaccuracy in the position due to the time stepping.
 .. note::
 
     The stepped manager is more flexible to the kinds of things that can be detected. You can use
-    :py:meth:`~upstage.motion.stepped_motion.SteppedMotionManager.add_detectable` to add anything with a
+    :py:meth:`~upstage_des.motion.stepped_motion.SteppedMotionManager.add_detectable` to add anything with a
     position. 

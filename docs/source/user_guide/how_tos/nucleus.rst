@@ -22,7 +22,7 @@ The basic syntax is this:
     nuc.add_network(task_net, ["state name to watch", "other state"])
 
 When any state given to the nucleus changes, nucleus pushes an interrupt to the task network. That interrupt is passed down
-as a cause to ``on_interrupt`` as an instance of type :py:class:`~upstage.nucleus.NucleusInterrupt`.
+as a cause to ``on_interrupt`` as an instance of type :py:class:`~upstage_des.nucleus.NucleusInterrupt`.
 
 .. code-block:: python
 
@@ -134,7 +134,7 @@ A use case for Nucleus is when multiple task networks are sharing a single state
 a task cannot interrept itself. If a TaskNetwork changes a state that it is watching, SimPy will fail. It 
 
 
-What follows is an example that implements a nucleus allocation. This is not recommended, but is included to demonstrate how far you can stretch Nucleus and UPSTAGE. Ultimately,
+What follows is an example that implements a nucleus allocation. This is not recommended, but is included to demonstrate how far you can stretch Nucleus and upstage_des. Ultimately,
 it is just running on SimPy and you can do what you like. Here are some issues/caveats with the following example:
 
 * None of the tasks are rehearsal-safe (this is OK if you're not going to rehearse)

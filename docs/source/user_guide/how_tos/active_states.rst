@@ -7,7 +7,7 @@ Active States are an UPSTAGE feature where states are told how to update themsel
 For example, a fuel depot may dispense fuel at a given rate for some amount of time. An employee may monitor that level at certain times. UPSTAGE allows the state to hold its own
 update logic, rather than the employee code needing to know when the fuel started changing, at what rate, etc.
 
-Active states are stopped and started with :py:meth:`~upstage.actor.Actor.activate_state` and :py:meth:`~upstage.actor.Actor.deactivate_state`.
+Active states are stopped and started with :py:meth:`~upstage_des.actor.Actor.activate_state` and :py:meth:`~upstage_des.actor.Actor.deactivate_state`.
 
 Active states are automatically stopped when a Task is interrupted.
 
@@ -78,7 +78,7 @@ They accept a speed and list of waypoints in their activation.
 
 .. code-block:: python
 
-    from upstage.utils import waypoint_time_and_dist
+    from upstage_des.utils import waypoint_time_and_dist
 
     class FlatlandCar(UP.Actor):
         location: UP.CartesianLocation = UP.CartesianLocationChangingState()
@@ -147,7 +147,7 @@ The ``GeodeticLocationChangingState`` works the same way.
 Creating your own
 =================
 
-To create you own Active State, subclass :py:class:`~upstage.states.ActiveState`.
+To create you own Active State, subclass :py:class:`~upstage_des.states.ActiveState`.
 
 The bare minimum is to implement the ``_active`` method. 
 
@@ -156,8 +156,8 @@ Here is an example of an ActiveState that changes according to an exponent.
 .. code-block:: python
     :linenos:
 
-    from upstage.states import ActiveState
-    from upstage.actor import Actor
+    from upstage_des.states import ActiveState
+    from upstage_des.actor import Actor
 
     class ExponentChangingState(ActiveState):
         """A state that changes according to: x_t = x_0 + at^(b)"""

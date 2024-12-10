@@ -16,7 +16,7 @@ Define an actor and a task where some states change:
 
 .. code-block:: python
 
-    from upstage.utils import waypoint_time_and_dist
+    from upstage_des.utils import waypoint_time_and_dist
 
     class Plane(UP.Actor):
         speed = UP.State[float]()
