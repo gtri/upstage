@@ -31,12 +31,10 @@ This project is under active development.
 
 ## Installation
 
-```{warning}
-Work-In-Progress
-```
+In a suitable Python environment (3.11+):
 
 ```console
-(venv) $ pip install upstage
+(venv) $ pip install upstage-des
 ```
 
 ### Installation from source
