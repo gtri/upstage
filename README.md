@@ -38,10 +38,10 @@ UPSTAGE only requires Python 3.11+ and Simpy 4+.
 
 ## Installation
 
-__Pending:__
+In an environment (Python 3.11+) of your choice:
 
 ```console
-pip install upstage
+pip install upstage-des
 ```
 
 ### Installation from source
