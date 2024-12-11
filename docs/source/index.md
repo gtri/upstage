@@ -62,7 +62,7 @@ Unless you're adding to the codebase, you won't need to run the `sphinx-apidoc` 
 
 ```console
 (venv) $ pip install upstage-des[docs]
-(venv) $ sphinx-apidoc -o .\docs\source\ .\src\upstage_des\ .\src\upstage_des\test\
+(venv) $ sphinx-apidoc -o .\docs\source\auto .\src\upstage_des\ .\src\upstage_des\test\
 (venv) $ sphinx-build -b html .\docs\source\ .\docs\build\
 ```
 

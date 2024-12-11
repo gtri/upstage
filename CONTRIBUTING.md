@@ -86,7 +86,7 @@ Documentation is built from autodocs first, then the source build.
 From the top level of the repo:
 
 ```bash
-sphinx-apidoc -o ./docs/source ./src/upstage_des ./src/upstage_des/test
+sphinx-apidoc -o ./docs/source/auto ./src/upstage_des ./src/upstage_des/test
 sphinx-build -b html ./docs/source ./build/docs
 ```
 
