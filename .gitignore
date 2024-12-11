@@ -107,6 +107,7 @@ celerybeat-schedule
 .env
 .report.json
 .venv
+.scripts
 
 # VSCode
 .vscode
@@ -123,3 +124,7 @@ tmp/
 # Temporary Reporting Artifacts
 classes.png
 packages.png
+
+
+# Built autodocs
+docs/source/auto

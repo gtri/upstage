@@ -9,7 +9,7 @@ All events accept a ``rehearsal_time_to_complete`` argument.
 The available UPSTAGE events are:
 
 :py:class:`~upstage_des.events.Event`
----------------------------------
+-------------------------------------
 
 Mimics SimPy's raw ``Event``, useful for marking pauses until a success.
 
@@ -32,7 +32,8 @@ One use case is the knowledge event, which enables a way to publish and event to
 
 
 :py:class:`~upstage_des.events.Wait`
---------------------------------
+------------------------------------
+
 A standard SimPy timeout. Can be explicit or generate from a random uniform distribution.
 
 The random uniform distribution accepts an input for the rehearsal time, while the base version rehearses at the given time.
@@ -45,7 +46,8 @@ The random uniform distribution accepts an input for the rehearsal time, while t
 
 
 :py:class:`~upstage_des.events.Get`
--------------------------------
+-----------------------------------
+
 Get from a store or container.
 
 .. code-block:: python
@@ -61,7 +63,8 @@ Get from a store or container.
 
 
 :py:class:`~upstage_des.events.FilterGet`
--------------------------------------
+-----------------------------------------
+
 A get with a filter function, used for SimPy's ``FilterStore``.
 
 .. code-block:: python
@@ -71,7 +74,8 @@ A get with a filter function, used for SimPy's ``FilterStore``.
 
 
 :py:class:`~upstage_des.resources.sorted.SortedFilterGet`
------------------------------------------------------
+---------------------------------------------------------
+
 A get with a filter or sorting function, used with :py:class:`~upstage_des.resources.sorted.SortedFilterStore`, and others.
 
 .. code-block:: python
@@ -85,7 +89,8 @@ A get with a filter or sorting function, used with :py:class:`~upstage_des.resou
 
 
 :py:class:`~upstage_des.events.Put`
--------------------------------
+-----------------------------------
+
 Put something into a store or container
 
 .. code-block:: python
@@ -100,7 +105,8 @@ Put something into a store or container
 
 
 :py:class:`~upstage_des.events.ResourceHold`
-----------------------------------------
+--------------------------------------------
+
 Put and release holds on limited resources.
 
 .. code-block:: python
@@ -115,7 +121,8 @@ Put and release holds on limited resources.
 
 
 :py:class:`~upstage_des.events.All`
--------------------------------
+-----------------------------------
+
 Succeed when all passed events succeed.
 
 .. code-block:: python
@@ -129,7 +136,8 @@ Succeed when all passed events succeed.
 
 
 :py:class:`~upstage_des.events.Any`
--------------------------------
+-----------------------------------
+
 Succeed when any passed events succeed
 
 .. code-block:: python
