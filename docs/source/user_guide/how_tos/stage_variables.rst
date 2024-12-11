@@ -37,7 +37,7 @@ SimPy or UPSTAGE tasks, states, or processes.
 
 
 Expected Stage Variables
-===========================
+=========================
 
 Some variables are expected to exist on the stage for some features. These are found in the :py:class:`~upstage_des.base.StageProtocol` protocol,
 and are listed below:
@@ -69,7 +69,7 @@ actors and tasks. The following snippets shows how you might use it for pure Sim
 
 
 Accessing Stage through upstage_des.api
-===================================
+=======================================
 
 For convenience, you can also do the following:
 
@@ -84,3 +84,28 @@ For convenience, you can also do the following:
         assert stage.altitude_units == "centimeters"
         altitude_units = UP.get_stage_variable("altitude_units")
         assert altitude_units == "centimeters"
+
+
+Accessing Stage outside of the EnvironmentContext
+=================================================
+
+There are some times when you may want the Stage to exist outside of the EnvironmentContext. When doing plotting of
+geographic entities, for example, having access to the ``stage_model`` is useful. This is also helpful when visualizing
+or doing analysis in Jupyter Notebooks, where you don't want to sit inside a context manager.
+
+For this situation, UPSTAGE provides a way to operate the context manager without needing to be inside the context.
+
+.. code-block:: python
+
+    import upstage_des.api as UP
+    from upstage_des.base import create_top_context, clear_top_context
+
+    ctx = create_top_context()
+    add_stage_variable("example", 1.234)
+
+    assert get_stage_variable("example") == 1.234
+
+    clear_top_context(ctx)
+    
+The two functions are just wrappers around the context manager's ``__enter__`` and ``__exit__`` methods, but they provide a clearer
+idea of what's being done and why.

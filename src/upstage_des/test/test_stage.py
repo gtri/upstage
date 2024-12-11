@@ -10,7 +10,9 @@ from upstage_des.api import (
     UpstageBase,
     UpstageError,
     add_stage_variable,
+    get_stage_variable,
 )
+from upstage_des.base import clear_top_context, create_top_context
 
 
 class Stager(UpstageBase): ...
@@ -38,3 +40,26 @@ def test_stage() -> None:
     # After the context, it should not exists
     with pytest.raises(UpstageError):
         source.stage
+
+
+def test_contextless_stage() -> None:
+    ctx = create_top_context()
+    add_stage_variable("example", 1.234)
+
+    assert get_stage_variable("example") == 1.234
+
+    # dropping into a new context ignores the above
+    with EnvironmentContext():
+        add_stage_variable("example", 8.675)
+        assert get_stage_variable("example") == 8.675
+
+    assert get_stage_variable("example") == 1.234
+
+    clear_top_context(ctx)
+
+    with pytest.raises(ValueError, match="Stage should have been set."):
+        get_stage_variable("example")
+
+
+if __name__ == "__main__":
+    test_contextless_stage()

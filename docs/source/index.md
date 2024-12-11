@@ -94,5 +94,5 @@ The API documentation is auto-generated.
 :caption: API
 :maxdepth: 2
 
-modules.rst
+auto/modules.rst
 ```

@@ -20,7 +20,7 @@ Geographic Data Types and State
 These are the built-in features that use geography:
 
 :py:class:`~upstage_des.data_types.GeodeticLocation`
-------------------------------------------------
+----------------------------------------------------
 
 This data type stores a Latitude / Longitude / Altitude (optional) for a point around the globe.
 
@@ -108,7 +108,7 @@ Both distances are within .07% of UPSTAGE's calculations.
 
 
 :py:class:`~upstage_des.states.GeodeticLocationChangingState`
----------------------------------------------------------
+-------------------------------------------------------------
 
 This is a State that allows activation and movement along great-circle waypoints with altitude changing along the waypoints. When initializing, it accepts a ``GeodeticLocation`` object, and it returns those when you ask it for
 the state's value. Here is its basic usage:
@@ -156,7 +156,7 @@ Cartesian Locations
 These aren't geographic, but they serve the same purpose, so we include them here.
 
 :py:class:`~upstage_des.data_types.CartesianLocation`
--------------------------------------------------
+-----------------------------------------------------
 
 This data type stores an X / Y / Z (optional) location in 2 or 3D space (z is set to zero if not included).
 
@@ -190,7 +190,7 @@ The distance is always implied to be in ``distance_units``, without setting it. 
 
 
 :py:class:`~upstage_des.states.CartesianLocationChangingState`
-----------------------------------------------------------
+--------------------------------------------------------------
 
 This active state works the exact same as the ``GeodeticLocationChangingState`` , except that it requires waypoints to be ``CartesianLocation`` s.
 
@@ -201,7 +201,7 @@ Geography Sub-Module
 The :py:mod:`upstage_des.geography` module contains:
 
 :py:class:`~upstage_des.geography.spherical.Spherical`
---------------------------------------------------
+------------------------------------------------------
 
 This class contains methods for finding distances, positions, and for segmenting great-circle paths on the assumption of a spherical earth.
 
@@ -214,7 +214,7 @@ The most useful methods, besides distance, may be:
 #. :py:meth:`~upstage_des.geography.spherical.Spherical.point_from_bearing_dist`, which gives you a point relative to a base location at some distance and bearing.
 
 :py:class:`~upstage_des.geography.wgs84.WGS84`
--------------------------------------------
+----------------------------------------------
 
 This class contains methods for finding distances, positions, and for segmenting great-circle paths on the assumption of a WGS84 ellipsoid. These methods take longer to run than the Spherical version,
 so be sure the extra accuracy is worth it.
@@ -228,7 +228,7 @@ The most useful methods, besides distance, may be:
 #. :py:meth:`~upstage_des.geography.spherical.WGS84.point_from_bearing_dist`, which gives you a point relative to a base location at some distance and bearing.
 
 :py:mod:`upstage_des.geography.intersections`
--------------------------------------------
+---------------------------------------------
 
 The :py:func:`~upstage_des.geography.intersections.get_intersection_locations` function calculates an intersection between a great circle path and a sphere. It can be passed an instance of ``Spherical`` or ``WGS84``
 to do distance calculations with.

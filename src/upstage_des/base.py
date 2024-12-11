@@ -526,3 +526,29 @@ def get_stage() -> StageProtocol:
     except LookupError:
         raise ValueError("Stage should have been set.")
     return stage
+
+
+def create_top_context(
+    initial_time: float = 0.0,
+    random_seed: int | None = None,
+    random_gen: Any | None = None,
+) -> EnvironmentContext:
+    """Create a stage at this level of context.
+
+    Makes your current level the same as the context manager.
+
+    Returns:
+        EnvironmentContext: The context
+    """
+    ctx = EnvironmentContext(initial_time, random_seed, random_gen)
+    ctx.__enter__()
+    return ctx
+
+
+def clear_top_context(ctx: EnvironmentContext) -> None:
+    """Clear the context.
+
+    Args:
+        ctx (EnvironmentContext): The object made from create_stage()
+    """
+    ctx.__exit__()
