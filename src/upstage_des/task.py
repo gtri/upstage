@@ -379,8 +379,7 @@ class Task(SettableEnv):
             raise SimulationError("No interrupt behavior returned from `on_interrupt`")
 
         if _interrupt_action in (InterruptStates.END, InterruptStates.RESTART):
-            if actor._debug_logging:
-                actor.log(f"Interrupted by {interrupt}.")
+            actor.log(f"Interrupted by {interrupt}.")
             actor.deactivate_all_states(task=self)
             actor.deactivate_all_mimic_states(task=self)
             if isinstance(next_event, BaseEvent):

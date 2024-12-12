@@ -16,6 +16,7 @@ from simpy.resources.store import StoreGet, StorePut
 
 from .base import SimulationError, UpstageBase, UpstageError
 from .constants import PLANNING_FACTOR_OBJECT
+from .units import unit_convert
 
 __all__ = (
     "All",
@@ -162,23 +163,43 @@ class Wait(BaseEvent):
 
     """
 
+    def _convert_time(self, time: float | int, unit: str | None) -> float:
+        """Convert a time to the stage time.
+
+        Args:
+            time (float | int): The current time
+            unit (str): Units the time is in
+
+        Returns:
+            float: Time in stage units
+        """
+        base_unit = self.stage.get("time_unit")
+        if base_unit is not None and unit is not None:
+            return unit_convert(time, unit, base_unit)
+        return time
+
     def __init__(
         self,
         timeout: float | int,
+        timeout_unit: str | None = None,
+        *,
         rehearsal_time_to_complete: float | int | None = None,
     ) -> None:
         """Create a timeout event.
 
-        The timeout can be a single value, or two values to draw randomly between.
+        If timeout_unit is specified, UPSTAGE will try to convert it to the
+        time_unit set in the stage. Otherwise, it defaults to that time unit.
 
         Args:
             timeout (float | int): Time to wait.
+            timeout_unit (str, optional): Units of time
             rehearsal_time_to_complete (float | int, optional): The rehearsal time
                 to complete. Defaults to None (the timeout given).
 
         """
         if not isinstance(timeout, float | int):
             raise SimulationError("Bad timeout. Did you mean to use from_random_uniform?")
+        timeout = self._convert_time(timeout, timeout_unit)
         self._time_to_complete = timeout
         self.timeout = timeout
         if self._time_to_complete < 0:
@@ -191,13 +212,19 @@ class Wait(BaseEvent):
         cls,
         low: float | int,
         high: float | int,
+        timeout_unit: str | None = None,
+        *,
         rehearsal_time_to_complete: float | int | None = None,
     ) -> "Wait":
         """Create a wait from a random uniform time.
 
+        If timeout_unit is specified, UPSTAGE will try to convert it to the
+        time_unit set in the stage. Otherwise, it defaults to that time unit.
+
         Args:
             low (float): Lower bounds of random draw
             high (float): Upper bounds of random draw
+            timeout_unit (str, optional): Units of time
             rehearsal_time_to_complete (float | int, optional): The rehearsal time
                 to complete. Defaults to None - meaning the random value drawn.
 
@@ -206,7 +233,7 @@ class Wait(BaseEvent):
         """
         rng = UpstageBase().stage.random
         timeout = rng.uniform(low, high)
-        return cls(timeout, rehearsal_time_to_complete)
+        return cls(timeout, timeout_unit, rehearsal_time_to_complete=rehearsal_time_to_complete)
 
     def as_event(self) -> SIM.Timeout:
         """Cast Wait event as a simpy Timeout event.

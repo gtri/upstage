@@ -314,7 +314,7 @@ def test_terminal_task_run(
         env.run()
         assert env.now == 0
 
-        assert "The Message" in actor._debug_log[-1]
+        assert "The Message" in actor._debug_log[-1][1]
 
         with pytest.raises(SimulationError, match=".+Cannot interrupt a terminal.+"):
             proc.interrupt()
@@ -326,7 +326,7 @@ def test_terminal_task_run(
         env.run()
         assert env.now == 0
 
-        assert "Entering terminal task:" in actor._debug_log[-1]
+        assert "Entering terminal task:" in actor._debug_log[-1][1]
 
 
 def test_terminal_task_rehearse(

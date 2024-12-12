@@ -47,8 +47,11 @@ and are listed below:
 * "stage_model": A model to use for Geodetic calculations. See :doc:`geography` for more.
 * "intersection_model": A model to use for motion manager. See :doc:`geography` and :doc:`motion_manager` for more.
 * "time_unit": Units of time. See :py:func:`~upstage_des.units.convert.unit_convert` for a list.
+* "daily_time_count": For non-standard time values, such as "ticks", this number is used to create logging outputs with "Days".
 
 If they are not set and you use a feature that needs them, you'll get a warning about not being able to find a stage variable.
+
+For more information about time units, see :doc:`times`.
 
 
 Accessing Stage through UpstageBase

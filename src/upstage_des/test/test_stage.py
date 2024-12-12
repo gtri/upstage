@@ -10,6 +10,7 @@ from upstage_des.api import (
     UpstageBase,
     UpstageError,
     add_stage_variable,
+    get_stage,
     get_stage_variable,
 )
 from upstage_des.base import clear_top_context, create_top_context
@@ -47,6 +48,9 @@ def test_contextless_stage() -> None:
     add_stage_variable("example", 1.234)
 
     assert get_stage_variable("example") == 1.234
+
+    stage = get_stage()
+    assert stage.example == 1.234
 
     # dropping into a new context ignores the above
     with EnvironmentContext():

@@ -33,6 +33,17 @@ CONVERSIONS: dict[str, dict[str, float]] = {
 
 DISTANCE_UNITS = ["m", "km", "mi", "nmi", "ft"]
 TIME_UNITS = ["s", "min", "hr", "day", "week"]
+TIME_ALTERNATES = {
+    "seconds": "s",
+    "second": "s",
+    "minute": "min",
+    "minutes": "min",
+    "hour": "hr",
+    "hours": "hr",
+    "days": "day",
+    "weeks": "week",
+}
+STANDARD_TIMES = ["s", "min", "hr"]
 
 # add feet to conversions
 CONVERSIONS["ft"] = {"ft": 1.0, "mi": 1 / 5280.0}
@@ -47,7 +58,17 @@ def unit_convert(value: int | float, units_from: str, units_to: str) -> float:
     """Convert between units of distance and time.
 
     Units must be one of:
-        km, m, mi, nmi, ft, s, min, hr, day, week
+        distance: km, m, mi, nmi, ft
+
+        time:
+
+        * s, second, or seconds
+        * min, minute, or minutes
+        * hr, hour, or hours
+        * day or days
+        * week or weeks
+
+    All units are lower-cased on input.
 
     Args:
         value (int | float): Value of "from" unit
@@ -60,7 +81,11 @@ def unit_convert(value: int | float, units_from: str, units_to: str) -> float:
     Returns:
         float: _description_
     """
+    units_fr = units_from.lower()
+    units_t = units_to.lower()
+    units_fr = TIME_ALTERNATES.get(units_fr, units_fr)
+    units_t = TIME_ALTERNATES.get(units_t, units_t)
     try:
-        return value * CONVERSIONS[units_from][units_to]
+        return value * CONVERSIONS[units_fr][units_t]
     except KeyError:
         raise ValueError(f"Cannot convert from {units_from} to {units_to}.")

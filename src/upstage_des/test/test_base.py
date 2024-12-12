@@ -122,3 +122,41 @@ def test_multiproc_stability() -> None:
         res = pool.map(a_simulation, inputs)
 
     assert res == inputs
+
+
+@pytest.mark.parametrize(
+    ["unit", "mult"],
+    [
+        ("min", 60),
+        ("Minutes", 60),
+        ("s", 3600),
+        ("second", 3600),
+        ("hours", 1),
+        ("hr", 1),
+        (None, 1),
+    ],
+)
+def test_pretty_times(unit: str, mult: int) -> None:
+    """Test that if we do time in regular ways, we get standard logging."""
+    times_in_hours = [3, 28, 24 * 15 + 6.5]
+    times_in_hours = [x * mult for x in times_in_hours]
+    with EnvironmentContext(initial_time=times_in_hours[0]) as env:
+        add_stage_variable("time_unit", unit)
+        base = UpstageBase()
+        assert base.pretty_now == "[Day    0 - 03:00:00]"
+        env.run(until=times_in_hours[1])
+        assert base.pretty_now == "[Day    1 - 04:00:00]"
+        env.run(until=times_in_hours[2])
+        assert base.pretty_now == "[Day   15 - 06:30:00]"
+
+
+@pytest.mark.parametrize("unit", ["ticks", "week", "day", "microseconds"])
+def test_pretty_time_nonstandard(unit: str) -> None:
+    with EnvironmentContext() as env:
+        add_stage_variable("time_unit", unit)
+        base = UpstageBase()
+        assert base.pretty_now == f"[0.000 {unit}]"
+        add_stage_variable("daily_time_count", 100)
+        assert base.pretty_now == f"[Day    0 - 0.000 {unit}]"
+        env.run(until=223)
+        assert base.pretty_now == f"[Day    2 - 23.000 {unit}]"

@@ -56,6 +56,7 @@ how_tos/active_states.rst
 how_tos/mimic_states.rst
 how_tos/nucleus.rst
 how_tos/stage_variables.rst
+how_tos/times.rst
 how_tos/events.rst
 how_tos/geography.rst
 how_tos/decision_tasks.rst

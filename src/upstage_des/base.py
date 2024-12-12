@@ -18,7 +18,7 @@ from warnings import warn
 from simpy import Environment as SimpyEnv
 
 from upstage_des.geography import INTERSECTION_LOCATION_CALLABLE, EarthProtocol
-from upstage_des.units import unit_convert
+from upstage_des.units.convert import STANDARD_TIMES, TIME_ALTERNATES, unit_convert
 
 CONTEXT_ERROR_MSG = "Undefined context variable: use EnvironmentContext"
 
@@ -87,11 +87,26 @@ class StageProtocol(Protocol):
 
     @property
     def time_unit(self) -> str:
-        """Time unit, Treated as 'hr' if not set."""
+        """Time unit, Treated as 'hr' if not set.
+
+        This value modifies ``pretty_now`` from ``UpstageBase``,
+        and can be used to modfy ``Wait`` timeouts.
+        """
 
     @property
     def random(self) -> Random:
         """Random number generator."""
+
+    @property
+    def daily_time_count(self) -> float | int:
+        """The number of time_units in a "day".
+
+        This value only modifies ``pretty_now`` from ``UpstageBase``.
+
+        This is only used if the time_unit is not
+        s, min, or hr. In that case, 24 hour days are
+        assumed.
+        """
 
     if TYPE_CHECKING:
 
@@ -270,18 +285,33 @@ class UpstageBase:
     def pretty_now(self) -> str:
         """A well-formatted string of the sim time.
 
+        Tries to account for generic names for time, such as 'ticks'.
+
         Returns:
             str: The sim time
         """
         now = self.env.now
-        time_unit = self.stage.get("time_unit", "hr")
-        if time_unit != "s" and time_unit.endswith("s"):
-            time_unit = time_unit[:-1]
-        now_hrs = unit_convert(now, time_unit, "hr")
-        day = floor(now_hrs / 24)
-        ts = "[Day {:3.0f} - {} | h+{:06.2f}]".format(
-            day, strftime("%H:%M:%S", gmtime(now_hrs * 3600)), now_hrs
-        )
+        time_unit = self.stage.get("time_unit", None)
+        # If it's explicitly set to None, still treat it as hours.
+        time_unit = "hr" if time_unit is None else time_unit
+        standard = TIME_ALTERNATES.get(time_unit.lower(), time_unit)
+
+        ts: str
+        if standard in STANDARD_TIMES:
+            now_hrs = unit_convert(now, time_unit, "hr")
+            day = floor(now_hrs / 24)
+            rem_hours = now_hrs - (day * 24)
+            hms = strftime("%H:%M:%S", gmtime(rem_hours * 3600))
+            ts = f"[Day {day:4.0f} - {hms:s}]"
+        else:
+            day_unit_count = self.stage.get("daily_time_count", None)
+            if day_unit_count is None:
+                ts = f"[{now:.3f} {time_unit}]"
+            else:
+                days = int(floor(now / day_unit_count))
+                rem = now - (days * day_unit_count)
+                ts = f"[Day {days:4d} - {rem:.3f} {time_unit}]"
+
         return ts
 
 
