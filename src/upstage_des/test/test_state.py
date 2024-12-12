@@ -212,14 +212,29 @@ def test_resource_state_no_default_init() -> None:
 def test_resource_state_default_init() -> None:
     class Holder(Actor):
         res = ResourceState[Store](default=Store)
+        res2 = ResourceState[Container](
+            default=Container, default_kwargs={"capacity": 11, "init": 5}
+        )
+
+    class HolderBad(Actor):
+        res = ResourceState[Store](default=Store)
+        res2 = ResourceState[Container](default=Container, default_kwargs={"capa": 11, "init": 5})
 
     with EnvironmentContext():
         h = Holder(name="Example")
         assert isinstance(h.res, Store)
+        assert h.res2.capacity == 11
+        assert h.res2.level == 5
 
-        h = Holder(name="Example", res={"capacity": 10})
+        h = Holder(name="Example", res={"capacity": 10}, res2={"capacity": 12})
         assert isinstance(h.res, Store)
         assert h.res.capacity == 10
+        assert h.res2.capacity == 12
+        assert h.res2.level == 5
+
+        hb = HolderBad(name="Bad one")
+        with pytest.raises(UpstageError):
+            hb.res2.capacity
 
 
 def test_resource_state_kind_init() -> None:

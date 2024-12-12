@@ -52,10 +52,47 @@ There are several reasons for doing this:
 2. Simplifies actor instantiation. Instead of having to build a store on your own for each actor, the states accept simpler data types and handle the environment for you.
 3. Better default behavior instead of needing a partial or a lambda function in the factory.
 4. Default expectations, such as being frozen.
-5. |State| does not understanding recording of entries or counts in stores or containers.
+5. |State| does not understanding recording of entries or items/counts in stores or containers.
 
 
 In practice, the second and last reasons are the most compelling in our experience.
+
+--------------------------
+Default Resource Arguments
+--------------------------
+
+You can pair setting a default resource with default keyword arguments for its instantiation. This helps
+if you want to have default capacities or initial counts. Use the ``default_kwargs`` input to ``ResourceState``
+to accomplish this. Default arguments are overriden by whatever is passed at actor instantiation.
+
+.. code-block:: python
+
+    class CheckoutLane(UP.Actor):
+        customer_queue = UP.ResourceState[SIM.Store]()
+        magazines = UP.ResourceState[SIM.Container](
+            default = SIM.Container,
+            default_kwargs={"capacity": 50, "init": 25},
+        )
+
+    with UP.EnvironmentContext() as env:
+        lane = CheckoutLane(
+            name="FirstLane",
+            customer_queue={
+                "kind": UP.SelfMonitoringStore,
+                "capacity":10,
+            }
+        )
+        assert lane.magazines.level == 25
+
+        lane2 = CheckoutLane(
+            name="SecondLane",
+            customer_queue={
+                "kind": UP.SelfMonitoringStore,
+                "capacity":10,
+            },
+            magazines = {"init": 10},
+        )
+        assert lane2.magazines.level == 10
 
 -----------------------
 Instantiation Arguments
