@@ -58,8 +58,9 @@ The ``scan_speed`` state is defined to require a ``float`` type (UPSTAGE will th
 state is similar, except that a default value of 120 minutes is supplied.
 
 .. note::
-    There is no explicit time dimension in upstage_des. The clock units are up to the user, and the user must ensure that all times are properly defined. If you set a stage variable of ``time_unit``, 
-    it will correct the time for debug logging strings (into hours) only.
+    There is no explicit time dimension in upstage_des. The clock units are up to the user,
+    and the user must ensure that all times are properly defined. See :doc:`Times </user_guide/how_tos/times>`
+    for more, including using time units in ``Wait``.
 
 
 Then you will later instantiate a cashier with [#f1]_:
@@ -74,7 +75,8 @@ Then you will later instantiate a cashier with [#f1]_:
     )
 
 Note that the `name` attribute is required for all UPSTAGE Actors. Also, all inputs are keyword-argument only for an Actor. The ``debug_log`` input is ``False`` by default,
-and when ``True``, you can call ``cashier.log()`` to retrieve an UPSTAGE-generated log of what the actor has been doing.
+and when ``True``, you can call ``cashier.log()`` to retrieve an UPSTAGE-generated log of what the actor has been doing. The same method, when
+given a string, will record the message into the log, along with the default logging that UPSTAGE does.
 
 States are just Python descriptors, so you may access them the same as you would any instance attribute: ``cashier.scan_speed```, e.g.
 

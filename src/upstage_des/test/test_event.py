@@ -9,7 +9,14 @@ from simpy.resources import base
 from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.store import StoreGet, StorePut
 
-from upstage_des.api import Actor, EnvironmentContext, SimulationError, State, Task
+from upstage_des.api import (
+    Actor,
+    EnvironmentContext,
+    SimulationError,
+    State,
+    Task,
+    add_stage_variable,
+)
 from upstage_des.events import (
     All,
     Any,
@@ -49,9 +56,14 @@ def test_wait_event() -> None:
         assert isinstance(ret, SIM.Timeout), "Wait doesn't return a simpy timeout"
         assert ret._delay == timeout, "Incorrect timeout time"
 
+    with EnvironmentContext() as env:
+        add_stage_variable("time_unit", "minutes")
+        wait = Wait(timeout=1.1, timeout_unit="hours")
+        assert wait.timeout == 1.1 * 60
+
     with EnvironmentContext(initial_time=init_time) as env:
         timeout_2 = [1, 3]
-        wait = Wait.from_random_uniform(*timeout_2)
+        wait = Wait.from_random_uniform(timeout_2[0], timeout_2[1])
         ret = wait.as_event()
         assert isinstance(ret, SIM.Timeout), "Wait doesn't return a simpy timeout"
         assert timeout_2[0] <= ret._delay <= timeout_2[1], "Incorrect timeout time"

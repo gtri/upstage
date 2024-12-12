@@ -126,7 +126,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self._is_rehearsing: bool = False
 
         self._debug_logging: bool = debug_log
-        self._debug_log: list[str] = []
+        self._debug_log: list[tuple[float | int, str]] = []
 
         self._state_histories: dict[str, list[tuple[float, Any]]] = {}
 
@@ -861,7 +861,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         clone._is_rehearsing = True
         return clone
 
-    def log(self, msg: str | None = None) -> list[str] | None:
+    def log(self, msg: str | None = None) -> list[tuple[float | int, str]] | None:
         """Add to the log or return it.
 
         Only adds to log if debug_logging is True.
@@ -875,12 +875,12 @@ class Actor(SettableEnv, NamedUpstageEntity):
         if msg and self._debug_logging:
             ts = self.pretty_now
             msg = f"{ts} {msg}"
-            self._debug_log += [msg]
+            self._debug_log += [(self.env.now, msg)]
         elif msg is None:
             return self._debug_log
         return None
 
-    def get_log(self) -> list[str]:
+    def get_log(self) -> list[tuple[float | int, str]]:
         """Get the debug log.
 
         Returns:
