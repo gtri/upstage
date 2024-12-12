@@ -62,11 +62,11 @@ def unit_convert(value: int | float, units_from: str, units_to: str) -> float:
 
         time:
 
-        * s, second, or seconds  
-        * min, minute, or minutes  
-        * hr, hour, or hours  
-        * day or days  
-        * week or weeks  
+        * s, second, or seconds
+        * min, minute, or minutes
+        * hr, hour, or hours
+        * day or days
+        * week or weeks
 
     All units are lower-cased on input.
 

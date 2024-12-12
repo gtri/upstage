@@ -10,8 +10,8 @@ from upstage_des.api import (
     UpstageBase,
     UpstageError,
     add_stage_variable,
-    get_stage_variable,
     get_stage,
+    get_stage_variable,
 )
 from upstage_des.base import clear_top_context, create_top_context
 

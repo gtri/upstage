@@ -59,8 +59,8 @@ state is similar, except that a default value of 120 minutes is supplied.
 
 .. note::
     There is no explicit time dimension in upstage_des. The clock units are up to the user,
-    and the user must ensure that all times are properly defined. See :doc:`Times </user_guide/how_tos/times>`
-    for more, including using time units in ``Wait``.
+    and the user must ensure that all times are properly defined. See :doc:`Time Units </user_guide/how_tos/times>`
+    for more, including using time units in :py:class:`~upstage_des.events.Wait`.
 
 
 Then you will later instantiate a cashier with [#f1]_:

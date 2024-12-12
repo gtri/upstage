@@ -87,7 +87,11 @@ class StageProtocol(Protocol):
 
     @property
     def time_unit(self) -> str:
-        """Time unit, Treated as 'hr' if not set."""
+        """Time unit, Treated as 'hr' if not set.
+
+        This value modifies ``pretty_now`` from ``UpstageBase``,
+        and can be used to modfy ``Wait`` timeouts.
+        """
 
     @property
     def random(self) -> Random:
@@ -97,8 +101,11 @@ class StageProtocol(Protocol):
     def daily_time_count(self) -> float | int:
         """The number of time_units in a "day".
 
-        If time_unit is s, m, hr, day, week, etc., then
-        this is automatically considered 24.
+        This value only modifies ``pretty_now`` from ``UpstageBase``.
+
+        This is only used if the time_unit is not
+        s, min, or hr. In that case, 24 hour days are
+        assumed.
         """
 
     if TYPE_CHECKING:
