@@ -793,7 +793,7 @@ class ResourceState(State, Generic[T]):
 
     No input is needed for the state if you define a default resource class in
     the class definition and do not wish to modify the default inputs of that
-    class.
+    class. You can also define default inputs for the resource instantiation.
 
     The input an Actor needs to receive for a ResourceState is a dictionary of:
     * 'kind': <class> (optional if you provided a default)
@@ -811,6 +811,10 @@ class ResourceState(State, Generic[T]):
         >>>         default=Container,
         >>>         valid_types=(Container, SelfMonitoringContainer),
         >>>     )
+        >>>     charger = ResourceState[Store](
+        >>>         default=Store,
+        >>>         default_kwargs={"capacity": 5},
+        >>>     )
         >>>
         >>> wh = Warehouse(
         >>>     name='Depot',
@@ -824,6 +828,7 @@ class ResourceState(State, Generic[T]):
         *,
         default: Any | None = None,
         valid_types: type | tuple[type, ...] | None = None,
+        default_kwargs: dict[str, Any] | None = None,
     ) -> None:
         """Create a resource State decorator.
 
@@ -831,6 +836,8 @@ class ResourceState(State, Generic[T]):
             default (Any | None, optional): Default store/container class. Defaults to None.
             valid_types (type | tuple[type, ...] | None, optional): Valid store/container
                 classes. Defaults to None.
+            default_kwargs (dict[str, Any], optional): Kwargs to pass to the creation
+                of the default store/container class.
         """
         if isinstance(valid_types, type):
             valid_types = (valid_types,)
@@ -853,6 +860,7 @@ class ResourceState(State, Generic[T]):
             recording=False,
             valid_types=valid_types,
         )
+        self._default_kwargs = default_kwargs.copy() if default_kwargs is not None else {}
         self._been_set: set[Actor] = set()
 
     def __set__(self, instance: "Actor", value: dict | Any) -> None:
@@ -890,7 +898,8 @@ class ResourceState(State, Generic[T]):
             raise UpstageError(
                 f"Actor {instance} does not have an `env` attribute for state {self.name}"
             )
-        kwargs = {k: v for k, v in value.items() if k != "kind"}
+        kwargs = self._default_kwargs.copy()
+        kwargs.update({k: v for k, v in value.items() if k != "kind"})
         try:
             resource_obj = resource_type(env, **kwargs)
         except TypeError as e:
