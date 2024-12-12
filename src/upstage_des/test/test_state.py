@@ -369,7 +369,3 @@ def test_matching_states() -> None:
         assert state_name is not None
         value = getattr(worker, state_name)
         assert value is worker.walkie, "Wrong state retrieved"
-
-
-if __name__ == "__main__":
-    test_resource_state_default_init()
