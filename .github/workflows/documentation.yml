@@ -10,16 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: prefix-dev/setup-pixi@v0.8.1
         with:
-          python-version: '3.11'
-          cache: 'pip'
-      - name: Install dependencies
-        run: pip install .[docs]
-      - name: Build autodocs
-        run: sphinx-apidoc -o ./docs/source/auto ./src/upstage_des ./src/upstage_des/test
-      - name: Sphinx build
-        run: sphinx-build -b html docs/source _build
+          manifest-path: pixi.toml
+          pixi-version: v0.39.0
+          cache: true
+      - run: pixi run -e py312 build_html_docs
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
