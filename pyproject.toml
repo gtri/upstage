@@ -50,11 +50,11 @@ optional-dependencies.docs = [
 optional-dependencies.lint = [
   "mypy",
   "pyproject-fmt>=2.5",
-  "pytest",
   "ruff>=0.6",
   "ssort>=0.12",
 ]
 optional-dependencies.test = [
+  "pytest",
   "pytest-cov",
   "pytest-html",
   "pytest-json-report",

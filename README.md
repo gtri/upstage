@@ -44,40 +44,13 @@ In an environment (Python 3.11+) of your choice:
 pip install upstage-des
 ```
 
-### Installation from source
-
-Alternatively, you can download UPSTAGE and install it manually. Clone, or download the archive and extract it. From the extraction location (and within a suitable Python environment):
-
-```console
-python -m pip install .
-```
-
-(or just `pip install .`)
-
-### Installation for tests
-
-To run the tests: clone locally, install into a fresh environment, and run using:
-
-```console
-pip install -e .[test]
-pytest
-```
-
 ## Documentation
 
 See the [documentation][upstage-docs] for tutorials and additional details.
 
-## How do I report an issue?
+## How do I contribute or set up a develpment environment?
 
-Using the issue feature, please explain in as much detail as possible:
-
-1. The Python version and environment
-2. How UPSTAGE was installed
-3. A minimum working example of the bug, along with any output/errors.
-
-## How do I contribute?
-
-To set up a suitable development environment, see [CONTRIBUTING][contributing].
+See [CONTRIBUTING][contributing].
 
 For information on how to style your code, see the [Style Guide][style-guide].
 
