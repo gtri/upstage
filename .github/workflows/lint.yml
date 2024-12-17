@@ -2,6 +2,10 @@ name: Lint
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -16,8 +20,6 @@ jobs:
          manifest-path: pixi.toml
          pixi-version: v0.39.0
          cache: true
-         auth-host: prefix.dev
-         auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
      - run: pixi run -e ${{ matrix.environment }} lint-check
 
   test:
@@ -33,6 +35,4 @@ jobs:
          manifest-path: pixi.toml
          pixi-version: v0.39.0
          cache: true
-         auth-host: prefix.dev
-         auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
      - run: pixi run -e ${{ matrix.environment }} test
