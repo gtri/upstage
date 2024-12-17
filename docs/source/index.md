@@ -47,25 +47,6 @@ Alternatively, you can download UPSTAGE and install it manually. Clone, or downl
 
 (or just `pip install .`)
 
-### Installation for running tests
-
-Note that the tests include the two full examples from the documentation.
-
-```console
-(venv) $ pip install upstage-des[test]
-(venv) $ pytest
-```
-
-### Installation for building docs
-
-Unless you're adding to the codebase, you won't need to run the `sphinx-apidoc` command.
-
-```console
-(venv) $ pip install upstage-des[docs]
-(venv) $ sphinx-apidoc -o .\docs\source\auto .\src\upstage_des\ .\src\upstage_des\test\
-(venv) $ sphinx-build -b html .\docs\source\ .\docs\build\
-```
-
 ## User Guide
 
 ```{toctree}
@@ -77,7 +58,8 @@ user_guide/index
 
 ## Contributing
 
-To contribute to UPSTAGE, or to learn the steps for building documentation and running tests, see [CONTRIBUTING.MD](https://github.com/gtri/upstage/blob/main/CONTRIBUTING.md))
+To contribute to UPSTAGE, or to learn the steps for building documentation, running tests, and putting
+in PRs, see [CONTRIBUTING.MD](https://github.com/gtri/upstage/blob/main/CONTRIBUTING.md))
 
 ## License and Attribution
 

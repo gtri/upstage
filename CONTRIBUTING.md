@@ -2,52 +2,36 @@
 
 All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
 
-## Bug Reports and Enhancement Requests
+## How do I report an issue?
 
-Bug reports and enhancement requests are an important part of making UPSTAGE more stable and are curated though [Github issues](https://github.com/gtri/upstage/issues). If you wish to contribute, then please be sure there is an active issue to work against and there is not then go ahead and create one.
+Using the [Github issues](https://github.com/gtri/upstage/issues) feature, please explain in as much detail as possible:
 
-## Create a Fork
+1. The Python version and environment
+2. How UPSTAGE was installed
+3. A minimum working example of the bug, along with any output/errors.
+
+Bug reports and enhancement requests are an important part of making UPSTAGE more stable. If you wish to contribute, then please be sure
+there is an active issue to work against. If there is not one please create one.
+
+## How do I put in a good PR?
+
+### Create a Fork
 
 You will need your own copy of UPSTAGE (aka fork) to work on the code. Go to the [UPSTAGE project page](https://github.com/gtri/upstage) and hit the `Fork` button.
 
-## Making Code Changes
+### Set Up the Development Environment
 
-If you wish to contribute to UPSTAGE, we ask that you follow these steps to ensure code quality.
+1. Get [`pixi`](https://pixi.sh).
+2. Use `pixi run -e dev start`
 
-### Development Environment Setup
+That will give you an editable install in to the `dev` local environment managed by `pixi`. It also runs the lint,
+tests, and builds the docs. Any errors from that command should be reported as issues.
 
-First, create a Python 3.11 or 3.12 environment through your preferred means (conda, mamba, venv, e.g.).
+### Code Quality and Testing
 
-```bash
-python -m venv /path/to/upstage_dev/.venv
-```
-
-Ensure that the pip version is >= `21.3` to allow editable installations with just `pyproject.toml`
-and the `flit` backend.
-
-```bash
-python -m pip install --upgrade pip
-```
-
-Next, clone the repo locally:
-
-```bash
-cd /path/to/upstage_des
-git clone https://github.com/gtri/upstage.git
-cd upstage
-```
-
-Install UPSTAGE to your environment with
-
-```bash
-pip install -e '.[docs,lint,test]'
-```
-
-### Style Guide
-
-For style, see [STYLE_GUIDE](STYLE_GUIDE.md).
-
-### Code Quality
+1. Use `pixi r -e dev lint-fix`, and `pixi r -e dev lint-check` to run style/formatting/typing checks.
+2. Use `pixi r -e dev test` to run the tests
+3. If you modify the docs, use `pixi r -e dev build_html_docs` to ensure they build.
 
 Code quality is enforced using the following tools:
 
@@ -56,41 +40,9 @@ Code quality is enforced using the following tools:
 3. [`ruff`](https://docs.astral.sh/ruff/) - linter and code formatter
 4. [`mypy`](https://mypy-lang.org/) - static type checker
 
-These tools are run as follows, allowing for auto-fixing:
+### Style Guide
 
-```bash
-# 3 formatters, linting, then type checking
-pyproject-fmt pyproject.toml
-ssort src
-ruff format src
-ruff check --fix src
-mypy --show-error-codes -p upstage_des
-```
-
-### Testing
-
-To run the unit tests in `src/upstage_des/test`, run:
-
-```bash
-pytest
-```
-
-from the top level of the repo.
-
-Test reports will be in `./build/reports`
-
-### Building the documentation
-
-Documentation is built from autodocs first, then the source build.
-
-From the top level of the repo:
-
-```bash
-sphinx-apidoc -o ./docs/source/auto ./src/upstage_des ./src/upstage_des/test
-sphinx-build -a -E -b html ./docs/source ./build/docs
-```
-
-Then the docs can be loaded from `./build/docs/index.html`
+For style, see [STYLE_GUIDE](STYLE_GUIDE.md).
 
 ## Making Pull Requests
 
