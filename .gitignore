@@ -102,12 +102,13 @@ celerybeat-schedule
 # mypy
 .mypy_cache/
 
-# doit
+# automation things
 .doit*
 .env
 .report.json
 .venv
 .scripts
+.pixi
 
 # VSCode
 .vscode
