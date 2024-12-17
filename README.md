@@ -50,7 +50,7 @@ See the [documentation][upstage-docs] for tutorials and additional details.
 
 ## How do I contribute or set up a develpment environment?
 
-See [CONTRIBUTING][contributing].
+See [CONTRIBUTING][contributing] for instructions on setting up an environment and contributing.
 
 For information on how to style your code, see the [Style Guide][style-guide].
 
