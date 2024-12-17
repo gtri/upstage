@@ -18,7 +18,7 @@ jobs:
          cache: true
          auth-host: prefix.dev
          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
-     - run: pixi run lint-check
+     - run: pixi run -e ${{ matrix.environment }} lint-check
 
   test:
     runs-on: ubuntu-latest
@@ -35,4 +35,4 @@ jobs:
          cache: true
          auth-host: prefix.dev
          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
-     - run: pixi run test
+     - run: pixi run -e ${{ matrix.environment }} test
