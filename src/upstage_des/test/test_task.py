@@ -127,7 +127,7 @@ def test_failures_for_tasks_with_simpy_events() -> None:
 
         class BrokenTask(Task):
             def task(self, *, actor: ActorForTest) -> TASK_GEN:
-                yield self.env.timeout(1.0)  # type: ignore [misc, union-attr]
+                yield self.env.timeout(1.0)  # type: ignore [misc]
 
         # msg = "*Task is yielding objects without `as_event`*"
         with pytest.raises(SimulationError):  # , match=msg):
@@ -137,8 +137,8 @@ def test_failures_for_tasks_with_simpy_events() -> None:
             )
             env.run()
 
-        # msg = "*'MockEnvironment' object has no attribute 'timeout'*"
-        with pytest.raises(AttributeError):  # , match=msg):
+        msg = "must be a subclass of BaseEvent"
+        with pytest.raises(SimulationError, match=msg):
             the_task = BrokenTask()
             the_task.rehearse(
                 actor=actor,

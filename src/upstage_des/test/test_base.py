@@ -14,6 +14,7 @@ import simpy as SIM
 from upstage_des.base import (
     STAGE_CONTEXT_VAR,
     EnvironmentContext,
+    MockEnvironment,
     NamedUpstageEntity,
     UpstageBase,
     UpstageError,
@@ -24,6 +25,7 @@ from upstage_des.base import (
 def test_context() -> None:
     with EnvironmentContext() as env:
         assert isinstance(env, SIM.Environment)
+        assert not isinstance(env, MockEnvironment)
         env.run(until=3)
         assert env.now == 3
 

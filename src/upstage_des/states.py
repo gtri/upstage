@@ -7,7 +7,7 @@
 
 from collections.abc import Callable
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast, get_args
 
 from simpy import Container, Store
 
@@ -185,6 +185,19 @@ class State(Generic[ST]):
 
     def __set_name__(self, owner: "Actor", name: str) -> None:
         self.name = name
+
+    def _infer_state(self, instance: "Actor") -> tuple[Any, ...]:
+        """Infer types for the state.
+
+        Args:
+            instance (Actor): The actor the state is attached to.
+
+        Returns:
+            le[Any,...]: The state type
+        """
+        state_class = instance._state_defs[self.name]
+        args = get_args(state_class.__orig_class__)
+        return args
 
     def has_default(self) -> bool:
         """Check if a default exists.
@@ -943,7 +956,7 @@ class ResourceState(State, Generic[T]):
         """
         base_class = type(copy)
         memory: dict[str, Any] = instance.__dict__[f"_memory_for_{self.name}"]
-        new = base_class(instance.env, **memory)  # type: ignore [arg-type]
+        new = base_class(instance.env, **memory)
         if isinstance(copy, Store) and isinstance(new, Store):
             new.items = list(copy.items)
         if isinstance(copy, Container) and isinstance(new, Container):
