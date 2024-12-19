@@ -342,18 +342,22 @@ class NamedUpstageEntity(UpstageBase):
         cls,
         entity_groups: Iterable[str] | str | None = None,
         add_to_entity_groups: bool = True,
+        skip_classname: bool = False,
     ) -> None:
         if not add_to_entity_groups:
             return
-        if entity_groups is None:
-            entity_groups = [cls.__name__]
-        else:
-            if isinstance(entity_groups, str):
-                entity_groups = [entity_groups]
-            entity_groups = list(entity_groups) + [cls.__name__]
 
-        entity_group = [cls.__name__] if entity_groups is None else entity_groups
-        entity_group = list(set(entity_group))
+        entity_groups = [] if entity_groups is None else entity_groups
+
+        if isinstance(entity_groups, str):
+            entity_groups = [entity_groups]
+
+        entity_groups = list(entity_groups)
+
+        if cls.__name__ not in entity_groups and not skip_classname:
+            entity_groups.append(cls.__name__)
+
+        entity_group = list(set(entity_groups))
         old_init = cls.__init__
 
         @wraps(old_init)

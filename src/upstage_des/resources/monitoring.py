@@ -11,6 +11,8 @@ from simpy import Container, Environment, Event, FilterStore, Store
 from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.store import FilterStoreGet, StoreGet, StorePut
 
+from upstage_des.base import NamedUpstageEntity
+
 from .container import ContinuousContainer
 from .reserve import ReserveContainer
 from .sorted import SortedFilterStore, _SortedFilterStoreGet
@@ -27,7 +29,9 @@ __all__ = (
 RECORDER_FUNC = Callable[[list[Any]], int]
 
 
-class SelfMonitoringStore(Store):
+class SelfMonitoringStore(
+    Store, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+):
     """A self-monitoring version of the SimPy Store."""
 
     def __init__(
@@ -76,7 +80,9 @@ class SelfMonitoringStore(Store):
             self._record("get")
 
 
-class SelfMonitoringFilterStore(FilterStore):
+class SelfMonitoringFilterStore(
+    FilterStore, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+):
     """A self-monitoring version of the SimPy FilterStore."""
 
     def __init__(
@@ -125,7 +131,9 @@ class SelfMonitoringFilterStore(FilterStore):
             self._record("get")
 
 
-class SelfMonitoringContainer(Container):
+class SelfMonitoringContainer(
+    Container, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+):
     """A self-monitoring version of the SimPy Container."""
 
     def __init__(self, env: Environment, capacity: float = float("inf"), init: float = 0.0) -> None:
@@ -163,7 +171,9 @@ class SelfMonitoringContainer(Container):
             self._record()
 
 
-class SelfMonitoringContinuousContainer(ContinuousContainer):
+class SelfMonitoringContinuousContainer(
+    ContinuousContainer, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+):
     """A self-monitoring version of the Continuous Container."""
 
     def __init__(
@@ -202,7 +212,7 @@ class SelfMonitoringContinuousContainer(ContinuousContainer):
         return amt
 
 
-class SelfMonitoringSortedFilterStore(SortedFilterStore, SelfMonitoringStore):
+class SelfMonitoringSortedFilterStore(SortedFilterStore, SelfMonitoringStore, skip_classname=True):
     """A self-monitoring version of the SortedFilterStore."""
 
     def _do_get(self, event: _SortedFilterStoreGet) -> bool:  # type: ignore [override]
@@ -212,7 +222,9 @@ class SelfMonitoringSortedFilterStore(SortedFilterStore, SelfMonitoringStore):
         return ans
 
 
-class SelfMonitoringReserveContainer(ReserveContainer):
+class SelfMonitoringReserveContainer(
+    ReserveContainer, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+):
     """A self-monitoring version of the ReserveContainer."""
 
     def __init__(self, env: Environment, capacity: float = float("inf"), init: float = 0.0) -> None:
