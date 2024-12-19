@@ -98,12 +98,21 @@ class Actor(SettableEnv, NamedUpstageEntity):
         if "log" in seen:
             raise UpstageError("Do not name a state `log`")
 
-    def __init__(self, *, name: str, debug_log: bool = True, **states: Any) -> None:
+    def __init__(
+        self,
+        *,
+        name: str,
+        debug_log: bool = True,
+        debug_log_time: bool | None = None,
+        **states: Any,
+    ) -> None:
         """Create an Actor.
 
         Args:
             name (str): The name of the actor.
             debug_log (bool, optional): Whether to write to debug log. Defaults to True.
+            debug_log_time (bool, optional): If time is logged in debug messages.
+                Defaults to None (uses Stage value), otherwise local value is used.
             states (Any): Values for each state as kwargs.
         """
         self.name = name
@@ -126,6 +135,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self._is_rehearsing: bool = False
 
         self._debug_logging: bool = debug_log
+        self._debug_log_time = debug_log_time
         self._debug_log: list[tuple[float | int, str]] = []
 
         self._state_histories: dict[str, list[tuple[float, Any]]] = {}
@@ -824,6 +834,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         clone = self.__class__(
             name=self.name + f" [CLONE {self._num_clones}]",
             debug_log=self._debug_logging,
+            debug_log_time=self._debug_log_time,
             **states,
         )
         clone.env = new_env
@@ -872,12 +883,15 @@ class Actor(SettableEnv, NamedUpstageEntity):
         Returns:
             list[str] | None: The log if no message is given. None otherwise.
         """
-        if msg and self._debug_logging:
-            ts = self.pretty_now
-            msg = f"{ts} {msg}"
-            self._debug_log += [(self.env.now, msg)]
-        elif msg is None:
+        if msg is None:
             return self._debug_log
+        elif self._debug_logging:
+            dlt = self._debug_log_time
+            do_time = dlt if dlt is not None else self.stage.get("debug_log_time", True)
+            if do_time:
+                ts = self.pretty_now
+                msg = f"{ts} {msg}"
+            self._debug_log += [(self.env.now, msg)]
         return None
 
     def get_log(self) -> list[tuple[float | int, str]]:

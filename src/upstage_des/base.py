@@ -108,6 +108,16 @@ class StageProtocol(Protocol):
         assumed.
         """
 
+    @property
+    def debug_log_time(self) -> bool:
+        """Whether or not times are logged as a string in the debug logs.
+
+        Can be modified at the individual actor level with debug_log_time.
+
+        Returns:
+            bool: If time is logged.
+        """
+
     if TYPE_CHECKING:
 
         def __getattr__(self, key: str) -> Any: ...

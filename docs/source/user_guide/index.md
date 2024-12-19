@@ -24,6 +24,7 @@ tutorials/first_simulation
 tutorials/interrupts
 tutorials/rehearsal
 tutorials/best_practices
+tutorials/data
 tutorials/simpy_compare.rst
 ```
 
@@ -51,6 +52,7 @@ These pages detail the specific activities that can be accomplished using UPSTAG
 :caption: How-Tos
 :maxdepth: 1
 
+how_tos/resources.rst
 how_tos/resource_states.rst
 how_tos/active_states.rst
 how_tos/mimic_states.rst

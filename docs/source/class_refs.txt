@@ -1,17 +1,17 @@
 
 .. _SimPy: https://simpy.readthedocs.io/
 
-.. |Actor| replace:: :py:class:`~upstage.actor.Actor`
-.. |State| replace:: :py:class:`~upstage.states.State`
-.. |Task| replace:: :py:class:`~upstage.task.Task`
-.. |TaskNetwork| replace:: :py:class:`~upstage.task_network.TaskNetwork`
-.. |TaskNetworks| replace:: :py:class:`TaskNetworks <upstage.task_network.TaskNetwork>`
-.. |EnvironmentContext| replace:: :py:class:`~upstage.base.EnvironmentContext`
-.. |UpstageBase| replace:: :py:class:`~upstage.base.UpstageBase`
-.. |NamedEntity| replace:: :py:class:`~upstage.base.NamedUpstageEntity`
-.. |LinearChangingState| replace:: :py:class:`~upstage.states.LinearChangingState`
-.. |CartesianLocation| replace:: :py:class:`~upstage.data_types.CartesianLocation`
-.. |GeodeticLocationChangingState| replace:: :py:class:`~upstage.states.GeodeticLocationChangingState`
-.. |ResourceState| replace:: :py:class:`~upstage.states.ResourceState`
-.. |SelfMonitoringStore| replace:: :py:class:`~upstage.stores.SelfMonitoringStore`
-.. |DecisionTask| replace:: :py:class:`~upstage.task.DecisionTask`
+.. |Actor| replace:: :py:class:`~upstage_des.actor.Actor`
+.. |State| replace:: :py:class:`~upstage_des.states.State`
+.. |Task| replace:: :py:class:`~upstage_des.task.Task`
+.. |TaskNetwork| replace:: :py:class:`~upstage_des.task_network.TaskNetwork`
+.. |TaskNetworks| replace:: :py:class:`TaskNetworks <upstage_des.task_network.TaskNetwork>`
+.. |EnvironmentContext| replace:: :py:class:`~upstage_des.base.EnvironmentContext`
+.. |UpstageBase| replace:: :py:class:`~upstage_des.base.UpstageBase`
+.. |NamedEntity| replace:: :py:class:`~upstage_des.base.NamedUpstageEntity`
+.. |LinearChangingState| replace:: :py:class:`~upstage_des.states.LinearChangingState`
+.. |CartesianLocation| replace:: :py:class:`~upstage_des.data_types.CartesianLocation`
+.. |GeodeticLocationChangingState| replace:: :py:class:`~upstage_des.states.GeodeticLocationChangingState`
+.. |ResourceState| replace:: :py:class:`~upstage_des.states.ResourceState`
+.. |SelfMonitoringStore| replace:: :py:class:`~upstage_des.stores.SelfMonitoringStore`
+.. |DecisionTask| replace:: :py:class:`~upstage_des.task.DecisionTask`
