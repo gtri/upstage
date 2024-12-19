@@ -110,7 +110,8 @@ Both distances are within .07% of UPSTAGE's calculations.
 :py:class:`~upstage_des.states.GeodeticLocationChangingState`
 -------------------------------------------------------------
 
-This is a State that allows activation and movement along great-circle waypoints with altitude changing along the waypoints. When initializing, it accepts a ``GeodeticLocation`` object, and it returns those when you ask it for
+This is a State that allows activation and movement along great-circle waypoints with altitude changing along the
+waypoints. When initializing, it accepts a ``GeodeticLocation`` object, and it returns those when you ask it for
 the state's value. Here is its basic usage:
 
 .. code-block:: python
@@ -118,7 +119,7 @@ the state's value. Here is its basic usage:
     from upstage_des.utils import waypoint_time_and_dist
 
     class Plane(UP.Actor):
-        location: UP.GeodeticLocation = UP.GeodeticLocationChangingState(recording=True)
+        location = UP.GeodeticLocationChangingState(recording=True)
         speed = UP.State[float](valid_types=float, default=100.0)
 
     class Fly(UP.Task):
@@ -147,7 +148,8 @@ the state's value. Here is its basic usage:
         )
         ...
 
-The :py:func:`~upstage_des.utils.waypoint_time_and_dist` function is a convenience function that gets the great circle distance and time over a set of waypoints to help schedule the arrival time.
+The :py:func:`~upstage_des.utils.waypoint_time_and_dist` function is a convenience function that gets the great
+circle distance and time over a set of waypoints to help schedule the arrival time.
 
 
 Cartesian Locations
@@ -192,7 +194,8 @@ The distance is always implied to be in ``distance_units``, without setting it. 
 :py:class:`~upstage_des.states.CartesianLocationChangingState`
 --------------------------------------------------------------
 
-This active state works the exact same as the ``GeodeticLocationChangingState`` , except that it requires waypoints to be ``CartesianLocation`` s.
+This active state works the exact same as the ``GeodeticLocationChangingState`` , except that it requires
+waypoints to be ``CartesianLocation`` s.
 
 
 Geography Sub-Module

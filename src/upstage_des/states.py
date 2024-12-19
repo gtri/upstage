@@ -56,6 +56,7 @@ class State(Generic[ST]):
         frozen: bool = False,
         valid_types: type | tuple[type, ...] | None = None,
         recording: bool = False,
+        record_duplicates: bool = False,
         default_factory: Callable[[], ST] | None = None,
     ) -> None:
         """Create a state descriptor for an Actor.
@@ -69,14 +70,19 @@ class State(Generic[ST]):
         The valid_types input will type-check when you initialize an actor.
 
         Recording enables logging the values of the state whenever they change, along
-        with the simulation time. This value isn't deepcopied, so it may behave poorly
-        for mutable types.
+        with the simulation time. This attempts to deepcopy the value.
+
+        When a state is a mutable type, such as a dictionary or Counter, state
+        changes won't be recorded because the descriptor itself won't be modified
+        through the __set__ call.
 
         Args:
             default (Any | None, optional): Default value of the state. Defaults to None.
             frozen (bool, optional): If the state is allowed to change. Defaults to False.
             valid_types (type | tuple[type, ...] | None, optional): Types allowed. Defaults to None.
             recording (bool, optional): If the state records itself. Defaults to False.
+            record_duplicates (bool, optional): If the state records duplicate values.
+                Defaults to False.
             default_factory (Callable[[], type] | None, optional): Default from function.
                 Defaults to None.
         """
@@ -86,6 +92,7 @@ class State(Generic[ST]):
         self._default = default
         self._frozen = frozen
         self._recording = recording
+        self._record_duplicates = record_duplicates
         self._recording_callbacks: dict[Any, CALLBACK_FUNC] = {}
 
         self._types: tuple[type, ...]
@@ -111,10 +118,10 @@ class State(Generic[ST]):
                 f"Actor {instance} does not have an `env` attribute for state {self.name}"
             )
         # get the instance time here
-        to_append = (env.now, value)
+        to_append = (env.now, deepcopy(value))
         if self.name not in instance._state_histories:
             instance._state_histories[self.name] = [to_append]
-        elif to_append != instance._state_histories[self.name][-1]:
+        elif self._record_duplicates or to_append != instance._state_histories[self.name][-1]:
             instance._state_histories[self.name].append(to_append)
 
     def _do_callback(self, instance: "Actor", value: ST) -> None:

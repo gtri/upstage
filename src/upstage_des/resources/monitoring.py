@@ -12,7 +12,7 @@ from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.store import FilterStoreGet, StoreGet, StorePut
 
 from .container import ContinuousContainer
-from .reserve import ReserveStore
+from .reserve import ReserveContainer
 from .sorted import SortedFilterStore, _SortedFilterStoreGet
 
 __all__ = (
@@ -21,7 +21,7 @@ __all__ = (
     "SelfMonitoringContainer",
     "SelfMonitoringContinuousContainer",
     "SelfMonitoringSortedFilterStore",
-    "SelfMonitoringReserveStore",
+    "SelfMonitoringReserveContainer",
 )
 
 RECORDER_FUNC = Callable[[list[Any]], int]
@@ -212,8 +212,8 @@ class SelfMonitoringSortedFilterStore(SortedFilterStore, SelfMonitoringStore):
         return ans
 
 
-class SelfMonitoringReserveStore(ReserveStore):
-    """A self-monitoring version of the ReserveStore."""
+class SelfMonitoringReserveContainer(ReserveContainer):
+    """A self-monitoring version of the ReserveContainer."""
 
     def __init__(self, env: Environment, capacity: float = float("inf"), init: float = 0.0) -> None:
         """Create a store-like object that allows reservations, and records.
