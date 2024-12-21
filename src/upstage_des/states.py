@@ -7,6 +7,7 @@
 
 from collections.abc import Callable
 from copy import deepcopy
+from enum import Enum
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 from simpy import Container, Store
@@ -33,6 +34,29 @@ __all__ = (
 
 CALLBACK_FUNC = Callable[["Actor", Any], None]
 ST = TypeVar("ST")
+
+
+class ActiveStatus(Enum):
+    activating: str = "ACTIVATING"
+    deactivating: str = "DEACTIVATING"
+
+
+def _compare(a: Any, b: Any) -> bool:
+    """Function for comparing any two objects.
+
+    If an equality test fails, assume not equal.
+
+    Args:
+        a (Any): Anything
+        b (Any): Also anything
+
+    Returns:
+        bool: Are they the same
+    """
+    try:
+        return cast(bool, a == b)
+    except Exception:
+        return False
 
 
 class State(Generic[ST]):
@@ -105,23 +129,28 @@ class State(Generic[ST]):
             self._types = valid_types
         self.IGNORE_LOCK: bool = False
 
-    def _do_record(self, instance: "Actor", value: ST) -> None:
+    def _do_record(self, instance: "Actor", value: ST, override: Any = None) -> None:
         """Record the value of the state.
 
         Args:
             instance (Actor): The actor holding the state
             value (ST): State value
+            override (Any, optional): If given, record the override value
         """
+        if not self._recording:
+            return
         env = getattr(instance, "env", None)
         if env is None:
             raise SimulationError(
                 f"Actor {instance} does not have an `env` attribute for state {self.name}"
             )
-        # get the instance time here
-        to_append = (env.now, deepcopy(value))
+        use = value if override is None else override
+        to_append = (env.now, deepcopy(use))
         if self.name not in instance._state_histories:
             instance._state_histories[self.name] = [to_append]
-        elif self._record_duplicates or to_append != instance._state_histories[self.name][-1]:
+        elif self._record_duplicates or not _compare(
+            to_append, instance._state_histories[self.name][-1]
+        ):
             instance._state_histories[self.name].append(to_append)
 
     def _do_callback(self, instance: "Actor", value: ST) -> None:
@@ -150,7 +179,7 @@ class State(Generic[ST]):
     # because all the operations seem to happen *after* the get
     # NOTE: Lists also have the same issue that
     def __set__(self, instance: "Actor", value: ST) -> None:
-        """Set eh state's value.
+        """Set the state's value.
 
         Args:
             instance (Actor): The actor holding the state
@@ -169,8 +198,7 @@ class State(Generic[ST]):
 
         instance.__dict__[self.name] = value
 
-        if self._recording:
-            self._do_record(instance, value)
+        self._do_record(instance, value)
         self._do_callback(instance, value)
 
         self._broadcast_change(instance, self.name, value)
@@ -324,6 +352,16 @@ class ActiveState(State, Generic[ST]):
         res["value"] = instance.__dict__[self.name]
         return res
 
+    def activate(self, instance: "Actor", task: Task | None = None) -> None:
+        """Method to run when a state is activated.
+
+        Used to help record the right data about the active state.
+
+        Use this with __super__ for motion states to deactivate their motion from
+        the motion manager.
+        """
+        self._do_record(instance, None, override=ActiveStatus.activating)
+
     def deactivate(self, instance: "Actor", task: Task | None = None) -> bool:
         """Optional method to override that is called when a state is deactivated.
 
@@ -334,6 +372,7 @@ class ActiveState(State, Generic[ST]):
         """
         # Returns if the state should be ignored
         # A False means the state is completely deactivated
+        self._do_record(instance, None, override=ActiveStatus.deactivating)
         return False
 
 

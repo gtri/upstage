@@ -11,7 +11,7 @@ from simpy import Container, Environment, Event, FilterStore, Store
 from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.store import FilterStoreGet, StoreGet, StorePut
 
-from upstage_des.base import NamedUpstageEntity
+from upstage_des.base import SPECIAL_ENTITY_CONTEXT_VAR, NamedUpstageEntity
 
 from .container import ContinuousContainer
 from .reserve import ReserveContainer
@@ -24,13 +24,34 @@ __all__ = (
     "SelfMonitoringContinuousContainer",
     "SelfMonitoringSortedFilterStore",
     "SelfMonitoringReserveContainer",
+    "MonitoringMixin",
 )
 
 RECORDER_FUNC = Callable[[list[Any]], int]
+MONITORING_ENTITY_GROUP = "monitored"
+
+
+class MonitoringMixin(NamedUpstageEntity, skip_classname=True):
+    """Base class for matching Monitored types."""
+
+    name: str | None
+    _quantities: list[tuple[float, Any]]
+
+    def _add_special_group(self) -> None:
+        """Add self the the monitored context group.
+
+        Called by the NamedUpstageEntity on group inits.
+        """
+        ans = SPECIAL_ENTITY_CONTEXT_VAR.get().monitored
+        if self in ans:
+            return
+        ans.append(self)
 
 
 class SelfMonitoringStore(
-    Store, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+    Store,
+    MonitoringMixin,
+    skip_classname=True,
 ):
     """A self-monitoring version of the SimPy Store."""
 
@@ -39,6 +60,7 @@ class SelfMonitoringStore(
         env: Environment,
         capacity: float | int = float("inf"),
         item_func: RECORDER_FUNC | None = None,
+        name: str | None = None,
     ) -> None:
         """A monitoring version of the SimPy Store.
 
@@ -51,8 +73,11 @@ class SelfMonitoringStore(
             capacity (float | int, optional): Capacity of the store. Defaults to float("inf").
             item_func (RECORDER_FUNC | None, optional): Function to create recorded values.
                 Defaults to None.
+            name (str, optional): The name of the store, if it doesn't exist as a state.
+                Defaults to None.
         """
         super().__init__(env, capacity=capacity)
+        self.name = name
         self.item_func = item_func if item_func is not None else len
         self._quantities = [(self._env.now, self.item_func(self.items))]
 
@@ -81,7 +106,9 @@ class SelfMonitoringStore(
 
 
 class SelfMonitoringFilterStore(
-    FilterStore, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+    FilterStore,
+    MonitoringMixin,
+    skip_classname=True,
 ):
     """A self-monitoring version of the SimPy FilterStore."""
 
@@ -90,6 +117,7 @@ class SelfMonitoringFilterStore(
         env: Environment,
         capacity: float | int = float("inf"),
         item_func: RECORDER_FUNC | None = None,
+        name: str | None = None,
     ) -> None:
         """A monitoring version of the SimPy FilterStore.
 
@@ -102,8 +130,11 @@ class SelfMonitoringFilterStore(
             capacity (float | int, optional): Capacity of the store. Defaults to float("inf").
             item_func (RECORDER_FUNC | None, optional): Function to create recorded values.
                 Defaults to None.
+            name (str, optional): The name of the store, if it doesn't exist as a state.
+                Defaults to None.
         """
         super().__init__(env, capacity=capacity)
+        self.name = name
         self.item_func = item_func if item_func is not None else len
         self._quantities = [(self._env.now, self.item_func(self.items))]
 
@@ -132,19 +163,30 @@ class SelfMonitoringFilterStore(
 
 
 class SelfMonitoringContainer(
-    Container, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+    Container,
+    MonitoringMixin,
+    skip_classname=True,
 ):
     """A self-monitoring version of the SimPy Container."""
 
-    def __init__(self, env: Environment, capacity: float = float("inf"), init: float = 0.0) -> None:
+    def __init__(
+        self,
+        env: Environment,
+        capacity: float = float("inf"),
+        init: float = 0.0,
+        name: str | None = None,
+    ) -> None:
         """A monitoring version of a SimPy container.
 
         Args:
             env (Environment): SimPy environment.
             capacity (float, optional): Capacity of the container. Defaults to float("inf").
             init (float, optional): Initial amount. Defaults to 0.0.
+            name (str, optional): The name of the store, if it doesn't exist as a state.
+                Defaults to None.
         """
         super().__init__(env, capacity=capacity, init=init)
+        self.name = name
         self._quantities: list[tuple[float, float]] = [(self._env.now, self._level)]
 
     def _record(self) -> None:
@@ -172,7 +214,9 @@ class SelfMonitoringContainer(
 
 
 class SelfMonitoringContinuousContainer(
-    ContinuousContainer, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+    ContinuousContainer,
+    MonitoringMixin,
+    skip_classname=True,
 ):
     """A self-monitoring version of the Continuous Container."""
 
@@ -183,6 +227,7 @@ class SelfMonitoringContinuousContainer(
         init: int | float = 0.0,
         error_empty: bool = True,
         error_full: bool = True,
+        name: str | None = None,
     ) -> None:
         """A monitoring version of the Continuous container.
 
@@ -194,9 +239,11 @@ class SelfMonitoringContinuousContainer(
             init (int | float, optional): Initial amount. Defaults to 0.0.
             error_empty (bool, optional): Error when it gets empty. Defaults to True.
             error_full (bool, optional): Error when it gets full. Defaults to True.
-
+            name (str, optional): The name of the store, if it doesn't exist as a state.
+                Defaults to None.
         """
         super().__init__(env, capacity, init, error_empty, error_full)
+        self.name = name
         self._quantities = [(self._env.now, self._level)]
 
     def _set_level(self) -> float:
@@ -223,11 +270,19 @@ class SelfMonitoringSortedFilterStore(SortedFilterStore, SelfMonitoringStore, sk
 
 
 class SelfMonitoringReserveContainer(
-    ReserveContainer, NamedUpstageEntity, entity_groups=["_monitored"], skip_classname=True
+    ReserveContainer,
+    MonitoringMixin,
+    skip_classname=True,
 ):
     """A self-monitoring version of the ReserveContainer."""
 
-    def __init__(self, env: Environment, capacity: float = float("inf"), init: float = 0.0) -> None:
+    def __init__(
+        self,
+        env: Environment,
+        capacity: float = float("inf"),
+        init: float = 0.0,
+        name: str | None = None,
+    ) -> None:
         """Create a store-like object that allows reservations, and records.
 
         Note that this store doesn't actually yield to SimPy when requesting.
@@ -239,8 +294,11 @@ class SelfMonitoringReserveContainer(
             env (Environment): The SimPy Environment
             init (float, optional): Initial amount available. Defaults to 0.0.
             capacity (float, optional): Total capacity. Defaults to float("inf").
+            name (str, optional): The name of the store, if it doesn't exist as a state.
+                Defaults to None.
         """
         super().__init__(env, init, capacity)
+        self.name = name
         self._quantities = [(env.now, init)]
 
     def _record(self) -> None:

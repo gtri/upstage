@@ -8,6 +8,7 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from contextvars import ContextVar, Token
+from dataclasses import dataclass, field
 from functools import wraps
 from math import floor
 from random import Random
@@ -21,6 +22,11 @@ from upstage_des.geography import INTERSECTION_LOCATION_CALLABLE, EarthProtocol
 from upstage_des.units.convert import STANDARD_TIMES, TIME_ALTERNATES, unit_convert
 
 CONTEXT_ERROR_MSG = "Undefined context variable: use EnvironmentContext"
+
+
+if TYPE_CHECKING:
+    from upstage_des.actor import Actor
+    from upstage_des.resources.monitoring import MonitoringMixin
 
 
 class DotDict(dict):
@@ -195,13 +201,21 @@ class MockEnvironment:
         raise UpstageError("You tried to use `run` on a mock environment")
 
 
+@dataclass
+class SpecialContexts:
+    """Accessible lists of typed objects for contexts."""
+
+    actors: list["Actor"] = field(default_factory=list)
+    monitored: list["MonitoringMixin"] = field(default_factory=list)
+
+
 ENV_CONTEXT_VAR: ContextVar[SimpyEnv] = ContextVar("Environment")
-ACTOR_CONTEXT_VAR: ContextVar[list["NamedUpstageEntity"]] = ContextVar("Actors")
+SPECIAL_ENTITY_CONTEXT_VAR: ContextVar[SpecialContexts] = ContextVar("SpecialContexts")
 ENTITY_CONTEXT_VAR: ContextVar[dict[str, list["NamedUpstageEntity"]]] = ContextVar("Entities")
 STAGE_CONTEXT_VAR: ContextVar[DotDict] = ContextVar("Stage")
 
 
-SKIP_GROUPS: list[str] = ["Task", "Location", "CartesianLocation", "GeodeticLocation"]
+SKIP_GROUPS: list[str] = ["Actor", "Task", "Location", "CartesianLocation", "GeodeticLocation"]
 
 
 class UpstageBase:
@@ -247,15 +261,15 @@ class UpstageBase:
             raise UpstageError("No stage found or set.")
         return stage
 
-    def get_actors(self) -> list["NamedUpstageEntity"]:
+    def get_actors(self) -> list["Actor"]:
         """Return all actors that the director knows.
 
         Returns:
             list[NamedUpstageEntity]: List of actors in the simulation.
         """
-        ans: list[NamedUpstageEntity] = []
+        ans: list[Actor] = []
         try:
-            ans = ACTOR_CONTEXT_VAR.get()
+            ans = SPECIAL_ENTITY_CONTEXT_VAR.get().actors
         except LookupError:
             raise UpstageError(CONTEXT_ERROR_MSG)
         return ans
@@ -273,6 +287,19 @@ class UpstageBase:
         try:
             grps: dict[str, list[NamedUpstageEntity]] = ENTITY_CONTEXT_VAR.get()
             ans = grps.get(group_name, [])
+        except LookupError:
+            raise UpstageError(CONTEXT_ERROR_MSG)
+        return ans
+
+    def get_monitored(self) -> list["MonitoringMixin"]:
+        """Return entities that inherit from the MonitoringMixin.
+
+        Returns:
+            list[MonitoringMixin]: List of entitites that are monitoring.
+        """
+        ans: list[MonitoringMixin] = []
+        try:
+            ans = SPECIAL_ENTITY_CONTEXT_VAR.get().monitored
         except LookupError:
             raise UpstageError(CONTEXT_ERROR_MSG)
         return ans
@@ -367,16 +394,30 @@ class NamedUpstageEntity(UpstageBase):
 
         setattr(cls, "__init__", the_actual_init)
 
-    def _add_as_actor(self) -> None:
-        """Add self to the actor context list."""
+    def _add_to_group(self, group_name: str) -> None:
+        """Add to a single group.
+
+        Args:
+            group_name (str): Group name
+        """
         try:
-            ans = ACTOR_CONTEXT_VAR.get()
-            if self in ans:
-                raise UpstageError(f"Actor: {self} already recorded in the environment")
-            ans.append(self)
+            ans = ENTITY_CONTEXT_VAR.get()
+            ans.setdefault(group_name, [])
+            if self in ans[group_name]:
+                raise UpstageError(f"Entity: {self} already recorded in the environment")
+            ans[group_name].append(self)
         except LookupError:
-            actor_list: list[NamedUpstageEntity] = [self]
-            ACTOR_CONTEXT_VAR.set(actor_list)
+            entity_groups = {group_name: [self]}
+            ENTITY_CONTEXT_VAR.set(entity_groups)
+
+    def _add_special_group(self) -> None:
+        """Add to a special group.
+
+        Sub-classable for type help.
+
+        Make sure that whatever entity group name this goes to is in SKIP_GROUPS.
+        """
+        ...
 
     def _add_entity(self, group_names: list[str]) -> None:
         """Add self to an entity group(s).
@@ -387,18 +428,8 @@ class NamedUpstageEntity(UpstageBase):
         for group_name in group_names:
             if group_name in SKIP_GROUPS:
                 continue
-            if group_name == "Actor":
-                self._add_as_actor()
-                continue
-            try:
-                ans = ENTITY_CONTEXT_VAR.get()
-                ans.setdefault(group_name, [])
-                if self in ans[group_name]:
-                    raise UpstageError(f"Entity: {self} already recorded in the environment")
-                ans[group_name].append(self)
-            except LookupError:
-                entity_groups = {group_name: [self]}
-                ENTITY_CONTEXT_VAR.set(entity_groups)
+            self._add_to_group(group_name)
+        self._add_special_group()
 
 
 class SettableEnv(UpstageBase):
@@ -483,11 +514,11 @@ class EnvironmentContext:
             random_gen (Any | None, optional): RNG object. Defaults to None.
         """
         self.env_ctx = ENV_CONTEXT_VAR
-        self.actor_ctx = ACTOR_CONTEXT_VAR
+        self.special_ctx = SPECIAL_ENTITY_CONTEXT_VAR
         self.entity_ctx = ENTITY_CONTEXT_VAR
         self.stage_ctx = STAGE_CONTEXT_VAR
         self.env_token: Token[SimpyEnv]
-        self.actor_token: Token[list[NamedUpstageEntity]]
+        self.special_token: Token[SpecialContexts]
         self.entity_token: Token[dict[str, list[NamedUpstageEntity]]]
         self.stage_token: Token[DotDict]
         self._env: SimpyEnv | None = None
@@ -503,7 +534,7 @@ class EnvironmentContext:
         """
         self._env = SimpyEnv(initial_time=self._initial_time)
         self.env_token = self.env_ctx.set(self._env)
-        self.actor_token = self.actor_ctx.set([])
+        self.special_token = self.special_ctx.set(SpecialContexts())
         self.entity_token = self.entity_ctx.set(defaultdict(list))
         stage = DotDict()
         self.stage_token = self.stage_ctx.set(stage)
@@ -517,7 +548,7 @@ class EnvironmentContext:
     def __exit__(self, *_: Any) -> None:
         """Leave the context."""
         self.env_ctx.reset(self.env_token)
-        self.actor_ctx.reset(self.actor_token)
+        self.special_ctx.reset(self.special_token)
         self.entity_ctx.reset(self.entity_token)
         self.stage_ctx.reset(self.stage_token)
         self._env = None

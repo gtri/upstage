@@ -17,6 +17,7 @@ from simpy import Process
 from upstage_des.events import Event
 
 from .base import (
+    SPECIAL_ENTITY_CONTEXT_VAR,
     MockEnvironment,
     NamedUpstageEntity,
     SettableEnv,
@@ -183,6 +184,16 @@ class Actor(SettableEnv, NamedUpstageEntity):
             e.add_note("Failure likely due to repeated state name in inherited actor")
             raise e
 
+    def _add_special_group(self) -> None:
+        """Add self to the actor context list.
+
+        Called by the NamedUpstageEntity on group inits.
+        """
+        ans = SPECIAL_ENTITY_CONTEXT_VAR.get().actors
+        if self in ans:
+            return
+        ans.append(self)
+
     def _lock_state(self, *, state: str, task: Task) -> None:
         """Lock one of the actor's states by a given task.
 
@@ -255,6 +266,10 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self._set_active_state_data(state_name=state, started_at=self.env.now, task=task, **kwargs)
         # any initialization in the state needs to be called via attribute access
         getattr(self, state)
+        # The activation handles getattr
+        _state = self._state_defs[state]
+        assert isinstance(_state, ActiveState)
+        _state.activate(self, task=task)
 
     def activate_linear_state(self, *, state: str, rate: float, task: Task) -> None:
         """Shortcut for activating a LinearChangingState.
