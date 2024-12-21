@@ -1,22 +1,29 @@
-===============
-Simulation Data
-===============
+========================================
+Simulation Data Gathering and Processing
+========================================
 
 UPSTAGE has three features for data recording:
 
-1. Use `Actor.log()` to log a string message at a given time.
+1. Use ``Actor.log()`` to log a string message at a given time.
 
    * Note that on Actor creation, ``debug_log=True`` must be given.
 
 2. Use ``a_state = UP.State(recording=True)``.
 
    * Access the data with ``actor._state_histories["a_state"]``
+   * The data will be in the form ``tuple[time, value]``
+   * For :doc:`ActiveStates </user_guide/how_tos/active_states>`, the ``value`` may be
+     a special ``Enum`` saying if the state is being activated, deactivated,
+     or is active/inactive.
 
 3. Use a ``SelfMonitoring<>`` Store or Container.
 
    * Access the data with ``a_store._quantities``
+   * The data will be in the form ``tuple[time, value]``
 
-Each feature has a list of tuples of (time, value) pairs.
+UPSTAGE also has utility methods for pulling all of the available data into a
+tabular format, along with providing column headers.
+
 
 Actor Logging
 =============
@@ -73,9 +80,9 @@ On a per-actor level, you can set ``debug_log_time`` as well, and that value wil
 State Recording
 ===============
 
-Nearly every state is recordable in UPSTAGE. The :py:class:`~upstage_des.states.ResourceState` is an exception covered
-in the next section. To enable state recording, set ``recording=True``. After running the sim, use the ``_state_histories``
-attribute on the actor to get the data.
+Nearly every state is recordable in UPSTAGE. The :py:class:`~upstage_des.states.ResourceState`
+is an exception covered in the next section. To enable state recording, set ``recording=True``.
+After running the sim, use the ``_state_histories`` attribute on the actor to get the data.
 
 .. code:: python
 
@@ -95,7 +102,8 @@ attribute on the actor to get the data.
         print(cash._state_histories["items_scanned"])
         >>> [(0.0, 0), (0.0, 1), (1.0, 3), (2.0, 4), (3.0, -1)]
 
-That returns a list of (time, value) tuples. This works for simple data types, but not mutable types:
+That returns a list of (time, value) tuples. This works for simple data types,
+but not mutable types:
 
 .. code:: python
 
@@ -120,8 +128,8 @@ Note that the string State of ``people_seen`` acts as a way to record data, even
 the moment the name of the last scanned person. This lets states behave as carriers of current or past
 information, depending on your needs.
 
-The ``items`` value doesn't record, because the state doesn't see ``cash.items = ...``. For objects like that,
-you should:
+The ``items`` value doesn't record, because the state doesn't see ``cash.items = ...``.
+For objects like that, you should:
 
 .. code:: python
 
@@ -155,6 +163,59 @@ Geographic Types
 State recording of the built-in geographic states (cartesian and geodetic) is compatible
 with the data objects. This for both the active state versions and the typical ``UP.State[CartesianLocation]()``
 ways of creating the state.
+
+It's recommended, since UPSTAGE does not store much data about the motion of geographic states, to poll or ensure you
+get the state value whenever you want to know where it is. While activating and deactivating will record the value,
+if an actor is moving along waypoints, each waypoint doesn't record itself unless asked.
+
+Active State Recording
+======================
+
+Active states record in the same way, but extra information is given to tell the user if the state
+was activated or not and if it was switching to/from active or inactive.
+
+The state history will still be ``(time, value)`` pairs, but on activation and deactivation an ``Enum``
+value is placed in the history to indicated which has taken place. The state value isn't recorded in
+that row of the history because it will have been calculated immediately prior and recorded.
+
+.. code:: python
+
+    class Cashier(UP.Actor):
+        time_worked = UP.LinearChangingState(default=0.0, recording=True)
+
+    with UP.EnvironmentContext() as env:
+        cash = Cashier(name="Ertha")
+
+        cash.activate_linear_state(
+            state="time_worked",
+            rate=1.0,
+            task=None, # this is fine to do outside of a task.
+        )
+
+        env.run(until=1)
+        cash.time_worked
+        env.run(until=3)
+        cash.time_worked
+        cash.deactivate_state(state="time_worked", task=None)
+        env.run(until=4)
+        cash.time_worked = 5.0
+
+        print(cash._state_histories["time_worked"])
+        >>> [
+            (0.0, 0.0),
+            (0.0, <ActiveStatus.activating: 'ACTIVATING'>),
+            (1.0, 1.0),
+            (3.0, 3.0),
+            (3.0, <ActiveStatus.deactivating: 'DEACTIVATING'>),
+            (4.0, 5.0),
+        ]
+
+The built-in data gathering will account for this for you, but if you are manually processing
+the active state histories, the (de)activation signal in the history should always come
+after a recording at the same time value.
+
+Remember that if you never ask for the value of ``time_worked``, it will only report it on
+activation and deactivation.
 
 Resource Recording
 ==================
@@ -231,3 +292,106 @@ Or use the actor init to pass the item function:
         name = "Lane 2",
         belt = {"item_func":lambda x: Counter(x)},
     )
+
+
+Data Gathering
+==============
+
+There are two functions for gathering data from UPSTAGE:
+
+1. :py:func:`upstage_des.data_utils.create_table`
+   
+   * Finds all actors and their recording states
+   * Finds all ``SelfMonitoring<>`` resources that are not attached
+     to actors.
+   * Ignores location states by default
+   * Reports actor name, actor type, state name, state value, and
+     if the state has an active status.
+   * If ``skip_locations`` is set to ``False``, then location objects
+     will go into the state value column.
+   * Data are in long-form, meaning rows may share a timestamp.
+
+2. :py:func:`upstage_des.data_utils.create_location_table`
+  
+   * Finds all location states on Actors
+   * Reports location data as individual columns for the dimensions
+     of the location (XYZ or LLA).
+   * Reports on active/inactive state data.
+   * Data are not completely in long-form. XYZ are on a single row, but
+     rows can have the same timestamp if they are different states.
+
+Using the example in :doc:`Data Gathering Example </user_guide/tutorials/data_creation_example>`, the
+following table (a partial amount shown) would be obtained from the ``create_table`` function:
+
+.. table::
+
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Entity Name|       Entity Type       | State Name  |Time|Value|Activation Status|
+    +===========+=========================+=============+====+=====+=================+
+    |Ertha      |Cashier                  |items_scanned|   0|  0.0|                 |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Ertha      |Cashier                  |items_scanned|   3| -1.0|                 |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Ertha      |Cashier                  |cue          |   3|  1.0|                 |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Ertha      |Cashier                  |cue2         |   3| 11.0|                 |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Ertha      |Cashier                  |time_working |   3|  2.9|active           |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Bertha     |Cashier                  |cue          |   0|  0.0|                 |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Bertha     |Cashier                  |cue2         |   0|  0.0|                 |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Bertha     |Cashier                  |time_working |   0|  0.0|inactive         |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Store Test |SelfMonitoringFilterStore|Resource     |   0|  0.0|                 |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
+
+The location table will look like the following table. Now how the active states can be 
+"activating", "active", or "deactivating". Not shown is the "inactive" value, which
+is used for when an active state value is changed, but not because it has been set
+to change automatically.
+
+.. table::
+
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+    |Entity Name |Entity Type| State Name |Time|   X   |   Y   |Z|Activation Status|
+    +============+===========+============+====+=======+=======+=+=================+
+    |Wobbly Wheel|Cart       |location    |   0| 1.0000| 1.0000|0|activating       |
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+    |Wobbly Wheel|Cart       |location    |   1| 2.5364| 2.2803|0|active           |
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+    |Wobbly Wheel|Cart       |location    |   2| 4.0728| 3.5607|0|active           |
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+    |Wobbly Wheel|Cart       |location    |   3| 5.6093| 4.8411|0|deactivating     |
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+    |Wobbly Wheel|Cart       |location_two|   0| 1.0000| 1.0000|0|activating       |
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+    |Wobbly Wheel|Cart       |location_two|   1|-0.5051|-0.3170|0|active           |
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+    |Wobbly Wheel|Cart       |location_two|   3|-3.5154|-2.9510|0|deactivating     |
+    +------------+-----------+------------+----+-------+-------+-+-----------------+
+
+If you were to have ``pandas`` installed, a dataframe could be created with:
+
+.. code:: python
+
+    import pandas as pd
+    import upstage_des.api as UP
+    from upstage_des.data_utils import create_table
+
+    with UP.EnvironmentContext() as env:
+        ...
+        env.run()
+        
+        table, header = create_table()
+        df = pd.DataFrame(table, columns=header)
+
+.. note::
+
+    The table creation methods must be called within the context, but
+    the resulting data does not need to stay in the context.
+
+    The exception is that if a state has a value that uses the environment
+    or the stage, you may see a warning if you try to access attributes or
+    methods on that object.

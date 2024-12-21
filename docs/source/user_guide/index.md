@@ -25,7 +25,7 @@ tutorials/interrupts
 tutorials/rehearsal
 tutorials/best_practices
 tutorials/data
-tutorials/simpy_compare.rst
+tutorials/simpy_compare
 ```
 
 It is also recommended that you familiarize yourself with how [SimPy runs by itself](https://simpy.readthedocs.io/en/latest/), since
@@ -42,6 +42,7 @@ These are complete examples for some of the above tutorials.
 tutorials/first_sim_full.rst
 tutorials/rehearsal_sim.rst
 tutorials/complex_cashier.rst
+tutorials/data_creation_example.rst
 ```
 
 ## How-to Guides
@@ -52,6 +53,7 @@ These pages detail the specific activities that can be accomplished using UPSTAG
 :caption: How-Tos
 :maxdepth: 1
 
+how_tos/environment.rst
 how_tos/resources.rst
 how_tos/resource_states.rst
 how_tos/active_states.rst
