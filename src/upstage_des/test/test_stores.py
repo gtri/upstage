@@ -15,11 +15,11 @@ from upstage_des.events import FilterGet
 from upstage_des.resources.monitoring import (
     SelfMonitoringContainer,
     SelfMonitoringFilterStore,
-    SelfMonitoringReserveStore,
+    SelfMonitoringReserveContainer,
     SelfMonitoringSortedFilterStore,
     SelfMonitoringStore,
 )
-from upstage_des.resources.reserve import ReserveStore
+from upstage_des.resources.reserve import ReserveContainer
 from upstage_des.resources.sorted import SortedFilterGet, SortedFilterStore
 from upstage_des.type_help import SIMPY_GEN
 
@@ -43,12 +43,14 @@ def sorted_filter_getter(
     wait: float,
     filter: Callable[[Any], bool],
     sorter: Callable[[Any], Any] | None = None,
+    reverse: bool = False,
 ) -> SIMPY_GEN:
     yield env.timeout(wait)
     evt = SortedFilterGet(
         store,
         filter,
         sorter,
+        reverse,
     )
     item = yield evt.as_event()
     return item
@@ -131,7 +133,8 @@ def test_sorted_filter_store_upstage_get() -> None:
                     env,
                     store=store,
                     filter=lambda x: isinstance(x, int | float),
-                    sorter=lambda x: (-x,),
+                    sorter=lambda x: x,
+                    reverse=True,
                     wait=0.0,
                 )
             )
@@ -152,7 +155,7 @@ def test_sorted_filter_store_upstage_get() -> None:
 
 def test_reserve_store() -> None:
     with EnvironmentContext() as env:
-        store = ReserveStore(
+        store = ReserveContainer(
             env=env,
             capacity=10,
             init=10,
@@ -259,7 +262,7 @@ def test_self_monitoring_store() -> None:
 
 def test_self_monitoring_reserve_store() -> None:
     with EnvironmentContext() as env:
-        SelfMonitoringReserveStore(env)
+        SelfMonitoringReserveContainer(env)
         env.run(until=MAX_RUN_TIME)
 
 

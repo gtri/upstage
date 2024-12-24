@@ -4,9 +4,11 @@ Random Numbers
 
 Random numbers are not supplied by UPSTAGE, you are responsible for rolling dice on your own.
 
-However, UPSTAGE does use them in one area, which is in :py:class:`~upstage_des.events.Wait`, in the :py:meth:`~upstage_des.events.Wait.from_random_uniform` method.
+However, UPSTAGE does use them in one area, which is in :py:class:`~upstage_des.events.Wait`,
+in the :py:meth:`~upstage_des.events.Wait.from_random_uniform` method.
 
-The built-in python ``random`` module is used by default, and you can find it on ``stage.random``. It can be instantiated in a few ways:
+The built-in python ``random`` module is used by default, and you can find it on
+``stage.random``. It can be instantiated in a few ways:
 
 .. code-block:: python
 
@@ -31,6 +33,8 @@ The built-in python ``random`` module is used by default, and you can find it on
         print(num)
         >>> 2.348057489610457
 
-If you want to use your own random number generator, just supply it to the ``random_gen`` input, or as its own variable with ``UP.add_stage_variable``.
+If you want to use your own random number generator, just supply it to the ``random_gen``
+input, or as its own variable with ``UP.add_stage_variable``.
 
-If you supply it as ``random_gen``, ensure that it has a ``uniform`` method so that the Wait event can use it.
+If you supply it as ``random_gen``, ensure that it has a ``uniform`` method so that the
+Wait event can use it.
