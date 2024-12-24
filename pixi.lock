@@ -6832,30 +6832,9 @@ packages:
   timestamp: 1728377334097
 - kind: pypi
   name: upstage-des
-  version: 0.1.1
+  version: 0.2.0
   path: .
-  sha256: 07988cce651e13e154a8273fc11e2b948e14e0385d7ea041ae4bcdbb9d3e0f04
-  requires_dist:
-  - simpy>=4
-  - myst-parser ; extra == 'docs'
-  - pydata-sphinx-theme ; extra == 'docs'
-  - sphinx>=7 ; extra == 'docs'
-  - mypy ; extra == 'lint'
-  - pyproject-fmt>=2.5 ; extra == 'lint'
-  - ruff>=0.6 ; extra == 'lint'
-  - ssort>=0.12 ; extra == 'lint'
-  - pytest ; extra == 'test'
-  - pytest-cov ; extra == 'test'
-  - pytest-html ; extra == 'test'
-  - pytest-json-report ; extra == 'test'
-  - pytest-xdist ; extra == 'test'
-  requires_python: '>=3.11'
-  editable: true
-- kind: pypi
-  name: upstage-des
-  version: 0.1.1
-  path: .
-  sha256: 07988cce651e13e154a8273fc11e2b948e14e0385d7ea041ae4bcdbb9d3e0f04
+  sha256: 3bb19d2c6a17c73ed35907ed3463efbf44db1a100da8da8a7ee055f9cf10cda6
   requires_dist:
   - simpy>=4
   - myst-parser ; extra == 'docs'
