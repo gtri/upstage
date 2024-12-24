@@ -2,7 +2,7 @@
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
-"""This file contains a Store that allows reservations."""
+"""This file contains a Container that allows reservations."""
 
 from collections.abc import Generator
 from typing import Any
@@ -11,13 +11,13 @@ from simpy import Environment, Event
 
 from ..task import process
 
-__all__ = ("ReserveStore",)
+__all__ = ("ReserveContainer",)
 
 
-class ReserveStore:
+class ReserveContainer:
     """A store that allows requests to be scheduled in advance.
 
-    This is not a true store (you can't yield on a reserve slot!).
+    This is not a true container (you can't yield on a reserve slot!).
     """
 
     def __init__(
@@ -26,9 +26,9 @@ class ReserveStore:
         init: float = 0.0,
         capacity: float = float("inf"),
     ) -> None:
-        """Create a store-like object that allows reservations.
+        """Create a container-like object that allows reservations.
 
-        Note that this store doesn't actually yield to SimPy when requesting.
+        Note that this container doesn't actually yield to SimPy when requesting.
 
         Use it to determine if anything is avaiable for reservation, but there is no
         queue for getting a reservation.
@@ -46,7 +46,7 @@ class ReserveStore:
 
     @property
     def remaining(self) -> float:
-        """Return the amount remaining in the store.
+        """Return the amount remaining in the container.
 
         Returns:
             float: Amount remaining
@@ -55,7 +55,7 @@ class ReserveStore:
 
     @property
     def available(self) -> float:
-        """Return the amount remaining in the store.
+        """Return the amount remaining in the container.
 
         Returns:
             float: Amount remaining.

@@ -216,3 +216,7 @@ def test_detectability_change() -> None:
         assert move2.history[1][0] == 2.9
         assert move2.history[2][0] == 3.1
         assert pytest.approx(move2.history[2][0], abs=0.01) == 3.1
+
+
+if __name__ == "__main__":
+    test_basic_functions()

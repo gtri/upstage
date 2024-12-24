@@ -18,6 +18,20 @@ from upstage_des.type_help import TASK_GEN
 LOC = TypeVar("LOC", bound=UP.CartesianLocation | UP.GeodeticLocation)
 
 
+def close(a: float, b: float) -> bool:
+    """Test if two numbers are close.
+
+    Args:
+        a (float): number
+        b (float): other number
+
+    Returns:
+        bool: if they are close
+    """
+    d = abs(a - b)
+    return d <= 1e-8
+
+
 class DummySensor(Generic[LOC]):
     """A simple sensor for testing purposes."""
 
@@ -442,10 +456,12 @@ def test_motion_coordination_cli() -> None:
         assert len(motion._debug_data[mover]) == 3
         for i, data in enumerate(motion._debug_data[mover]):
             sense, kinds, times, inters = data
-            loc = inters[0]
-            assert times[0] == mover._state_histories["loc"][i * 2 + 1][0]
-            assert times[1] == mover._state_histories["loc"][i * 2 + 2][0]
-            assert abs(loc - mover._state_histories["loc"][i * 2 + 1][1]) <= 1e-12
+            mover_at_time_0 = [x[1] for x in mover._state_histories["loc"] if close(x[0], times[0])]
+            mover_at_time_1 = [x[1] for x in mover._state_histories["loc"] if close(x[0], times[1])]
+            assert mover_at_time_0
+            assert mover_at_time_1
+            assert close(mover_at_time_0[0], inters[0])
+            assert close(mover_at_time_1[0], inters[1])
 
 
 def test_background_motion() -> None:
@@ -744,9 +760,16 @@ def test_motion_coordination_gi() -> None:
         assert len(motion._debug_data[geo_mover]) == 3
         for i, data in zip([1, 3, 5], motion._debug_data[geo_mover]):
             sense, kinds, times, inters = data
-            loc = inters[0]
-            assert times[0] == geo_mover._state_histories["loc"][i][0]
-            assert abs(loc - geo_mover._state_histories["loc"][i][1]) <= 1e-12
+            mover_at_time_0 = [
+                x[1] for x in geo_mover._state_histories["loc"] if close(x[0], times[0])
+            ]
+            mover_at_time_1 = [
+                x[1] for x in geo_mover._state_histories["loc"] if close(x[0], times[1])
+            ]
+            assert mover_at_time_0
+            assert mover_at_time_1
+            assert close(mover_at_time_0[0], inters[0])
+            assert close(mover_at_time_1[0], inters[1])
 
 
 def test_motion_setup_agi() -> None:
@@ -847,9 +870,16 @@ def test_motion_coordination_agi() -> None:
         assert len(motion._debug_data[geo_mover]) == 3
         for i, data in zip([1, 3, 5], motion._debug_data[geo_mover]):
             sense, kinds, times, inters = data
-            loc = inters[0]
-            assert times[0] == geo_mover._state_histories["loc"][i][0]
-            assert abs(loc - geo_mover._state_histories["loc"][i][1]) <= 0.5  # nm
+            mover_at_time_0 = [
+                x[1] for x in geo_mover._state_histories["loc"] if close(x[0], times[0])
+            ]
+            mover_at_time_1 = [
+                x[1] for x in geo_mover._state_histories["loc"] if close(x[0], times[1])
+            ]
+            assert mover_at_time_0
+            assert mover_at_time_1
+            assert abs(mover_at_time_0[0] - inters[0]) <= 0.5  # nmi
+            assert abs(mover_at_time_1[0] - inters[1]) <= 0.7  # nmi
 
 
 def test_analytical_intersection() -> None:
