@@ -212,14 +212,22 @@ class State(Generic[ST]):
             value = getattr(actor, name)
             self.__set__(instance, value)
         if self.name not in instance.__dict__:
-            # Just set the value to the default
-            # Mutable types will be tricky here, so deepcopy them
-            instance.__dict__[self.name] = deepcopy(self._default)
+            raise SimulationError(f"State {self.name} should have been set.")
         v = instance.__dict__[self.name]
         return cast(ST, v)
 
     def __set_name__(self, owner: "Actor", name: str) -> None:
         self.name = name
+
+    def _set_default(self, instance: "Actor") -> None:
+        """Set the state's value on the actor the default.
+
+        Args:
+            instance (Actor): Actor holding the state.
+        """
+        assert self._default is not None
+        value = deepcopy(self._default)
+        self.__set__(instance, value)
 
     def has_default(self) -> bool:
         """Check if a default exists.
@@ -283,8 +291,13 @@ class DetectabilityState(State[bool]):
             instance (Actor): The actor
             value (bool): The value to set
         """
+        # Setting the default value shouldn't trigger the callback
+        # to the motion manager.
+        was_set = True
+        if self.name not in instance.__dict__:
+            was_set = False
         super().__set__(instance, value)
-        if hasattr(instance.stage, "motion_manager"):
+        if hasattr(instance.stage, "motion_manager") and was_set:
             mgr = instance.stage.motion_manager
             if not value:
                 mgr._mover_not_detectable(instance)
@@ -964,6 +977,13 @@ class ResourceState(State, Generic[T]):
         self._broadcast_change(instance, self.name, value)
 
     def _set_default(self, instance: "Actor") -> None:
+        """Set the default conditions.
+
+        The empty dictionary input forces default to happen the right way.
+
+        Args:
+            instance (Actor): The actor holding this state.
+        """
         self.__set__(instance, {})
 
     def __get__(self, instance: "Actor", owner: type | None = None) -> T:

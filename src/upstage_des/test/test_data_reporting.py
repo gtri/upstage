@@ -17,6 +17,7 @@ class Cashier(UP.Actor):
 class Cart(UP.Actor):
     location = UP.CartesianLocationChangingState(recording=True)
     location_two = UP.CartesianLocationChangingState(recording=True)
+    holding = UP.State[float](default=0.0, recording=True)
 
 
 def test_data_reporting() -> None:
@@ -117,14 +118,19 @@ def test_data_reporting() -> None:
     assert ctr[("Ertha", "Cashier", "items_scanned")] == 5
     assert ctr[("Ertha", "Cashier", "cue")] == 4
     assert ctr[("Ertha", "Cashier", "cue2")] == 4
-    assert ctr[("Ertha", "Cashier", "time_working")] == 5
+    assert ctr[("Ertha", "Cashier", "time_working")] == 6
     assert ctr[("Bertha", "Cashier", "items_scanned")] == 2
     assert ctr[("Bertha", "Cashier", "cue")] == 4
     assert ctr[("Bertha", "Cashier", "cue2")] == 4
-    assert ctr[("Bertha", "Cashier", "time_working")] == 4
+    assert ctr[("Bertha", "Cashier", "time_working")] == 5
     assert ctr[("Store Test", "SelfMonitoringFilterStore", "Resource")] == 3
-    assert not any(x[0] == "Wobbly Wheel" for x in state_table)
-    assert len(state_table) == 35
+    # Test for default values untouched in the sim showing up in the data.
+    assert ctr[("Wobbly Wheel", "Cart", "holding")] == 1
+    row = [r for r in state_table if r[:3] == ("Wobbly Wheel", "Cart", "holding")][0]
+    assert row[4] == 0
+    assert row[3] == 0.0
+    # Continuing as before
+    assert len(state_table) == 38
     assert cols == all_cols
     assert cols == [
         "Entity Name",
@@ -139,15 +145,16 @@ def test_data_reporting() -> None:
     assert ctr[("Ertha", "Cashier", "items_scanned")] == 5
     assert ctr[("Ertha", "Cashier", "cue")] == 4
     assert ctr[("Ertha", "Cashier", "cue2")] == 4
-    assert ctr[("Ertha", "Cashier", "time_working")] == 5
+    assert ctr[("Ertha", "Cashier", "time_working")] == 6
     assert ctr[("Bertha", "Cashier", "items_scanned")] == 2
     assert ctr[("Bertha", "Cashier", "cue")] == 4
     assert ctr[("Bertha", "Cashier", "cue2")] == 4
-    assert ctr[("Bertha", "Cashier", "time_working")] == 4
+    assert ctr[("Bertha", "Cashier", "time_working")] == 5
     assert ctr[("Store Test", "SelfMonitoringFilterStore", "Resource")] == 3
+    assert ctr[("Wobbly Wheel", "Cart", "holding")] == 1
     assert ctr[("Wobbly Wheel", "Cart", "location")] == 4
     assert ctr[("Wobbly Wheel", "Cart", "location_two")] == 4
-    assert len(all_state_table) == 35 + 8
+    assert len(all_state_table) == 38 + 8
 
     assert loc_cols == [
         "Entity Name",
@@ -170,3 +177,7 @@ def test_data_reporting() -> None:
         0.0,
         "inactive",
     )
+
+
+if __name__ == "__main__":
+    test_data_reporting()

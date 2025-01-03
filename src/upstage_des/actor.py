@@ -89,8 +89,10 @@ class Actor(SettableEnv, NamedUpstageEntity):
         exist = set(self._state_defs.keys())
         unseen = exist - seen
         for state_name in unseen:
-            if self._state_defs[state_name].has_default():
+            _state = self._state_defs[state_name]
+            if _state.has_default():
                 seen.add(state_name)
+                _state._set_default(self)
         if len(seen) != len(exist):
             raise UpstageError(
                 f"Missing values for states! These states need values: "
