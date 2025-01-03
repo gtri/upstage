@@ -177,7 +177,3 @@ def test_data_reporting() -> None:
         0.0,
         "inactive",
     )
-
-
-if __name__ == "__main__":
-    test_data_reporting()
