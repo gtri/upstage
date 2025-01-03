@@ -557,6 +557,15 @@ class CartesianLocationData:
             x=self.x, y=self.y, z=self.z, use_altitude_units=self.use_altitude_unts
         )
 
+    def __eq__(self, value: Any) -> bool:
+        """Test for equality of two cartesian locations data objects."""
+        if not isinstance(value, CartesianLocationData):
+            raise ValueError(
+                f"Cannot compare a {value.__class__.__name__} to a CartesianLocationData"
+            )
+        check = ["x", "y", "z"]
+        return all(getattr(self, c) == getattr(value, c) for c in check)
+
 
 class GeodeticLocationData:
     """Object for storing geodetic data without an environment."""
@@ -596,3 +605,18 @@ class GeodeticLocationData:
             alt=self.alt,
             in_radians=self.in_radians,
         )
+
+    def __eq__(self, value: Any) -> bool:
+        """Test for equality of two cartesian locations data objects."""
+        if not isinstance(value, GeodeticLocationData):
+            raise ValueError(
+                f"Cannot compare a {value.__class__.__name__} to a GeodeticLocationData"
+            )
+        other = [value.lat, value.lon]
+        if value.in_radians != self.in_radians:
+            if self.in_radians:
+                other = list(map(radians, other))
+            else:
+                other = list(map(degrees, other))
+        angles = [self.lat, self.lon] == other
+        return angles and self.alt == value.alt
