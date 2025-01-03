@@ -77,8 +77,8 @@ def _actor_state_data(
 
     for state_name, state in actor._state_defs.items():
         if skip_locations and isinstance(state, LOCATION_TYPES):
-            break
-        _value = actor.__dict__[state_name]  # skips data recording after the fact
+            continue
+        _value = actor.__dict__[state_name]
         is_active = isinstance(state, ActiveState)
         if state_name in actor._state_histories:
             data.extend(
