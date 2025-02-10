@@ -54,6 +54,7 @@ These pages detail the specific activities that can be accomplished using UPSTAG
 :maxdepth: 1
 
 how_tos/environment.rst
+how_tos/states.rst
 how_tos/resources.rst
 how_tos/resource_states.rst
 how_tos/active_states.rst
