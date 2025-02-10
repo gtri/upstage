@@ -82,6 +82,7 @@ class State(Generic[ST]):
         recording: bool = False,
         record_duplicates: bool = False,
         default_factory: Callable[[], ST] | None = None,
+        allow_none_default: bool = False,
     ) -> None:
         """Create a state descriptor for an Actor.
 
@@ -109,6 +110,8 @@ class State(Generic[ST]):
                 Defaults to False.
             default_factory (Callable[[], type] | None, optional): Default from function.
                 Defaults to None.
+            allow_none_default (bool, optional): Consider a `None` default to be
+                valid
         """
         if default is None and default_factory is not None:
             default = default_factory()
@@ -118,6 +121,7 @@ class State(Generic[ST]):
         self._recording = recording
         self._record_duplicates = record_duplicates
         self._recording_callbacks: dict[Any, CALLBACK_FUNC] = {}
+        self._allow_none_default = allow_none_default
 
         self._types: tuple[type, ...]
 
@@ -222,10 +226,16 @@ class State(Generic[ST]):
     def _set_default(self, instance: "Actor") -> None:
         """Set the state's value on the actor the default.
 
+        For allowed None default, skip setting it. This will
+        error on the get, which is expected.
+
         Args:
             instance (Actor): Actor holding the state.
         """
-        assert self._default is not None
+        if self._default is None:
+            if self._allow_none_default:
+                return
+            raise SimulationError("State not allowed `None` default.")
         value = deepcopy(self._default)
         self.__set__(instance, value)
 
@@ -235,6 +245,8 @@ class State(Generic[ST]):
         Returns:
             bool
         """
+        if self._allow_none_default:
+            return True
         return self._default is not None
 
     def _add_callback(self, source: Any, callback: CALLBACK_FUNC) -> None:
