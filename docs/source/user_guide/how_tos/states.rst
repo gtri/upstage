@@ -13,7 +13,7 @@ and other features.
 
 Plain states are created as follows, with nearly all the arguments shown for the state creation:
 
-.. code-block::python
+.. code-block:: python
 
     import ustage_des.api as UP
 
@@ -26,6 +26,7 @@ Plain states are created as follows, with nearly all the arguments shown for the
             record_duplicates = False,
             allow_none_default = False,
         )
+
 
 Note the typing of the ``State``, which tells your IDE and ``mypy`` what to expect out.
 
