@@ -30,6 +30,9 @@ One use case is the knowledge event, which enables a way to publish and event to
             subordinate: UP.Actor = actor.subordinates[0]
             subordinate.succeed_knowledge_event(name="pause", some_data={...})
 
+The Event also has a "payload", which is created from keyword arguments to the :py:meth:`~upstage_des.evetns.Event.succeed` method.
+The payload can be retrieved using :py:meth:`~upstage_des.evetns.Event.get_payload`.
+
 
 :py:class:`~upstage_des.events.Wait`
 ------------------------------------
