@@ -497,6 +497,23 @@ class Actor(SettableEnv, NamedUpstageEntity):
             raise SimulationError(f"Knowledge '{name}' does not exist in {self}")
         return self._knowledge.get(name, None)
 
+    def get_and_clear_knowledge(self, name: str, caller: str | None = None) -> Any:
+        """Get knowledge and clear it.
+
+        Clearing knowledge implies it must exist in the direct methods, so the
+        same assumption holds here.
+
+        Args:
+            name (str): Knowledge name.
+            caller (str): The name of the calling process for logging. Defaults to None.
+
+        Returns:
+            Any: The knowledge value.
+        """
+        know = self.get_knowledge(name, must_exist=True)
+        self.clear_knowledge(name, caller)
+        return know
+
     def _log_caller(
         self,
         method_name: str = "",

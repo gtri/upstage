@@ -280,6 +280,21 @@ class Task(SettableEnv):
         """
         return actor.get_knowledge(name, must_exist)
 
+    def get_and_clear_actor_knowledge(self, actor: "Actor", name: str) -> Any:
+        """Get and clear knowledge on an actor.
+
+        The knowledge is assumed to exist.
+
+        Args:
+            actor (Actor): The actor to get knowledge from.
+            name (str): The knowledge name.
+
+        Returns:
+            Any: The knowledge value.
+        """
+        cname = self.__class__.__qualname__
+        return actor.get_and_clear_knowledge(name, caller=cname)
+
     def _clone_actor(self, actor: REH_ACTOR, knowledge: dict[str, Any] | None) -> REH_ACTOR:
         """Create a clone of the actor.
 

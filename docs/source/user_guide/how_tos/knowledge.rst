@@ -7,6 +7,10 @@ temporary space for storing information about the Actor's goals or perception. W
 actions that use knowledge could be accomplished with :doc:`States <states>`, knowledge is
 created separately to include other checks and debug logging support.
 
+While you can use knowledge for anything you want, a typical pattern is to use knowledge to support task
+network flow. A knowledge entry could be a list of activities to do. A :py:class:`~upstage_des.task.DecisionTask` could
+pop entries from a knowledge list and re-plan the network.
+
 Knowledge is also used to store events that are known only to an Actor to support some process
 continuation patterns, described farther below.
 
@@ -57,12 +61,10 @@ The actor knowledge can be set and retrieved from the actor itself, and the ``Ta
 to provide data to the actor debug log (if ``debug_logging=True`` is set on the Actor) to help trace where an actor's
 information came from.
 
+For convenience, you can get and remove knowledge in one method using:
 
-Knowledge Patterns
-------------------
-
-Knowledge is most useful for temporary information, such as waypoints for travel, goals to set, or similar data.
-
+* :py:meth:`~upstage_des.actor.Actor.get_and_clear_knowledge` on the Actor.
+* :py:meth:`~upstage_des.task.Task.get_and_clear_actor_knowledge` on the Task.
 
 
 Bulk Knowledge

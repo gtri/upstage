@@ -181,6 +181,27 @@ def test_clear_knowledge() -> None:
         assert know is None, "Knowledge was not cleared"
 
 
+def test_get_and_clear() -> None:
+    class TestActor(Actor):
+        pass
+
+    with EnvironmentContext():
+        act = TestActor(name="Second test")
+        act.set_knowledge("thing", {3: 1})
+        v = act.get_and_clear_knowledge("thing")
+        assert v == {3: 1}
+        assert "thing" not in act._knowledge
+
+        with pytest.raises(UP.SimulationError):
+            act.get_and_clear_knowledge("thing")
+
+        t = UP.Task()
+        act.set_knowledge("other", {2: 3})
+        v = t.get_and_clear_actor_knowledge(act, "other")
+        assert v == {2: 3}
+        assert "other" not in act._knowledge
+
+
 def test_knowledge_event() -> None:
     with EnvironmentContext() as env:
         act = Actor(name="A test actor")
