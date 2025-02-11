@@ -226,14 +226,16 @@ class State(Generic[ST]):
     def _infer_state(self, instance: "Actor") -> tuple[Any, ...]:
         """Infer types for the state.
 
+        This should allow isinstance(value, self._infer_state(instance))
+
         Args:
             instance (Actor): The actor the state is attached to.
 
         Returns:
-            le[Any,...]: The state type
+            tuple[Any,...]: The state type
         """
         state_class = instance._state_defs[self.name]
-        args = get_args(state_class.__orig_class__)
+        args = get_args(state_class.__orig_class__) # type: ignore [attr-defined]
         return args
 
     def _set_default(self, instance: "Actor") -> None:

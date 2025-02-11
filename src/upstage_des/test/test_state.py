@@ -385,3 +385,19 @@ def test_matching_states() -> None:
         assert state_name is not None
         value = getattr(worker, state_name)
         assert value is worker.walkie, "Wrong state retrieved"
+
+
+def test_type_inference() -> None:
+    class A(UP.Actor):
+        st = UP.State[int | float]()
+
+    with UP.EnvironmentContext():
+        a = A(name="hi", st=1)
+        print(a.st)
+
+        v = a._state_defs["st"]._infer_state(a)
+        print(v)
+
+
+if __name__ == "__main__":
+    test_type_inference()
