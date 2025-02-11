@@ -14,11 +14,11 @@ from .monitoring import (
     SelfMonitoringContainer,
     SelfMonitoringContinuousContainer,
     SelfMonitoringFilterStore,
-    SelfMonitoringReserveStore,
+    SelfMonitoringReserveContainer,
     SelfMonitoringSortedFilterStore,
     SelfMonitoringStore,
 )
-from .reserve import ReserveStore
+from .reserve import ReserveContainer
 from .sorted import SortedFilterGet, SortedFilterStore
 
 __all__ = [
@@ -31,8 +31,8 @@ __all__ = [
     "SelfMonitoringContainer",
     "SelfMonitoringContinuousContainer",
     "SelfMonitoringSortedFilterStore",
-    "SelfMonitoringReserveStore",
-    "ReserveStore",
+    "SelfMonitoringReserveContainer",
+    "ReserveContainer",
     "SortedFilterStore",
     "SortedFilterGet",
 ]

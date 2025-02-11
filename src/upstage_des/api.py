@@ -57,11 +57,11 @@ from upstage_des.resources.monitoring import (
     SelfMonitoringContainer,
     SelfMonitoringContinuousContainer,
     SelfMonitoringFilterStore,
-    SelfMonitoringReserveStore,
+    SelfMonitoringReserveContainer,
     SelfMonitoringSortedFilterStore,
     SelfMonitoringStore,
 )
-from upstage_des.resources.reserve import ReserveStore
+from upstage_des.resources.reserve import ReserveContainer
 from upstage_des.resources.sorted import SortedFilterGet, SortedFilterStore
 
 # Nucleus-friendly states
@@ -117,9 +117,9 @@ __all__ = [
     "SelfMonitoringContinuousContainer",
     "SelfMonitoringFilterStore",
     "SelfMonitoringSortedFilterStore",
-    "SelfMonitoringReserveStore",
+    "SelfMonitoringReserveContainer",
     "SelfMonitoringStore",
-    "ReserveStore",
+    "ReserveContainer",
     "SortedFilterStore",
     "CartesianLocation",
     "GeodeticLocation",

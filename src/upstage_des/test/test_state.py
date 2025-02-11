@@ -19,9 +19,6 @@ from upstage_des.type_help import SIMPY_GEN
 class StateTest:
     state_one = State[Any]()
     state_two = State[Any](recording=True)
-    lister = State[list](default=[])
-    diction = State[dict](default={})
-    setstate = State[set](default=set())
 
     def __init__(self, env: Environment | None) -> None:
         cast(UP.Actor, self)
@@ -42,6 +39,12 @@ class StateTestActor(Actor):
     state_one = State[Any]()
     state_two = State[Any](recording=True)
     state_three = LinearChangingState(recording=True)
+
+
+class MutableDefaultActor(Actor):
+    lister = State[list](default=[])
+    diction = State[dict](default={})
+    setstate = State[set](default=set())
 
 
 def test_state_fails_without_env() -> None:
@@ -77,23 +80,23 @@ def test_state_recording() -> None:
 
 
 def test_state_mutable_default() -> None:
-    with EnvironmentContext(initial_time=1.5) as env:
-        tester = StateTest(env)
-        tester2 = StateTest(env)
-        assert id(tester.lister) != id(tester2.lister)  # type: ignore [arg-type]
-        tester.lister.append(1)  # type: ignore [arg-type]
-        assert len(tester2.lister) == 0  # type: ignore [arg-type]
-        assert len(tester.lister) == 1  # type: ignore [arg-type]
+    with EnvironmentContext(initial_time=1.5):
+        tester = MutableDefaultActor(name="Example")
+        tester2 = MutableDefaultActor(name="Example2")
+        assert id(tester.lister) != id(tester2.lister)
+        tester.lister.append(1)
+        assert len(tester2.lister) == 0
+        assert len(tester.lister) == 1
 
-        assert id(tester.diction) != id(tester2.diction)  # type: ignore [arg-type]
-        tester2.diction[1] = 2  # type: ignore [arg-type]
-        assert len(tester.diction) == 0  # type: ignore [arg-type]
-        assert len(tester2.diction) == 1  # type: ignore [arg-type]
+        assert id(tester.diction) != id(tester2.diction)
+        tester2.diction[1] = 2
+        assert len(tester.diction) == 0
+        assert len(tester2.diction) == 1
 
-        assert id(tester.setstate) != id(tester2.setstate)  # type: ignore [arg-type]
-        tester2.setstate.add(1)  # type: ignore [arg-type]
-        assert len(tester.setstate) == 0  # type: ignore [arg-type]
-        assert len(tester2.setstate) == 1  # type: ignore [arg-type]
+        assert id(tester.setstate) != id(tester2.setstate)
+        tester2.setstate.add(1)
+        assert len(tester.setstate) == 0
+        assert len(tester2.setstate) == 1
 
 
 def test_state_values_from_init() -> None:
@@ -111,6 +114,20 @@ def test_state_values_from_init() -> None:
         tester.state_three = 3
         assert "state_three" in tester._state_histories
         assert tester._state_histories["state_three"] == [(0.0, 4), (1.5, 3)]
+
+
+def test_state_none_allowed() -> None:
+    class NoneActor(Actor):
+        example = State[int](allow_none_default=True)
+
+    with EnvironmentContext():
+        ex = NoneActor(name="Example")
+
+        with pytest.raises(SimulationError, match="State example should have been set"):
+            ex.example
+
+        ex.example = 3
+        assert ex.example == 3
 
 
 def test_linear_changing_state() -> None:
@@ -232,9 +249,8 @@ def test_resource_state_default_init() -> None:
         assert h.res2.capacity == 12
         assert h.res2.level == 5
 
-        hb = HolderBad(name="Bad one")
         with pytest.raises(UpstageError):
-            hb.res2.capacity
+            HolderBad(name="Bad one")
 
 
 def test_resource_state_kind_init() -> None:
@@ -339,7 +355,7 @@ def test_matching_states() -> None:
     """
 
     class Worker(UP.Actor):
-        sleepiness = UP.State(default=0, valid_types=(float,))
+        sleepiness = UP.State[float](default=0.0, valid_types=(float,))
         walkie = UP.CommunicationStore(mode="UHF")
         intercom = UP.CommunicationStore(mode="loudspeaker")
 

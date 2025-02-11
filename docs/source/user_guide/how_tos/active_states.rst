@@ -2,12 +2,15 @@
 Active States
 =============
 
-Active States are an UPSTAGE feature where states are told how to update themselves when requested, while not having to modify or alter the timeout they are changing during.
+Active States are an UPSTAGE feature where states are told how to update themselves when requested,
+while not having to modify or alter the timeout they are changing during.
 
-For example, a fuel depot may dispense fuel at a given rate for some amount of time. An employee may monitor that level at certain times. UPSTAGE allows the state to hold its own
+For example, a fuel depot may dispense fuel at a given rate for some amount of time.
+An employee may monitor that level at certain times. UPSTAGE allows the state to hold its own
 update logic, rather than the employee code needing to know when the fuel started changing, at what rate, etc.
 
-Active states are stopped and started with :py:meth:`~upstage_des.actor.Actor.activate_state` and :py:meth:`~upstage_des.actor.Actor.deactivate_state`.
+Active states are stopped and started with :py:meth:`~upstage_des.actor.Actor.activate_state` and
+:py:meth:`~upstage_des.actor.Actor.deactivate_state`.
 
 Active states are automatically stopped when a Task is interrupted.
 
@@ -248,4 +251,5 @@ Another option is to make a subclass that hints for you:
         >>> 220.0
 
 
-Note that state activation doesn't require a task. It's just the best place to do it, because task interrupts automatically deactivate all states.
+Note that state activation doesn't require a task. It's just the best place to do it,
+because task interrupts automatically deactivate all states.

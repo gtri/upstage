@@ -3,14 +3,16 @@ First UPSTAGE Simulation
 ========================
 .. include:: ../../class_refs.txt
 
-This simulation will demonstrate the primary features of UPSTAGE in a very simple scenario. The goal is demonstrate not just the core UPSTAGE features, but the 
+This simulation will demonstrate the primary features of UPSTAGE in a very
+simple scenario. The goal is demonstrate not just the core UPSTAGE features, but the 
 interaction of UPSTAGE with SimPy.
 
 --------
 Scenario
 --------
 
-A single cashier works at grocery store. They go to the checkout line, scan groceries, take breaks, and come back to the line. 
+A single cashier works at grocery store. They go to the checkout line,
+scan groceries, take breaks, and come back to the line. 
 
 The code for the full example can be :doc:`found here <first_sim_full>`.
 
@@ -32,9 +34,11 @@ We prefer this syntax for importing UPSTAGE and SimPy:
 Define an Actor with State
 --------------------------
 
-An UPSTAGE Actor is a container for State, along with methods for modifying the states, for changing tasks, and recording data.
+An UPSTAGE Actor is a container for State, along with methods for modifying the states,
+for changing tasks, and recording data.
 
-Let's imagine our Cashier has the ability to scan items at a certain speed, and some time until they get a break. We begin by subclassing |Actor| and including two |State| class variables:
+Let's imagine our Cashier has the ability to scan items at a certain speed, and some
+time until they get a break. We begin by subclassing |Actor| and including two |State| class variables:
 
 .. code-block:: python
 
@@ -52,10 +56,12 @@ Let's imagine our Cashier has the ability to scan items at a certain speed, and 
         ) 
     
 
-Our Cashier is very simple, it contains two states that are primarily data containers for attributes of the cashier. This is typical for an UPSTAGE Actor.
+Our Cashier is very simple, it contains two states that are primarily data containers
+for attributes of the cashier. This is typical for an UPSTAGE Actor.
 
-The ``scan_speed`` state is defined to require a ``float`` type (UPSTAGE will throw an error otherwise), and is ``frozen``, meaning that it cannot be changed once defined. The ``time_until_break``
-state is similar, except that a default value of 120 minutes is supplied.
+The ``scan_speed`` state is defined to require a ``float`` type (UPSTAGE will throw
+an error otherwise), and is ``frozen``, meaning that it cannot be changed once defined.
+The ``time_until_break`` state is similar, except that a default value of 120 minutes is supplied.
 
 .. note::
     There is no explicit time dimension in upstage_des. The clock units are up to the user,
@@ -74,13 +80,17 @@ Then you will later instantiate a cashier with [#f1]_:
         debug_log=True,
     )
 
-Note that the `name` attribute is required for all UPSTAGE Actors. Also, all inputs are keyword-argument only for an Actor. The ``debug_log`` input is ``False`` by default,
-and when ``True``, you can call ``cashier.log()`` to retrieve an UPSTAGE-generated log of what the actor has been doing. The same method, when
-given a string, will record the message into the log, along with the default logging that UPSTAGE does.
+Note that the `name` attribute is required for all UPSTAGE Actors. Also, all inputs are
+keyword-argument only for an Actor. The ``debug_log`` input is ``False`` by default,
+and when ``True``, you can call ``cashier.log()`` to retrieve an UPSTAGE-generated log
+of what the actor has been doing. The same method, when given a string, will record
+the message into the log, along with the default logging that UPSTAGE does.
 
-States are just Python descriptors, so you may access them the same as you would any instance attribute: ``cashier.scan_speed```, e.g.
+States are just Python descriptors, so you may access them the same as you would any
+instance attribute: ``cashier.scan_speed```, e.g.
 
-We want to keep track of the number of items scanned, so let's add a state that records the time at which items are scanned.
+We want to keep track of the number of items scanned, so let's add a state that records
+the time at which items are scanned.
 
 
 .. code-block:: python
@@ -108,7 +118,8 @@ We want to keep track of the number of items scanned, so let's add a state that 
         )
 
 
-Note that the keyword-argument ``recording`` has been set to ``True``. Now, whenever that state is modified, the time and value will be recorded.
+Note that the keyword-argument ``recording`` has been set to ``True``. Now,
+whenever that state is modified, the time and value will be recorded.
 
 
 .. code-block:: python
@@ -123,13 +134,18 @@ Note that the keyword-argument ``recording`` has been set to ``True``. Now, when
     >>> [(0.0, 1), (1.2, 4)]
 
 
-UPSTAGE creates the recording attribute on the instance with ``_<state_name>_history`` to store the tuples of ``(time, value)`` for the state on all recorded states. This is compatible with
+UPSTAGE creates the recording attribute on the instance with ``_state_histories[<state_name>]``
+to store the tuples of ``(time, value)`` for the state on all recorded states. This is compatible with
 all states, including Locations, Resources, and states that are lists, tuples, or dicts (UPSTAGE makes deep copies).
 
-Note that now we have created a SimPy ``Environment`` in ``env`` using the |EnvironmentContext| context manager. This gives Actor instances access to the simulation clock (``env.now``). The
-environment context and features will be covered more in depth later.
+For more information on UPSTAGE's data recording, see :doc:`/user_guide/tutorials/data`
 
-When we run the environment forward and change the ``items_scanned`` state, the value is recorded at the current simulation time.
+Note that now we have created a SimPy ``Environment`` in ``env`` using the |EnvironmentContext|
+context manager. This gives Actor instances access to the simulation clock (``env.now``). The
+environment context and features are covered :doc:`here </user_guide/how_tos/environment>`.
+
+When we run the environment forward and change the ``items_scanned`` state, the value is
+recorded at the current simulation time.
 
 Let's also make an Actor for the checkout lane, so we have a simple location to store customer queueing:
 
@@ -147,12 +163,17 @@ Let's also make an Actor for the checkout lane, so we have a simple location to 
             }
         )
 
-Here we use the built-in |ResourceState| to use a |SelfMonitoringStore| as an Actor state. The self-monitoring store is a subclass of the SimPy ``Store`` that records the number of items
-in the store whenever there is a get or put. The ``ResourceState`` could accept a default and not require a definition in the instantiation, but here we are demonstrating how to instantiate 
-a ``ResourceState`` in a way that lets you parameterize the store's values (in this case, the kind and the capacity). Other resources, such as containers, will have capacities and initial values.
+Here we use the built-in |ResourceState| to use a |SelfMonitoringStore| as an Actor state. The
+self-monitoring store is a subclass of the SimPy ``Store`` that records the number of items
+in the store whenever there is a get or put. The ``ResourceState`` could accept a default and
+not require a definition in the instantiation, but here we are demonstrating how to instantiate 
+a ``ResourceState`` in a way that lets you parameterize the store's values (in this case, the
+kind and the capacity). Other resources, such as containers, will have capacities and initial values.
 
-Actors also have ``knowledge``, which is a simple dictionary attached to the actor that has an interface through the actor and tasks. This allows actors to hold runtime-dependent information
-that isn't tied to a state. Knowledge can be set and accessed with error-throwing checks for its existence, or for checks that it doesn't already have a value. An example is given later.
+Actors also have ``knowledge``, which is a simple dictionary attached to the actor that has an
+interface through the actor and tasks. This allows actors to hold runtime-dependent information
+that isn't tied to a state. Knowledge can be set and accessed with error-throwing checks for
+its existence, or for checks that it doesn't already have a value. An example is given later.
 
 ----------------------------
 Define Tasks for the Cashier
@@ -234,23 +255,28 @@ Let's step through the task definitions line-by-line.
 
 * Line 5: Task subclasses must implement ``task`` that takes a single keyword argument: ``actor``.
 
-* Line 7-11: Assume the cashier has some "knowledge" about the checkout lane they are going to (the store manager will give this to them).
+* Line 7-11: Assume the cashier has some "knowledge" about the checkout lane
+  they are going to (the store manager will give this to them).
 
   * The knowledge has the name "checkout_lane", and we assume it must exist, or else throw an error.
 
-* Line 12: Create a ``Get`` event that waits to get a customer from the lane's ResourceState. Note that we aren't yielding on this event yet.
+* Line 12: Create a ``Get`` event that waits to get a customer from the lane's ResourceState.
+  Note that we aren't yielding on this event yet.
 
 * Line 14-18: Get information about the actor's break time.
 
-  * We could use ``actor.get_knowledge``, but using the task's method puts extra information into the actor's log, if you have it enabled.
+  * We could use ``actor.get_knowledge``, but using the task's method puts extra information
+    into the actor's log, if you have it enabled.
 
-* Line 19-21: Get the time left in the sim until it's a break, and create a simple ``Wait`` event to succeed at that time.
+* Line 19-21: Get the time left in the sim until it's a break, and create a simple ``Wait``
+  event to succeed at that time.
 
 * Line 23: Yield an ``Any`` event, which succeeds when the first of its sub-events succeeds.
 
 * Line 25: Test if the customer event succeeded first with the ``Event`` method ``is_complete``.
 
-* Line 26-27: If it did succeed, call ``get_value`` on the ``Get`` event to get customer information and add it to our knowledge.
+* Line 26-27: If it did succeed, call ``get_value`` on the ``Get`` event to get customer information
+  and add it to our knowledge.
 
   * Here we just treat the customer information as an integer number of items. It could be anything.
 
@@ -268,7 +294,8 @@ Let's step through the task definitions line-by-line.
 
 * Line 37-41: Retrieve the knowledge we set in the previous task. 
 
-  * Notice how knowledge lets us be flexible about what our Actors can do, and how ``must_exist`` will help us ensure our tasks are doing the right thing.
+  * Notice how knowledge lets us be flexible about what our Actors can do, and how ``must_exist`` will
+    help us ensure our tasks are doing the right thing.
 
 * Line 43-47: Activate a linear changing state, which increases its value according to ``rate`` as the simulation runs.
 
@@ -280,9 +307,11 @@ Let's step through the task definitions line-by-line.
 
 * Line 53: Assume some follow-on wait for customer payment.
 
-This is the foundation of how UPSTAGE manages behaviors. The simulation designer creates ``Tasks`` that can be chained together to perform actions, modify data, and make decisions.
+This is the foundation of how UPSTAGE manages behaviors. The simulation designer creates ``Tasks`` that
+can be chained together to perform actions, modify data, and make decisions.
 
-There is one other kind of Task, a |DecisionTask|, which does not consume the environment clock, and will not yield any events [#f2]_.
+There is one other kind of Task, a |DecisionTask|, which does not consume the environment clock,
+and will not yield any events [#f2]_.
 
 .. code-block:: python
     
@@ -298,16 +327,19 @@ There is one other kind of Task, a |DecisionTask|, which does not consume the en
                 self.set_actor_task_queue(actor, ["ShortBreak"])
 
 
-That task has the ``make_decision`` method that needs to be sublcassed. The purpose of a `DecisionTask` is to set and clear actor knowledge, and modify the task queue without consuming the clock. 
-It has additional benefits for rehearsal, which will be covered later.
+That task has the ``make_decision`` method that needs to be sublcassed. The purpose of a
+`DecisionTask` is to set and clear actor knowledge, and modify the task queue without
+consuming the clock. It has additional benefits for rehearsal, which will be covered later.
 
 
 A note on UPSTAGE Events
 ------------------------
 
-UPSTAGE Events are custom wrappers around SimPy events that allow for accessing data about that event, handling the ``Task`` internal event loop, and for rehearsal.
+UPSTAGE Events are custom wrappers around SimPy events that allow for accessing data about
+that event, handling the ``Task`` internal event loop, and for rehearsal.
 
-All ``Task`` s should yield UPSTAGE events, with one exception. A SimPy ``Process`` can be yielded out as well, but this will warn the user, and is generally not recommended.
+All ``Task`` s should yield UPSTAGE events, with one exception. A SimPy ``Process`` can be
+yielded out as well, but this will warn the user, and is generally not recommended.
 
 The event types are:
 
@@ -334,7 +366,8 @@ The event types are:
 Define a TaskNetwork for the Cashier
 ------------------------------------
 
-The flow of Tasks is controlled by a TaskNetwork, and the setting of the queue within tasks. A Task Network is defined by the nodes and the links:
+The flow of Tasks is controlled by a TaskNetwork, and the setting of the queue within
+tasks. A Task Network is defined by the nodes and the links:
 
 .. code-block:: python
 
@@ -364,13 +397,17 @@ The flow of Tasks is controlled by a TaskNetwork, and the setting of the queue w
         task_links=task_links,
     )
 
-The task classes are given names, and those strings are used to define the default and allowable task ordering. The task ordering need to know the default task (can be None) and the allowed tasks.
-Allowed tasks must be supplied. If no default is given, an error will be thrown if no task ordering is given when a new task is selected. If the default or the set task queue violates the 
-allowed rule, an error will be thrown.
+The task classes are given names, and those strings are used to define the default and
+allowable task ordering. The task ordering need to know the default task (can be None)
+and the allowed tasks. Allowed tasks must be supplied. If no default is given, an error
+will be thrown if no task ordering is given when a new task is selected. If the default
+or the set task queue violates the allowed rule, an error will be thrown.
 
-The task network forms the backbone of flexible behavior definitions, while a ``DecisionTask`` helps control the path through the network.
+The task network forms the backbone of flexible behavior definitions, while a ``DecisionTask``
+helps control the path through the network.
 
-The ``cashier_task_network`` is a factory that creates network instances from the definition that actors can use (one per actor/per network).
+The ``cashier_task_network`` is a factory that creates network instances from the definition
+that actors can use (one per actor/per network).
 
 To start a task network on an actor with the factory:
 
@@ -393,24 +430,30 @@ You can either start a loop on a single task, or define an initial queue through
 A note on TaskNetworkFactory
 ----------------------------
 
-The :py:class:`~upstage_des.task_network.TaskNetworkFactory` class has some convience methods for creating factories from typical use cases:
+The :py:class:`~upstage_des.task_network.TaskNetworkFactory` class has some convience methods
+for creating factories from typical use cases:
 
-#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: From a single task, make a network that loops itself.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: From a single
+   task, make a network that loops itself.
 
-   * Useful for a Singleton task that, for example, receives communications and farms them out or manages other task networks.
+   * Useful for a Singleton task that, for example, receives communications and farms them out
+     or manages other task networks.
 
-#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_terminating`: A network that does one task, then freezes for the rest of the simulation.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_terminating`: A network
+   that does one task, then freezes for the rest of the simulation.
 
-#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_ordered_looping`: A series of tasks with no branching that loops.
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_ordered_looping`: A series of
+   tasks with no branching that loops.
 
-#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: A series of tasks with no branching that terminates at the end.
-
+#. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: A series of tasks
+   with no branching that terminates at the end.
 
 --------------------
 Setting up Customers
 --------------------
 
-To complete the simulation, we need to make customers arrive at the checkout lanes. This can be done using a standard SimPy process:
+To complete the simulation, we need to make customers arrive at the checkout lanes. This can
+be done using a standard SimPy process:
 
 .. code-block:: python
 
@@ -518,7 +561,7 @@ Since only one cashier is assigned, you can examine the backlog on the lanes (an
     >>> (1136.5736387094469, 8),
     >>> (1188.3694502822516, 9)]
 
-    print(cashier._items_scanned_history)
+    print(cashier._state_histories["items_scanned"])
     >>> ...
     >>> (683.5134932373091, 15),
     >>> (683.6134932373092, 16),
@@ -532,9 +575,11 @@ Since only one cashier is assigned, you can examine the backlog on the lanes (an
     >>> ...
 
 
-Your run may be different, due to the calls to ``stage.random`` (a passthrough for ``random.Random()``). See :doc:`Random Numbers </user_guide/how_tos/random_numbers>` for more.
+Your run may be different, due to the calls to ``stage.random`` (a passthrough for ``random.Random()``).
+See :doc:`Random Numbers </user_guide/how_tos/random_numbers>` for more.
 
-Notice how lane 1 takes customers right away, but lane 2 stacks up. Also notice how the ``SelfMonitoringStore`` creates the ``._quantities`` datatype that shows the time history of number of 
+Notice how lane 1 takes customers right away, but lane 2 stacks up. Also notice how the
+``SelfMonitoringStore`` creates the ``._quantities`` datatype that shows the time history of number of 
 items in the store. If it was a Container, instead of a Store, it would record the level.
 
 .. [#f1] You can run this now and ignore the warning about an environment.

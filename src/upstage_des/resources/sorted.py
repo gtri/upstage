@@ -45,9 +45,11 @@ class _SortedFilterStoreGet(Get):
         resource: "SortedFilterStore",
         filter: Callable[[Any], bool] = lambda item: True,
         sorter: Callable[[Any], tuple[Any, ...]] | None = None,
+        reverse: bool = False,
     ):
         self.filter = filter
         self.sorter = sorter
+        self.reverse = reverse
         super().__init__(resource)
 
 
@@ -86,8 +88,7 @@ class SortedFilterStore(Store):
             if event.filter(item):
                 if event.sorter is not None:
                     val = event.sorter(item)
-                    # force conversion to tuple
-                    if min_val is None or val < min_val:
+                    if min_val is None or (val > min_val if event.reverse else val < min_val):
                         min_item = item
                         min_val = val
                 else:
@@ -107,6 +108,7 @@ class SortedFilterGet(UPGet):
         get_location: SortedFilterStore,
         filter: Callable[[Any], bool] = lambda item: True,
         sorter: Callable[[Any], tuple[Any, ...]] | None = None,
+        reverse: bool = False,
         rehearsal_time_to_complete: float = 0.0,
     ) -> None:
         """Create a Get request on a SortedFilterStore.
@@ -119,6 +121,7 @@ class SortedFilterGet(UPGet):
             get_location (SIM.Store | SIM.Container): The place for the Get request
             filter (Callable[[Any], bool]): The function that filters items in the store.
             sorter (Callable[[Any], Any]): The function that returns values to sort an item on.
+            reverse (bool, optional): Whether to reverse the sort to be ascending.
             rehearsal_time_to_complete (float, optional): _description_. Defaults to 0.0.
         """
         super().__init__(
@@ -126,4 +129,5 @@ class SortedFilterGet(UPGet):
             rehearsal_time_to_complete=rehearsal_time_to_complete,
             filter=filter,
             sorter=sorter,
+            reverse=reverse,
         )

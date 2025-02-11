@@ -105,3 +105,39 @@ def test_geodetic() -> None:
 
         assert loc_up_rad - UP.GeodeticLocation(10, 10) > 0
         assert UP.GeodeticLocation(10, 10) - loc_up_rad > 0
+
+
+def test_data_objects() -> None:
+    cart1 = UP.CartesianLocationData(1.0, 2.1, 3.2)
+    cart2 = UP.CartesianLocationData(1.0, 2.1, 3.2)
+    assert cart1 == cart2
+
+    with pytest.raises(ValueError):
+        cart1 == (1.0, 2.1, 3.2)
+
+    geo1 = UP.GeodeticLocationData(13.0, 12.1, 11.2)
+    geo2 = UP.GeodeticLocationData(13.0, 12.1, 11.2)
+    assert geo1 == geo2
+
+    geo3 = UP.GeodeticLocationData(radians(13.0), radians(12.1), 11.2, in_radians=True)
+    assert geo1 == geo3
+    assert geo3 == geo1
+
+    with pytest.raises(ValueError):
+        geo1 == (13.0, 12.1, 11.2)
+
+    with UP.EnvironmentContext():
+        for k, v in STAGE_SETUP.items():
+            UP.add_stage_variable(k, v)
+
+        loc1 = geo1.make_location()
+        assert isinstance(loc1, UP.GeodeticLocation)
+
+        loc3 = geo3.make_location()
+
+        assert loc1 - loc3 == 0.0
+        assert loc1 == loc3
+
+        loc1 = cart1.make_location()
+        loc2 = cart2.make_location()
+        assert loc1 == loc2
