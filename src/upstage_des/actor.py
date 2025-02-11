@@ -580,6 +580,57 @@ class Actor(SettableEnv, NamedUpstageEntity):
         else:
             del self._knowledge[name]
 
+    def set_bulk_knowledge(
+        self, know: dict[str, Any], overwrite: bool = False, caller: str | None = None
+    ) -> None:
+        """Set multiple knowledge entries at once.
+
+        Args:
+            know (dict[str, Any]): Dictionary of key:value pairs of knowledge.
+            overwrite (bool, optional): If overwrite is allowed. Defaults to False.
+            caller (str | None, optional): The name of the Task that called the method.
+                Defaults to None.
+        """
+        for k, v in know.items():
+            self.set_knowledge(k, v, overwrite, caller)
+
+    def clear_bulk_knowledge(self, names: Iterable[str], caller: str | None = None) -> None:
+        """Clear a list of knowledge entries.
+
+        Args:
+            names (Iterable[str]): Knowledge names.
+            caller (str | None, optional): The name of the Task that called the method.
+                Defaults to None.
+        """
+        for name in names:
+            self.clear_knowledge(name, caller)
+
+    def get_bulk_knowledge(self, names: Iterable[str], must_exist: bool = False) -> dict[str, Any]:
+        """Get multiple knowledge items.
+
+        Args:
+            names (Iterable[str]): Names of the knowledge
+            must_exist (bool, optional): If all entires must exist. Defaults to False.
+
+        Returns:
+            dict[str, Any]: The knowledge values. None if not present.
+        """
+        return {name: self.get_knowledge(name, must_exist) for name in names}
+
+    def get_and_clear_bulk_knowledge(
+        self, names: Iterable[str], caller: str | None = None
+    ) -> dict[str, Any]:
+        """Get and clear multiple knowledge entries.
+
+        Args:
+            names (Iterable[str]): The knowledge to retrieve and delete.
+            caller (str | None, optional): The name of the caller. Defaults to None.
+
+        Returns:
+            dict[str, Any]: The retrieved knowledge.
+        """
+        return {name: self.get_and_clear_knowledge(name, caller) for name in names}
+
     def add_task_network(self, network: TaskNetwork) -> None:
         """Add a task network to the actor.
 

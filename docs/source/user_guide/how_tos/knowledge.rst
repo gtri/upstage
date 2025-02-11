@@ -70,6 +70,22 @@ For convenience, you can get and remove knowledge in one method using:
 Bulk Knowledge
 --------------
 
+All the above methods can be operated on in bulk:
+
+1. :py:meth:`~upstage_des.actor.Actor.set_bulk_knowledge`: Set knowledge using a dictionary.
+2. :py:meth:`~upstage_des.actor.Actor.get_bulk_knowledge`: Get knowledge using an iterable of names.
+3. :py:meth:`~upstage_des.actor.Actor.clear_bulk_knowledge`: Clear knowledge using an iterable of names.
+4. :py:meth:`~upstage_des.actor.Actor.get_and_clear_bulk_knowledge`: Get a dictionary of knowledge and clear it.
+
+The tasks contain similarly named methods:
+
+1. :py:meth:`~upstage_des.task.Task.set_actor_bulk_knowledge`
+2. :py:meth:`~upstage_des.task.Task.get_actor_bulk_knowledge`
+3. :py:meth:`~upstage_des.task.Task.clear_actor_bulk_knowledge`
+4. :py:meth:`~upstage_des.task.Task.get_and_clear_actor_bulk_knowledge`
+
+This is most useful for initializing or passing large amounts of information to an actor. 
+
 
 Knowledge Events
 ----------------
