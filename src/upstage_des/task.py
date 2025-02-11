@@ -406,9 +406,10 @@ class Task(SettableEnv):
                     next_event = generator.send(returned_item)
                     returned_item = None
                 if not issubclass(next_event.__class__, BaseEvent):
-                    raise SimulationError(
-                        f"Task {self} event {next_event} must be a subclass of BaseEvent!"
-                    )
+                    msg = f"Task {self} event {next_event}"
+                    if isinstance(next_event, Process):
+                        raise SimulationError(msg + " cannot be a process during rehearsal.")
+                    raise SimulationError(msg + " must be a subclass of BaseEvent!")
                 time_advance, returned_item = next_event.rehearse()
                 mocked_env.now += time_advance
 
@@ -453,7 +454,7 @@ class Task(SettableEnv):
             if isinstance(next_event, BaseEvent):
                 next_event.cancel()
             elif isinstance(next_event, Process):
-                next_event.interrupt(cause="Interrupt from task")
+                next_event.interrupt(cause=interrupt.cause)
             else:
                 raise SimulationError(f"Bad event passed: {next_event}")
             stop_run = True
