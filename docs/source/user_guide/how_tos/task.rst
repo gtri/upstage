@@ -59,6 +59,8 @@ Subclass and implement ``make_decision`` to use the class. The ``rehearse_decisi
 to provide rehearsal decision making. That is useful for separating planning and action code when the simpy clock
 will not be advancing.
 
+See :doc:`Decision Tasks </user_guide/how_tos/decision_tasks>` for more.
+
 Rehearsal
 ---------
 
