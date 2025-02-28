@@ -1148,5 +1148,19 @@ class Actor(SettableEnv, NamedUpstageEntity):
             raise SimulationError("Expected a nucleus, but none found.")
         return self._state_listener
 
+    def record_state(self, state_name: str) -> None:
+        """Record a state by its name.
+
+        Useful for states that have attributes that aren't set
+        via the descriptor, such as dictionaries or dataclasses.
+
+        Args:
+            state_name (str): The name of the state.
+        """
+        if state_name not in self.states:
+            raise SimulationError(f"No state '{state_name}' to record.")
+        v = getattr(self, state_name)
+        self._state_defs[state_name]._do_record(self, v)
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: {self.name}"

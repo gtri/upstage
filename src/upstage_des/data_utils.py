@@ -1,5 +1,6 @@
 """Utilities for gathering all recorded simulation data."""
 
+from dataclasses import asdict, is_dataclass
 from typing import Any, cast
 
 from upstage_des.actor import Actor
@@ -49,11 +50,21 @@ def _state_history_to_table(
     for time, value in hist:
         if isinstance(value, ActiveStatus):
             row = data.pop(-1)
-            row = tuple(list(row[:-1]) + [value.name])
+            rows = [tuple(list(row[:-1]) + [value.name])]
             active_value = "active" if value.name == "activating" else "inactive"
+        elif is_dataclass(value) and not isinstance(value, type):
+            rows = [
+                (actor_name, actor_kind, f"{state_name}.{k}", time, v, active_value)
+                for k, v in asdict(value).items()
+            ]
+        elif isinstance(value, dict):
+            rows = [
+                (actor_name, actor_kind, f"{state_name}.{k}", time, v, active_value)
+                for k, v in value.items()
+            ]
         else:
-            row = (actor_name, actor_kind, state_name, time, value, active_value)
-        data.append(row)
+            rows = [(actor_name, actor_kind, state_name, time, value, active_value)]
+        data.extend(rows)
     return data
 
 
