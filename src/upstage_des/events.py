@@ -206,6 +206,7 @@ class Wait(BaseEvent):
             raise SimulationError(f"Negative timeout in Wait: {self._time_to_complete}")
         rehearse = timeout if rehearsal_time_to_complete is None else rehearsal_time_to_complete
         super().__init__(rehearsal_time_to_complete=rehearse)
+        self._simpy_event: SIM.Timeout | None = None
 
     @classmethod
     def from_random_uniform(
@@ -242,7 +243,8 @@ class Wait(BaseEvent):
             SIM.Timeout
         """
         assert isinstance(self.env, SIM.Environment)
-        self._simpy_event = self.env.timeout(self._time_to_complete)
+        if self._simpy_event is None:
+            self._simpy_event = self.env.timeout(self._time_to_complete)
         return self._simpy_event
 
     def cancel(self) -> None:
