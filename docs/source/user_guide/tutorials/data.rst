@@ -313,6 +313,9 @@ There are two functions for gathering data from UPSTAGE:
      if the state has an active status.
    * If ``skip_locations`` is set to ``False``, then location objects
      will go into the state value column.
+   * If ``save_static`` is set to ``True``, then non-recording states
+     will have their last value recorded in the table with an ``Activation Status``
+     column value of ``"Last Seen"``.
    * Data are in long-form, meaning rows may share a timestamp.
 
 2. :py:func:`upstage_des.data_utils.create_location_table`
@@ -342,12 +345,14 @@ following table (a partial amount shown) would be obtained from the ``create_tab
     +-----------+-------------------------+-------------+----+-----+-----------------+
     |Ertha      |Cashier                  |time_working |   3|  2.9|active           |
     +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Ertha      |Cashier                  |other        |   0|  3.0|Last Seen        |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
     |Bertha     |Cashier                  |cue          |   0|  0.0|                 |
     +-----------+-------------------------+-------------+----+-----+-----------------+
     |Bertha     |Cashier                  |cue2         |   0|  0.0|                 |
     +-----------+-------------------------+-------------+----+-----+-----------------+
     |Bertha     |Cashier                  |time_working |   0|  0.0|inactive         |
-    +-----------+-------------------------+-------------+----+-----+-----------------+
+    +-----------+-------------------------+-------------+----+-----+-----------------+    
     |Store Test |SelfMonitoringFilterStore|Resource     |   0|  0.0|                 |
     +-----------+-------------------------+-------------+----+-----+-----------------+
 
