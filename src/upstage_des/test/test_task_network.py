@@ -830,3 +830,85 @@ def test_rehearsal_time() -> None:
         thing.add_task_network(factory.make_network())
         new_thing = thing.rehearse_network("fact", ["ThingWait", "ThingWait"])
         assert new_thing.env.now == new_thing.the_time, "Bad rehearsal env time"
+
+
+def test_decision_task_hold() -> None:
+    # Test the conditions found in https://github.com/gtri/upstage/issues/35
+    # Looks at zero time holds vs pass-through decision tasks
+
+    # Test for new behavior first.
+    data = []
+
+    class Waiter(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            data.append(f"{self.env.now:.1f} >> {actor.name} in Waiter")
+            yield Wait(1.0)
+
+    class Runner(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            data.append(f"{self.env.now:.1f} >> {actor.name} in Runner")
+            yield Wait(2.0)
+
+    class Thinker(DecisionTask):
+        DO_NOT_HOLD = True
+
+        def make_decision(self, *, actor: Actor) -> None:
+            data.append(f"{self.env.now:.1f} >> {actor.name} in Thinker")
+            if "one" in actor.name:
+                self.set_actor_task_queue(actor, ["Waiter"])
+            else:
+                self.set_actor_task_queue(actor, ["Runner"])
+
+    net = TaskNetworkFactory(
+        name="Example Net",
+        task_classes={"Waiter": Waiter, "Runner": Runner, "Thinker": Thinker},
+        task_links={
+            "Waiter": TaskLinks(default="Thinker", allowed=["Thinker"]),
+            "Thinker": TaskLinks(default="", allowed=["Waiter", "Runner"]),
+            "Runner": TaskLinks(default="Thinker", allowed=["Thinker"]),
+        },
+    )
+    with EnvironmentContext() as env:
+        a = Actor(name="Actor one", debug_log=True)
+        b = Actor(name="Actor two", debug_log=True)
+
+        for actor in [a, b]:
+            n = net.make_network()
+            actor.add_task_network(n)
+            actor.start_network_loop(n.name, "Waiter")
+
+        env.run(until=2)
+
+    expected = [
+        "0.0 >> Actor one in Waiter",
+        "0.0 >> Actor two in Waiter",
+        "1.0 >> Actor one in Thinker",
+        "1.0 >> Actor one in Waiter",
+        "1.0 >> Actor two in Thinker",
+        "1.0 >> Actor two in Runner",
+    ]
+    assert data == expected
+
+    # Reset data in place, test for default behavior
+    data[:] = []
+
+    Thinker.DO_NOT_HOLD = False
+    with EnvironmentContext() as env:
+        a = Actor(name="Actor one", debug_log=True)
+        b = Actor(name="Actor two", debug_log=True)
+
+        for actor in [a, b]:
+            n = net.make_network()
+            actor.add_task_network(n)
+            actor.start_network_loop(n.name, "Waiter")
+
+        env.run(until=2)
+    expected = [
+        "0.0 >> Actor one in Waiter",
+        "0.0 >> Actor two in Waiter",
+        "1.0 >> Actor one in Thinker",
+        "1.0 >> Actor two in Thinker",
+        "1.0 >> Actor one in Waiter",
+        "1.0 >> Actor two in Runner",
+    ]
+    assert data == expected

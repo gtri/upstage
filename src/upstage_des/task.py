@@ -543,6 +543,8 @@ class Task(SettableEnv):
 class DecisionTask(Task):
     """A task used for decision processes."""
 
+    DO_NOT_HOLD = False
+
     def task(self, *, actor: Any) -> TASK_TYPE:
         """Define the process this task follows."""
         raise SimulationError("No need to call `task` on a DecisionTask")
@@ -601,6 +603,16 @@ class DecisionTask(Task):
         self.make_decision(actor=actor)
         assert isinstance(self.env, SimpyEnv)
         yield self.env.timeout(0.0)
+
+    def run_skip(self, *, actor: "Actor") -> None:
+        """Run the decision task with no clock reference.
+
+        Task networks will use this method if SKIP_WAIT is True.
+
+        Args:
+            actor (Actor): The actor making decisions
+        """
+        self.make_decision(actor=actor)
 
 
 class TerminalTask(Task):
