@@ -15,8 +15,8 @@ from upstage_des.states import (
 )
 
 ACTUAL_LOCATION = GeodeticLocation | CartesianLocation
-LOCATION_TYPES = ACTUAL_LOCATION | GeodeticLocationChangingState, CartesianLocationChangingState
-
+LOCATION_TYPES = ACTUAL_LOCATION | GeodeticLocationChangingState | CartesianLocationChangingState
+STATIC_STATE = "Last Seen"
 
 STATE_DATA_ROW = tuple[str, str, str, float, Any, str | None]
 LOCATION_DATA_ROW = tuple[str, str, str, float, float, float, float, str | None]
@@ -69,7 +69,9 @@ def _state_history_to_table(
 
 
 def _actor_state_data(
-    actor: Actor, skip_locations: bool = True
+    actor: Actor,
+    skip_locations: bool = True,
+    save_static: bool = False,
 ) -> tuple[list[STATE_DATA_ROW], list[Any]]:
     """Gather actor recorded data.
 
@@ -77,6 +79,8 @@ def _actor_state_data(
         actor (Actor): The actor.
         skip_locations (bool, optional): If location states should be ignored.
             Defaults to True.
+        save_static (bool, optional): If non-recording states are saved.
+            Defaults to False.
 
     Returns:
         list[STATE_INFO]: List of state information
@@ -100,6 +104,8 @@ def _actor_state_data(
         elif isinstance(state, ResourceState) or hasattr(_value, "_quantities"):
             resources.append(_value)
             data.extend(_state_history_to_table(name, kind, state_name, False, _value._quantities))
+        elif save_static:
+            data.append((name, kind, state_name, 0.0, getattr(actor, state_name), STATIC_STATE))
 
     return data, resources
 
@@ -143,7 +149,9 @@ def _actor_location_data(actor: Actor) -> tuple[list[LOCATION_DATA_ROW], list[st
     return data, cols
 
 
-def create_table(skip_locations: bool = True) -> tuple[list[STATE_DATA_ROW], list[str]]:
+def create_table(
+    skip_locations: bool = True, save_static: bool = False
+) -> tuple[list[STATE_DATA_ROW], list[str]]:
     """Create a data table of everything UPSTAGE has recorded.
 
     This uses the current environment context.
@@ -167,6 +175,8 @@ def create_table(skip_locations: bool = True) -> tuple[list[STATE_DATA_ROW], lis
     Args:
         skip_locations (bool, optional): If location states should be ignored.
             Defaults to True.
+        save_static (bool, optional): If non-recording states are saved.
+            Defaults to False.
 
     Returns:
         list[STATE_DATA_ROW]: Data table
@@ -178,7 +188,9 @@ def create_table(skip_locations: bool = True) -> tuple[list[STATE_DATA_ROW], lis
     for actor in _base.get_actors():
         name = actor.name
         kind = actor.__class__.__name__
-        _data, _resources = _actor_state_data(actor, skip_locations=skip_locations)
+        _data, _resources = _actor_state_data(
+            actor, skip_locations=skip_locations, save_static=save_static
+        )
         seen_resources.extend(_resources)
         data.extend(_data)
 

@@ -59,8 +59,8 @@ def test_data_reporting() -> None:
             c.items_scanned += 1
             c.cue.put("A")
             c.cue2.put(10)
-            c.other = 3.0
             c.time_working = 0.0
+        cash.other = 3.0
 
         cart.activate_location_state(
             state="location",
@@ -133,6 +133,8 @@ def test_data_reporting() -> None:
         state_table, cols = create_table()
         all_state_table, all_cols = create_table(skip_locations=False)
         loc_state_table, loc_cols = create_location_table()
+        new_table, _ = create_table(skip_locations=True, save_static=True)
+        orig_table, _ = create_table(skip_locations=True, save_static=False)
 
     ctr = Counter([row[:3] for row in state_table])
     assert ctr[("Ertha", "Cashier", "items_scanned")] == 5
@@ -203,6 +205,17 @@ def test_data_reporting() -> None:
         0.0,
         "inactive",
     )
+
+    match1 = ("Ertha", "Cashier", "other", 0.0, 3.0, "Last Seen")
+    assert match1 in new_table
+    assert match1 not in all_state_table
+
+    match2 = ("Bertha", "Cashier", "other", 0.0, 0.0, "Last Seen")
+    assert match2 in new_table
+    assert match2 not in all_state_table
+
+    # Only the two "other" states should show up
+    assert len(new_table) - len(orig_table) == 2
 
 
 if __name__ == "__main__":
