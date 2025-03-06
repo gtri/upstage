@@ -725,8 +725,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         queue = self._task_queue.get(network_name)
         if queue and queue[0] != task_name:
             raise SimulationError(
-                f"Actor {self.name} commanded to perform '{task_name}' "
-                f"but '{queue[0]}' is expected"
+                f"Actor {self.name} commanded to perform '{task_name}' but '{queue[0]}' is expected"
             )
         elif not queue:
             self.set_task_queue(network_name, [task_name])

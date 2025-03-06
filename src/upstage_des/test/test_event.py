@@ -99,9 +99,9 @@ def test_put_event_with_stores() -> None:
 
         assert put_event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = put_event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Put
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Put), (
+            "Event returned is not simpy put event"
+        )
         env.run()
         assert isinstance(returned_object, StorePut)
         assert returned_object.item is put_object, "Wrong object put"
@@ -127,9 +127,9 @@ def test_put_event_with_containers() -> None:
 
         assert put_event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = put_event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Put
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Put), (
+            "Event returned is not simpy put event"
+        )
         env.run()
         assert isinstance(returned_object, ContainerPut)
         assert returned_object.amount == put_arg, "Wrong amount put"
@@ -157,9 +157,9 @@ def test_get_event_with_stores() -> None:
         event = Get(store)
         assert event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Get
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Get), (
+            "Event returned is not simpy put event"
+        )
 
         env.run()
         assert isinstance(event._request_event, StoreGet)
@@ -187,9 +187,9 @@ def test_get_event_with_containers() -> None:
         event = Get(container, get_arg)
         assert event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Get
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Get), (
+            "Event returned is not simpy put event"
+        )
 
         env.run()
         assert isinstance(event._request_event, ContainerGet)
@@ -248,17 +248,17 @@ def test_resource_events() -> None:
         assert newest_request._request is not None
         assert not newest_request._request.processed, "Request went through when it shouldn't"
 
-        assert (
-            newest_request._request in a_resource.put_queue
-        ), "Resource isn't waiting to be gathered"
+        assert newest_request._request in a_resource.put_queue, (
+            "Resource isn't waiting to be gathered"
+        )
         with pytest.raises(SimulationError, match="Resource release requested.*?"):
             newest_request.as_event()
 
         newest_request.cancel()
         env.run()
-        assert (
-            newest_request._request not in a_resource.put_queue
-        ), "Resource hasn't left the wait queue"
+        assert newest_request._request not in a_resource.put_queue, (
+            "Resource hasn't left the wait queue"
+        )
 
 
 def test_multi_event() -> None:
