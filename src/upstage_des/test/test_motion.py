@@ -198,9 +198,9 @@ def test_no_interaction_cli() -> None:
 
         assert abs(env.now - 5.0) < 1e-12
 
-        assert (
-            len(sensor.data) == 0
-        ), f"There should be no interaction events, but found: {sensor.data}"
+        assert len(sensor.data) == 0, (
+            f"There should be no interaction events, but found: {sensor.data}"
+        )
         assert not motion._events.get(mover, [])
         assert sensor not in motion._in_view.get(mover, {})
         assert motion._debug_log == [], "No log expected for no actions"
@@ -227,9 +227,9 @@ def test_enter_exit() -> None:
 
         assert abs(env.now - 3.828427124746188) < 1e-12
 
-        assert (
-            len(sensor.data) == 2
-        ), f"For now, motion manager only has entry event recorded, {sensor.data}"
+        assert len(sensor.data) == 2, (
+            f"For now, motion manager only has entry event recorded, {sensor.data}"
+        )
 
         assert abs(sensor.data[0][1] - 1.8284271247461907) < 1e-12
         assert sensor.data[0][2] == "detect"
@@ -263,9 +263,9 @@ def test_sensor_popup() -> None:
 
         assert abs(env.now - 3.828427124746188) < 1e-12
 
-        assert (
-            len(sensor.data) == 2
-        ), f"For now, motion manager only has entry event recorded, {sensor.data}"
+        assert len(sensor.data) == 2, (
+            f"For now, motion manager only has entry event recorded, {sensor.data}"
+        )
 
         assert abs(sensor.data[0][1] - 2) < 1e-12
         assert sensor.data[0][2] == "detect"
@@ -720,9 +720,9 @@ def test_no_interaction_gi() -> None:
 
         assert abs(env.now - 5.0) < 1e-12
 
-        assert (
-            len(sensor.data) == 0
-        ), f"There should be no interaction events, but found: {sensor.data}"
+        assert len(sensor.data) == 0, (
+            f"There should be no interaction events, but found: {sensor.data}"
+        )
 
         motion._stop_mover(mover)
 
@@ -830,9 +830,9 @@ def test_no_interaction_agi() -> None:
 
         assert abs(env.now - 5.0) < 1e-12
 
-        assert (
-            len(sensor.data) == 0
-        ), f"There should be no interaction events, but found: {sensor.data}"
+        assert len(sensor.data) == 0, (
+            f"There should be no interaction events, but found: {sensor.data}"
+        )
 
         motion._stop_mover(mover)
 

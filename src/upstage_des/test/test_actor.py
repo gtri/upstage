@@ -181,6 +181,62 @@ def test_clear_knowledge() -> None:
         assert know is None, "Knowledge was not cleared"
 
 
+def test_get_and_clear() -> None:
+    class TestActor(Actor):
+        pass
+
+    with EnvironmentContext():
+        act = TestActor(name="Second test")
+        act.set_knowledge("thing", {3: 1})
+        v = act.get_and_clear_knowledge("thing")
+        assert v == {3: 1}
+        assert "thing" not in act._knowledge
+
+        with pytest.raises(UP.SimulationError):
+            act.get_and_clear_knowledge("thing")
+
+        t = UP.Task()
+        act.set_knowledge("other", {2: 3})
+        v = t.get_and_clear_actor_knowledge(act, "other")
+        assert v == {2: 3}
+        assert "other" not in act._knowledge
+
+
+def test_bulk_knowledge() -> None:
+    class TestActor(Actor):
+        pass
+
+    with UP.EnvironmentContext():
+        know = {"one": 1, "two": 2}
+        act = TestActor(name="Example")
+        act.set_bulk_knowledge(know)
+        assert know == act._knowledge
+
+        with pytest.raises(UP.SimulationError):
+            act.set_bulk_knowledge({"one": 3, "three": 3})
+
+        act.set_bulk_knowledge({"one": 11, "three": 3}, overwrite=True)
+        v = act.get_bulk_knowledge(set(["one", "two", "three"]))
+        assert v == {"one": 11, "two": 2, "three": 3}
+
+        v = act.get_and_clear_bulk_knowledge(["two", "three"])
+        assert v == {"two": 2, "three": 3}
+        assert act._knowledge == {"one": 11}
+
+        t = UP.Task()
+        t.set_actor_bulk_knowledge(act, know, overwrite=True)
+        assert act._knowledge == know
+        v = t.get_actor_bulk_knowledge(act, ["one", "two"])
+        assert v == know
+
+        with pytest.raises(UP.SimulationError):
+            t.set_actor_bulk_knowledge(act, {"one": 3, "three": 3})
+
+        v = t.get_and_clear_actor_bulk_knowledge(act, ["one", "two"])
+        assert v == know
+        assert act._knowledge == {}
+
+
 def test_knowledge_event() -> None:
     with EnvironmentContext() as env:
         act = Actor(name="A test actor")

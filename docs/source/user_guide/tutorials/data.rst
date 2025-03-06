@@ -128,8 +128,11 @@ Note that the string State of ``people_seen`` acts as a way to record data, even
 the moment the name of the last scanned person. This lets states behave as carriers of current or past
 information, depending on your needs.
 
-The ``items`` value doesn't record, because the state doesn't see ``cash.items = ...``.
-For objects like that, you should:
+Complex States
+--------------
+
+The ``items`` value doesn't record, because the state doesn't see the ``cash.items = ...`` operation.
+For objects like that, you can use the ``record_state`` method on the ``Actor``:
 
 .. code:: python
 
@@ -141,21 +144,22 @@ For objects like that, you should:
     with UP.EnvironmentContext() as env:
         cash = Cashier(name="Ertha")
         cash.items["bread"] = 1
-        cash.items = cash.items # <- Tell the state it's been changed explicitly
+        cash.record_state("items")
+        # or, cash.items = cash.items
         env.run(until=0.75)
         cash.items["bread"] += 2
         cash.items["milk"] += 3
-        cash.items = cash.items
+        cash.record_state("items")
 
         print(cash._state_histories)
         >>>{'items': [(0.0, Counter({'bread': 1})), (0.75, Counter({'bread': 3, 'milk': 3}))]}
 
-This is clunky, but the ``Counter`` object has no way of knowing it belongs in a ``State`` to get the
-recording to work. In the future, UPSTAGE may monkey-patch objects with ``__set__`` methods, but for
-now this is the workaround.
-
 Note also that UPSTAGE deep-copies the value in the state history, so any data should be compatible with that
 operation.
+
+UPSTAGE will output data from ``dataclass`` states, and ``dict[str, Any]`` states by creating rows in the
+data table with the naming convention ``state_name.attribute_name``, where the attribute is either a dataclass
+attribute or a key from the dictionary.
 
 Geographic Types
 ----------------
@@ -309,6 +313,9 @@ There are two functions for gathering data from UPSTAGE:
      if the state has an active status.
    * If ``skip_locations`` is set to ``False``, then location objects
      will go into the state value column.
+   * If ``save_static`` is set to ``True``, then non-recording states
+     will have their last value recorded in the table with an ``Activation Status``
+     column value of ``"Last Seen"``.
    * Data are in long-form, meaning rows may share a timestamp.
 
 2. :py:func:`upstage_des.data_utils.create_location_table`
@@ -338,12 +345,14 @@ following table (a partial amount shown) would be obtained from the ``create_tab
     +-----------+-------------------------+-------------+----+-----+-----------------+
     |Ertha      |Cashier                  |time_working |   3|  2.9|active           |
     +-----------+-------------------------+-------------+----+-----+-----------------+
+    |Ertha      |Cashier                  |other        |   0|  3.0|Last Seen        |
+    +-----------+-------------------------+-------------+----+-----+-----------------+
     |Bertha     |Cashier                  |cue          |   0|  0.0|                 |
     +-----------+-------------------------+-------------+----+-----+-----------------+
     |Bertha     |Cashier                  |cue2         |   0|  0.0|                 |
     +-----------+-------------------------+-------------+----+-----+-----------------+
     |Bertha     |Cashier                  |time_working |   0|  0.0|inactive         |
-    +-----------+-------------------------+-------------+----+-----+-----------------+
+    +-----------+-------------------------+-------------+----+-----+-----------------+    
     |Store Test |SelfMonitoringFilterStore|Resource     |   0|  0.0|                 |
     +-----------+-------------------------+-------------+----+-----+-----------------+
 

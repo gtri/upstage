@@ -5,7 +5,7 @@
 
 """Tasks constitute the actions that Actors can perform."""
 
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Iterable
 from enum import IntFlag
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -280,6 +280,74 @@ class Task(SettableEnv):
         """
         return actor.get_knowledge(name, must_exist)
 
+    def get_and_clear_actor_knowledge(self, actor: "Actor", name: str) -> Any:
+        """Get and clear knowledge on an actor.
+
+        The knowledge is assumed to exist.
+
+        Args:
+            actor (Actor): The actor to get knowledge from.
+            name (str): The knowledge name.
+
+        Returns:
+            Any: The knowledge value.
+        """
+        cname = self.__class__.__qualname__
+        return actor.get_and_clear_knowledge(name, caller=cname)
+
+    def set_actor_bulk_knowledge(
+        self, actor: "Actor", know: dict[str, Any], overwrite: bool = False
+    ) -> None:
+        """Set multiple knowledge entries at once.
+
+        Args:
+            actor (Actor): The actor to operate on.
+            know (dict[str, Any]): Dictionary of key:value pairs of knowledge.
+            overwrite (bool, optional): If overwrite is allowed. Defaults to False.
+        """
+        for k, v in know.items():
+            self.set_actor_knowledge(actor, k, v, overwrite)
+
+    def clear_actor_bulk_knowledge(self, actor: "Actor", names: Iterable[str]) -> None:
+        """Clear a list of knowledge entries.
+
+        Args:
+            actor (Actor): The actor to operate on.
+            names (Iterable[str]): Knowledge names.
+        """
+        for name in names:
+            self.clear_actor_knowledge(actor, name)
+
+    def get_actor_bulk_knowledge(
+        self, actor: "Actor", names: Iterable[str], must_exist: bool = False
+    ) -> dict[str, Any]:
+        """Get multiple knowledge items.
+
+        Args:
+            actor (Actor): The actor to operate on.
+            names (Iterable[str]): Names of the knowledge
+            must_exist (bool, optional): If all entires must exist. Defaults to False.
+
+        Returns:
+            dict[str, Any]: The knowledge values. None if not present.
+        """
+        return {name: self.get_actor_knowledge(actor, name, must_exist) for name in names}
+
+    def get_and_clear_actor_bulk_knowledge(
+        self, actor: "Actor", names: Iterable[str], caller: str | None = None
+    ) -> dict[str, Any]:
+        """Get and clear multiple knowledge entries.
+
+        Args:
+            actor (Actor): The actor to operate on.
+            names (Iterable[str]): The knowledge to retrieve and delete.
+            caller (str | None, optional): The name of the caller. Defaults to None.
+
+        Returns:
+            dict[str, Any]: The retrieved knowledge.
+        """
+        return {name: self.get_and_clear_actor_knowledge(actor, name) for name in names}
+
     def _clone_actor(self, actor: REH_ACTOR, knowledge: dict[str, Any] | None) -> REH_ACTOR:
         """Create a clone of the actor.
 
@@ -338,9 +406,10 @@ class Task(SettableEnv):
                     next_event = generator.send(returned_item)
                     returned_item = None
                 if not issubclass(next_event.__class__, BaseEvent):
-                    raise SimulationError(
-                        f"Task {self} event {next_event} must be a subclass of BaseEvent!"
-                    )
+                    msg = f"Task {self} event {next_event}"
+                    if isinstance(next_event, Process):
+                        raise SimulationError(msg + " cannot be a process during rehearsal.")
+                    raise SimulationError(msg + " must be a subclass of BaseEvent!")
                 time_advance, returned_item = next_event.rehearse()
                 mocked_env.now += time_advance
 
@@ -385,7 +454,7 @@ class Task(SettableEnv):
             if isinstance(next_event, BaseEvent):
                 next_event.cancel()
             elif isinstance(next_event, Process):
-                next_event.interrupt(cause="Interrupt from task")
+                next_event.interrupt(cause=interrupt.cause)
             else:
                 raise SimulationError(f"Bad event passed: {next_event}")
             stop_run = True
@@ -474,6 +543,8 @@ class Task(SettableEnv):
 class DecisionTask(Task):
     """A task used for decision processes."""
 
+    DO_NOT_HOLD = False
+
     def task(self, *, actor: Any) -> TASK_TYPE:
         """Define the process this task follows."""
         raise SimulationError("No need to call `task` on a DecisionTask")
@@ -532,6 +603,16 @@ class DecisionTask(Task):
         self.make_decision(actor=actor)
         assert isinstance(self.env, SimpyEnv)
         yield self.env.timeout(0.0)
+
+    def run_skip(self, *, actor: "Actor") -> None:
+        """Run the decision task with no clock reference.
+
+        Task networks will use this method if SKIP_WAIT is True.
+
+        Args:
+            actor (Actor): The actor making decisions
+        """
+        self.make_decision(actor=actor)
 
 
 class TerminalTask(Task):

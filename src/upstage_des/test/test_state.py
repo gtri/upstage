@@ -116,6 +116,20 @@ def test_state_values_from_init() -> None:
         assert tester._state_histories["state_three"] == [(0.0, 4), (1.5, 3)]
 
 
+def test_state_none_allowed() -> None:
+    class NoneActor(Actor):
+        example = State[int](allow_none_default=True)
+
+    with EnvironmentContext():
+        ex = NoneActor(name="Example")
+
+        with pytest.raises(SimulationError, match="State example should have been set"):
+            ex.example
+
+        ex.example = 3
+        assert ex.example == 3
+
+
 def test_linear_changing_state() -> None:
     state_three_init = 3
     init_time = 1.5
