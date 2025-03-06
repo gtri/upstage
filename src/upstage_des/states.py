@@ -37,8 +37,8 @@ ST = TypeVar("ST")
 
 
 class ActiveStatus(Enum):
-    activating: str = "ACTIVATING"
-    deactivating: str = "DEACTIVATING"
+    activating = "ACTIVATING"
+    deactivating = "DEACTIVATING"
 
 
 def _compare(a: Any, b: Any) -> bool:

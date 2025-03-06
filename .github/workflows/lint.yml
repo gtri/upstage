@@ -23,7 +23,7 @@ jobs:
        with:
          environments: ${{ matrix.environment }}
          manifest-path: pixi.toml
-         pixi-version: v0.39.0
+         pixi-version: v0.41.0
          cache: true
      - run: pixi run -e ${{ matrix.environment }} lint-check
 
@@ -38,6 +38,6 @@ jobs:
        with:
          environments: ${{ matrix.environment }}
          manifest-path: pixi.toml
-         pixi-version: v0.39.0
+         pixi-version: v0.41.0
          cache: true
      - run: pixi run -e ${{ matrix.environment }} test
