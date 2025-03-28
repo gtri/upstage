@@ -4,6 +4,8 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 """Tests for a bug where bad queue order keeps Monitoring*Stores from working."""
 
+from simpy import Container, Environment
+
 from upstage_des.base import EnvironmentContext
 from upstage_des.events import Get, Put
 from upstage_des.resources.monitoring import (
@@ -15,34 +17,52 @@ from upstage_des.resources.monitoring import (
 from upstage_des.type_help import SIMPY_GEN
 
 
+def _container_check(container: Container, env: Environment) -> dict[str, tuple[float, float]]:
+    """Run a procedure against a container."""
+    data: dict[str, tuple[float, float]] = {}
+
+    def _get_proc() -> SIMPY_GEN:
+        yield env.timeout(1.5)
+        yield Get(container, 1.0).as_event()
+        data["one"] = (env.now, 1.0)
+
+    def _put_one() -> SIMPY_GEN:
+        yield env.timeout(1)
+        yield Put(container, 1.0).as_event()
+        data["put one"] = (env.now, 1.0)
+
+    def _put_two() -> SIMPY_GEN:
+        yield env.timeout(1)
+        yield Put(container, 0.8).as_event()
+        data["put two"] = (env.now, 1.0)
+
+    env.process(_get_proc())
+    env.process(_put_one())
+    env.process(_put_two())
+
+    env.run()
+
+    return data
+
+
 def test_monitoring_container_get() -> None:
+    # The container outputs "True" if a put is successful (to the trigger),
+    # so our original failure to output True should cause a successful
+    # follow-on put to not happen.
+
     with EnvironmentContext() as env:
-        smc = SelfMonitoringContainer(env, init=5)
+        smc = Container(env, init=1.1, capacity=2)
+        data = _container_check(smc, env)
+        
+        assert data.get("one", 0.0) == (1.5, 1.0)
+        assert data.get("put one", 0.0) == (1.5, 1.0)
+        assert data.get("put two", 0.0) == (1.5, 1.0)
 
-        data: dict[str, float] = {}
-
-        def _proc_one() -> SIMPY_GEN:
-            yield Get(smc, 10.0).as_event()
-            data["one"] = env.now
-
-        def _proc_two() -> SIMPY_GEN:
-            yield env.timeout(1.0)
-            yield Get(smc, 3.0).as_event()
-            data["two"] = env.now
-
-        def _proc_three() -> SIMPY_GEN:
-            yield env.timeout(2.0)
-            yield Put(smc, 10.0).as_event()
-
-        env.process(_proc_one())
-        env.process(_proc_two())
-        env.process(_proc_three())
-
-        env.run()
-
-        assert data.get("two", 0.0) == 1.0
-        assert data.get("one", 0.0) == 2.0
-        assert smc.level == 2
+    with EnvironmentContext() as env:
+        smc = SelfMonitoringContainer(env, init=1.1, capacity=2)
+        data2 = _container_check(smc, env)
+        
+        assert data2 == data
 
 
 def test_monitoring_store_get() -> None:
@@ -151,4 +171,4 @@ def test_monitoring_sorted_filter_store_get() -> None:
 
 
 if __name__ == "__main__":
-    test_monitoring_filter_store_get()
+    test_monitoring_container_get()
