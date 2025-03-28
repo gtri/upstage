@@ -4,7 +4,7 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 """Tests for a bug where bad queue order keeps Monitoring*Stores from working."""
 
-from simpy import Container, Environment
+from simpy import Container, Environment, Store, FilterStore
 
 from upstage_des.base import EnvironmentContext
 from upstage_des.events import Get, Put
@@ -65,109 +65,78 @@ def test_monitoring_container_get() -> None:
         assert data2 == data
 
 
+def _store_process(store: Store, env: Environment, filter:bool=True) -> dict[str, tuple[float, int]]:
+    """Run a filtering store process.
+    """
+    store.items.append(2)
+
+    data: dict[str, tuple[float, int]] = {}
+
+    def _proc_one() -> SIMPY_GEN:
+        if filter:
+            res = yield Get(store, filter=lambda x: x == 3).as_event()
+        else:
+            res = yield Get(store).as_event()
+        data["one"] = (env.now, res)
+
+    def _proc_two() -> SIMPY_GEN:
+        if filter:
+            res = yield Get(store, filter=lambda x: x == 4).as_event()
+        else:
+            res = yield Get(store).as_event()
+        data["two"] = (env.now, res)
+
+    # The bug is that if you stack the requests in an order where the
+    # first one fails, it's not going to succeed later
+    def _proc_three() -> SIMPY_GEN:
+        yield env.timeout(2.0)
+        yield Put(store, 4).as_event()
+        yield env.timeout(0.5)
+        yield Put(store, 3).as_event()
+
+    env.process(_proc_one())
+    env.process(_proc_two())
+    env.process(_proc_three())
+
+    env.run()
+
+    data["final"] = list(store.items)
+    return data
+
+
 def test_monitoring_store_get() -> None:
     # This should not be an issue because simpy Store _do_get|put always
     # returns None
     with EnvironmentContext() as env:
         smst = SelfMonitoringStore(env)
-
-        smst.items.append(2)
-
-        data: dict[str, tuple[float, int]] = {}
-
-        def _proc_one() -> SIMPY_GEN:
-            res = yield Get(smst).as_event()
-            data["one"] = (env.now, res)
-
-        def _proc_two() -> SIMPY_GEN:
-            yield env.timeout(1.0)
-            res = yield Get(smst).as_event()
-            data["two"] = (env.now, res)
-
-        def _proc_three() -> SIMPY_GEN:
-            yield env.timeout(2.0)
-            yield Put(smst, 1).as_event()
-
-        env.process(_proc_one())
-        env.process(_proc_two())
-        env.process(_proc_three())
-
-        env.run()
-
+        data = _store_process(smst, env, filter=False)
         assert data.get("one", 0.0) == (0.0, 2)
-        assert data.get("two", 0.0) == (2.0, 1)
-        assert smst.items == []
+        assert data.get("two", 0.0) == (2.0, 4)
+        assert smst.items == [3]
 
 
 def test_monitoring_filter_store_get() -> None:
     with EnvironmentContext() as env:
-        smfst = SelfMonitoringFilterStore(env)
-
-        smfst.items.append(2)
-
-        data: dict[str, tuple[float, int]] = {}
-
-        def _proc_one() -> SIMPY_GEN:
-            res = yield Get(smfst, filter=lambda x: x == 3).as_event()
-            data["one"] = (env.now, res)
-
-        def _proc_two() -> SIMPY_GEN:
-            res = yield Get(smfst, filter=lambda x: x == 4).as_event()
-            data["two"] = (env.now, res)
-
-        # The bug is that if you stack the requests in an order where the
-        # first one fails, it's not going to succeed later
-        def _proc_three() -> SIMPY_GEN:
-            yield env.timeout(2.0)
-            yield Put(smfst, 4).as_event()
-            yield env.timeout(0.5)
-            yield Put(smfst, 3).as_event()
-
-        env.process(_proc_one())
-        env.process(_proc_two())
-        env.process(_proc_three())
-
-        env.run()
-
+        smfst = FilterStore(env)
+        data = _store_process(smfst, env)
         assert data.get("one", 0.0) == (2.5, 3)
         assert data.get("two", 0.0) == (2.0, 4)
-        assert smfst.items == [2]
+        assert data.get("final", [1]) == [2]
 
+    with EnvironmentContext() as env:
+        smfst = SelfMonitoringFilterStore(env)
+        data2 = _store_process(smfst, env)
+        assert data2 == data
+        
 
 def test_monitoring_sorted_filter_store_get() -> None:
     with EnvironmentContext() as env:
         smsfst = SelfMonitoringSortedFilterStore(env)
 
-        smsfst.items.append(2)
-
-        data: dict[str, tuple[float, int]] = {}
-
-        def _proc_one() -> SIMPY_GEN:
-            res = yield Get(smsfst, filter=lambda x: x == 3).as_event()
-            data["one"] = (env.now, res)
-
-        def _proc_two() -> SIMPY_GEN:
-            res = yield Get(smsfst, filter=lambda x: x == 4).as_event()
-            data["two"] = (env.now, res)
-
-        # The bug is that if you stack the requests in an order where the
-        # first one fails, it's not going to succeed later
-        def _proc_three() -> SIMPY_GEN:
-            yield env.timeout(2.0)
-            yield Put(smsfst, 4).as_event()
-            yield env.timeout(0.5)
-            yield Put(smsfst, 3).as_event()
-
-        env.process(_proc_one())
-        env.process(_proc_two())
-        env.process(_proc_three())
-
-        env.run()
-
+        data = _store_process(smsfst, env)
         assert data.get("one", 0.0) == (2.5, 3)
         assert data.get("two", 0.0) == (2.0, 4)
-        assert smsfst.items == [2]
-
+        assert data.get("final", [1]) == [2]
 
 
 if __name__ == "__main__":
