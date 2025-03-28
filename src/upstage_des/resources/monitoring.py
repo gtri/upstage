@@ -206,14 +206,16 @@ class SelfMonitoringContainer(
         self._record()
 
     def _do_put(self, event: ContainerPut) -> None:
-        super()._do_put(event)
+        ans = super()._do_put(event)
         if event.triggered:
             self._record()
+        return ans
 
     def _do_get(self, event: ContainerGet) -> None:
-        super()._do_get(event)
+        ans = super()._do_get(event)
         if event.triggered:
             self._record()
+        return ans
 
 
 class SelfMonitoringContinuousContainer(
