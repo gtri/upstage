@@ -4,7 +4,7 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 """Tests for a bug where bad queue order keeps Monitoring*Stores from working."""
 
-from simpy import Container, Environment, Store, FilterStore
+from simpy import Container, Environment, FilterStore, Store
 
 from upstage_des.base import EnvironmentContext
 from upstage_des.events import Get, Put
@@ -53,7 +53,7 @@ def test_monitoring_container_get() -> None:
     with EnvironmentContext() as env:
         smc = Container(env, init=1.1, capacity=2)
         data = _container_check(smc, env)
-        
+
         assert data.get("one", 0.0) == (1.5, 1.0)
         assert data.get("put one", 0.0) == (1.5, 1.0)
         assert data.get("put two", 0.0) == (1.5, 1.0)
@@ -61,16 +61,17 @@ def test_monitoring_container_get() -> None:
     with EnvironmentContext() as env:
         smc = SelfMonitoringContainer(env, init=1.1, capacity=2)
         data2 = _container_check(smc, env)
-        
+
         assert data2 == data
 
 
-def _store_process(store: Store, env: Environment, filter:bool=True) -> dict[str, tuple[float, int]]:
-    """Run a filtering store process.
-    """
+def _store_process(
+    store: Store, env: Environment, filter: bool = True
+) -> dict[str, tuple[float, int] | list[int]]:
+    """Run a filtering store process."""
     store.items.append(2)
 
-    data: dict[str, tuple[float, int]] = {}
+    data: dict[str, tuple[float, int] | list[int]] = {}
 
     def _proc_one() -> SIMPY_GEN:
         if filter:
@@ -127,7 +128,7 @@ def test_monitoring_filter_store_get() -> None:
         smfst = SelfMonitoringFilterStore(env)
         data2 = _store_process(smfst, env)
         assert data2 == data
-        
+
 
 def test_monitoring_sorted_filter_store_get() -> None:
     with EnvironmentContext() as env:

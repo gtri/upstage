@@ -158,7 +158,7 @@ class SelfMonitoringFilterStore(
         if event.triggered:
             self._record("put")
 
-    def _do_get(self, event: FilterStoreGet) -> bool | None:
+    def _do_get(self, event: FilterStoreGet) -> bool | None:  # type: ignore [override]
         ans = super()._do_get(event)
         if event.triggered:
             self._record("get")
@@ -205,13 +205,13 @@ class SelfMonitoringContainer(
         super()._trigger_get(event)
         self._record()
 
-    def _do_put(self, event: ContainerPut) -> None:
+    def _do_put(self, event: ContainerPut) -> bool | None:
         ans = super()._do_put(event)
         if event.triggered:
             self._record()
         return ans
 
-    def _do_get(self, event: ContainerGet) -> None:
+    def _do_get(self, event: ContainerGet) -> bool | None:
         ans = super()._do_get(event)
         if event.triggered:
             self._record()
