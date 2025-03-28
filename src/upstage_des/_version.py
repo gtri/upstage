@@ -6,4 +6,4 @@
 """Declare the UPSTAGE version."""
 
 __authors__ = "UPSTAGE Contributors, GTRI"
-__version__ = "0.3.0"
+__version__ = "0.3.1"
