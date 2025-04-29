@@ -38,8 +38,9 @@ def test_knowledge_event_clear() -> None:
         assert not act._knowledge["finished"]
         proc.interrupt(cause="ending")
         env.run()
-
         assert "EvtName" not in act._knowledge
+        assert not act._knowledge["finished"]
+        assert act._knowledge["cause"] == "ending"
 
 
 if __name__ == "__main__":
