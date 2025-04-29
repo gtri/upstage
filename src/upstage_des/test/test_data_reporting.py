@@ -2,6 +2,7 @@
 
 from collections import Counter
 from dataclasses import dataclass
+
 import simpy as SIM
 
 import upstage_des.api as UP
@@ -223,7 +224,7 @@ def test_data_reporting() -> None:
 def test_store_failure() -> None:
     class Exam(UP.Actor):
         a_store = UP.ResourceState[SIM.Store](default=SIM.Store)
-    
+
     with UP.EnvironmentContext() as env:
         ex = Exam(name="example")
 
@@ -237,10 +238,10 @@ def test_store_failure() -> None:
         env.run()
         assert env.now == 1
         assert ex.a_store.items == []
-        
+
         data, cols = create_table()
         assert data == []
 
 
 if __name__ == "__main__":
-    test_data_reporting()
+    test_store_failure()
