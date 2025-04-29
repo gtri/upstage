@@ -452,6 +452,10 @@ class Task(SettableEnv):
             actor.deactivate_all_states(task=self)
             actor.deactivate_all_mimic_states(task=self)
             if isinstance(next_event, BaseEvent):
+                names = list(actor._knowledge.keys())
+                for name in names:
+                    if actor._knowledge[name] is next_event:
+                        actor.clear_knowledge(name, caller=f"Clearing knowledge event {name}")
                 next_event.cancel()
             elif isinstance(next_event, Process):
                 next_event.interrupt(cause=interrupt.cause)
