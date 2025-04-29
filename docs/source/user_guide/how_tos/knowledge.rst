@@ -130,4 +130,5 @@ method to support this activity (also described in :doc:`Events </user_guide/how
 The above simplified example shows how UPSTAGE tasks can work with knowledge events to
 support simple releases from other tasks without adding stores or other signaling mechanisms.
 
-The succeed event method also clears the event from the knowledge.
+The succeed event method also clears the event from the knowledge. If a task is interrupted
+on a knowledge event, the event is cancelled and the knowledge is cleared.

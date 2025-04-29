@@ -5,6 +5,7 @@ from upstage_des.type_help import TASK_GEN
 class KnowEvenTask(UP.Task):
     def task(self, *, actor: UP.Actor) -> TASK_GEN:
         evt = actor.create_knowledge_event(name="EvtName")
+        actor.create_knowledge_event(name="other evt")
         self.set_actor_knowledge(actor, "finished", False)
         yield evt
         self.set_actor_knowledge(actor, "finished", True, overwrite=True)
@@ -27,6 +28,7 @@ def test_knowledge_event_clear() -> None:
         env.run()
         assert act._knowledge["finished"]
         assert "EvtName" not in act._knowledge
+        assert "other evt" in act._knowledge
 
     with UP.EnvironmentContext() as env:
         act = UP.Actor(name="Example")
@@ -41,6 +43,8 @@ def test_knowledge_event_clear() -> None:
         assert "EvtName" not in act._knowledge
         assert not act._knowledge["finished"]
         assert act._knowledge["cause"] == "ending"
+        # Only the yielded event should be cleared.
+        assert "other evt" in act._knowledge
 
 
 if __name__ == "__main__":
