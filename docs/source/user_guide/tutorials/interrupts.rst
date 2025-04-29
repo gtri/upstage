@@ -2,8 +2,10 @@
 Task Interrupts
 ===============
 
-Task interruption handling is one of UPSTAGE's convenience features for wrapping SimPy. It allows you to use interruptions to modify the task network without having to write
-exceptions over all the ``yield`` statements.
+Task interruption handling is one of UPSTAGE's convenience features
+for wrapping SimPy. It allows you to use interruptions to modify the
+task network without having to write exceptions over all the ``yield``
+statements.
 
 Motivation
 ==========
@@ -50,12 +52,20 @@ For reference, here is how you might handle interruptions in a process with two 
         yield store.put("THING")
 
 
-The work in that process is very simple, but the cancelling and code required to handle interrupts that we may not care about complicates it greatly. In general, we prefer a task/process
-to explain exactly what it's trying to do, and we can handle interrupts separately without clouding the business logic of the task.
+The work in that process is very simple, but the cancelling and code
+required to handle interrupts that we may not care about complicates
+it greatly. In general, we prefer a task/process to explain exactly
+what it's trying to do, and we can handle interrupts separately without
+clouding the business logic of the task.
 
-In addition, if interrupts are sent by another process, we don't want the other process to have to know about introspecting the actor or the task network to know if it can/should do the
-interrupt. It's preferable to let the interrupting process ask for an interrupt (with some data) and let the actor/task decide if it's a good idea or not. Finally, if the simulation builder
-does not remember to always cancel events (especially get and put), then you may end up with a get request that takes from a store without going anywhere.
+In addition, if interrupts are sent by another process, we don't want the
+other process to have to know about introspecting the actor or the task
+network to know if it can/should do the interrupt. It's preferable to let
+the interrupting process ask for an interrupt (with some data) and let
+the actor/task decide if it's a good idea or not. Finally, if the simulation
+builder does not remember to always cancel events (especially get and put),
+then you may end up with a get request that takes from a store without
+going anywhere.
 
 Here's how those interrupts would look in SimPy:
 
@@ -109,17 +119,22 @@ Here's how those interrupts would look in SimPy:
     >>> 3.00 :: DONE
 
 
-If you interrupt without an approved cause, and miss a final ``else`` (like in this example), you'd finish the work at time 3.5.
+If you interrupt without an approved cause, and miss a final ``else``
+(like in this example), you'd finish the work at time 3.5.
 
-Very critically, if you missed putting the ``get_event.cancel()`` line, SimPy would still process the ``get_event`` and take the item from the store. This would effectively remove it from the simulation.
+Very critically, if you missed putting the ``get_event.cancel()`` line,
+SimPy would still process the ``get_event`` and take the item from the
+store. This would effectively remove it from the simulation.
 
 
 UPSTAGE Interrupts
 ==================
 
-UPSTAGE's interrupt handling system mitigates these key sources of error or frustration:
+UPSTAGE's interrupt handling system mitigates these key sources of
+error or frustration:
 
 #. Forgetting to cancel get and put events in an interrupt
+#. Cancelling and clearing :doc:`knowledge events </user_guide/how_tos/knowledge>`.
 #. Make the main task more readable about what it's doing.
 #. Simplifies interrupt causes and conditions.
 #. Forgetting to stop some calculation of a state
@@ -197,15 +212,19 @@ Then, when you run it:
 	>>> During marker: 'getting'
     >>> 1.00 :: Items in store: ['THING']
 
-Now the task is small and informative about what it's supposed to do when its not interrupted. The marker features let us set and get introspection data cleanly.
+Now the task is small and informative about what it's supposed to do when its
+not interrupted. The marker features let us set and get introspection data cleanly.
 
-Notice also that the ``Get()`` call does not need to be cancelled by the user; UPSTAGE does that for us (for all :py:class:`~upstage_des.events.BaseEvent` subclasses that implement ``cancel``).
+Notice also that the ``Get()`` call does not need to be cancelled by the user;
+UPSTAGE does that for us (for all :py:class:`~upstage_des.events.BaseEvent`
+subclasses that implement ``cancel``).
 
 Some additional details:
 
 * Line 25: The ``on_interrupt`` method will pass in the actor and the interrupt cause only.
 
-* Line 21: If we didn't do: ``self.set_marker("working")`` here, the Task would still think it was marked as ``"getting"``. Yields do not clear marks.
+* Line 21: If we didn't do: ``self.set_marker("working")`` here, the Task would still
+  think it was marked as ``"getting"``. Yields do not clear marks.
 
   * You can use ``clear_marker`` to clear it, and return to a default behavior if you like.
 
@@ -213,10 +232,18 @@ Some additional details:
 
 * Line 28: More on ``INTERRUPT`` below.
 
+If you had created a knowledge event and yielded on it, UPSTAGE will cancel that event,
+but also search the Actor's knowledge to see if the event was in the knowledge. If it was,
+the event knowledge is cleared. This is done to assis in looping or repeat tasks that
+recreate the knowledge event by name for use by other tasks, and this prevents needing to
+overwrite the knowledge event or test for its existence in task logic.
+
 INTERRUPT Types and Setting Markers
 -----------------------------------
 
-Interrupts allow 4 different outcomes to the task, which are signalled by the :py:class:`~upstage_des.task.InterruptStates` Enum (or :py:class:`~upstage_des.task.Task.INTERRUPT` as part of ``self``). The first
+Interrupts allow 4 different outcomes to the task, which are signalled by the
+:py:class:`~upstage_des.task.InterruptStates` Enum (or
+:py:class:`~upstage_des.task.Task.INTERRUPT` as part of ``self``). The first
 three can be returned from ``on_interrupt`` to define how to handle the interrupt.
 
 #. ``END``: Ends the task right there (and moves on in the task network). This cancels the pending event(s).
@@ -234,7 +261,8 @@ If you implement ``on_interrupt``, then the marker's interrupt value is ignored.
 Advanced Interrupts and Marking
 ===============================
 
-Let's return to our example, and add more complicated interrupt handling, including with an active state on the actor.
+Let's return to our example, and add more complicated interrupt handling,
+including with an active state on the actor.
 
 .. code-block:: python
     :linenos:
@@ -282,7 +310,9 @@ The new features are:
 * Line 18: Use the marker time to determine how we want to interrupt
 * Line 31: Remind ourselves that returning ``None`` throws an exception
 
-With these features we now have separated the logic of a successful task from one that is interrupted. It also allows more structure and streamlining of interrupt actions.
+With these features we now have separated the logic of a successful task
+from one that is interrupted. It also allows more structure and streamlining
+of interrupt actions.
 
 Here's an example where the automatic cancelling of an active state is also shown:
 
@@ -316,7 +346,9 @@ The interrupt automatically deactivates all states, keeping your Actors safe fro
 Getting the Process
 ===================
 
-If an actor is running a task network, you will need to get the current Task process to send an interrupt. Do that with the :py:meth:`upstage_des.actor.Actor.get_running_tasks` method.
+If an actor is running a task network, you will need to get the current
+Task process to send an interrupt. Do that with the
+:py:meth:`upstage_des.actor.Actor.get_running_tasks` method.
 
 .. code-block:: python
 
@@ -331,4 +363,6 @@ If an actor is running a task network, you will need to get the current Task pro
     # OR:
     actor.interrupt_network(task_network_name, cause="Stop running")
 
-The first two methods are better to use if you need to check that the task name is the right one for interrupt. A well-defined task network should handle the interrupt anywhere, though.
+The first two methods are better to use if you need to check that the
+task name is the right one for interrupt. A well-defined task network
+should handle the interrupt anywhere, though.

@@ -11,7 +11,6 @@ from upstage_des.states import (
     ActiveStatus,
     CartesianLocationChangingState,
     GeodeticLocationChangingState,
-    ResourceState,
 )
 
 ACTUAL_LOCATION = GeodeticLocation | CartesianLocation
@@ -101,7 +100,7 @@ def _actor_state_data(
                     name, kind, state_name, is_active, actor._state_histories[state_name]
                 )
             )
-        elif isinstance(state, ResourceState) or hasattr(_value, "_quantities"):
+        elif hasattr(_value, "_quantities"):
             resources.append(_value)
             data.extend(_state_history_to_table(name, kind, state_name, False, _value._quantities))
         elif save_static:
