@@ -2,9 +2,11 @@
 
 from collections import Counter
 from dataclasses import dataclass
+import simpy as SIM
 
 import upstage_des.api as UP
 from upstage_des.data_utils import create_location_table, create_table
+from upstage_des.type_help import SIMPY_GEN
 
 
 @dataclass
@@ -216,6 +218,28 @@ def test_data_reporting() -> None:
 
     # Only the two "other" states should show up
     assert len(new_table) - len(orig_table) == 2
+
+
+def test_store_failure() -> None:
+    class Exam(UP.Actor):
+        a_store = UP.ResourceState[SIM.Store](default=SIM.Store)
+    
+    with UP.EnvironmentContext() as env:
+        ex = Exam(name="example")
+
+        def _proc() -> SIMPY_GEN:
+            yield ex.a_store.put("a thing")
+            yield env.timeout(1.0)
+            assert ex.a_store.items == ["a thing"]
+            yield ex.a_store.get()
+
+        env.process(_proc())
+        env.run()
+        assert env.now == 1
+        assert ex.a_store.items == []
+        
+        data, cols = create_table()
+        assert data == []
 
 
 if __name__ == "__main__":
