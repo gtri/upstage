@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 from simpy import Process
 
 from upstage_des.base import SimulationError
-from upstage_des.task import Task, TerminalTask, process
+from upstage_des.task import DecisionTask, Task, TerminalTask, process
 
 REH_ACTOR = TypeVar("REH_ACTOR", bound="Actor")
 
@@ -124,9 +124,15 @@ class TaskNetwork:
             self._current_task_inst = task_instance
             self._current_task_inst._set_network_name(self.name)
             self._current_task_inst._set_network_ref(self)
-            self._current_task_proc = self._current_task_inst.run(actor=actor)
 
-            yield self._current_task_proc
+            if (
+                isinstance(self._current_task_inst, DecisionTask)
+                and self._current_task_inst.DO_NOT_HOLD
+            ):
+                self._current_task_inst.run_skip(actor=actor)
+            else:
+                self._current_task_proc = self._current_task_inst.run(actor=actor)
+                yield self._current_task_proc
 
             next_name = self._next_task_name(task_name, actor)
             self._current_task_name = next_name

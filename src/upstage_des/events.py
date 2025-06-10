@@ -206,6 +206,7 @@ class Wait(BaseEvent):
             raise SimulationError(f"Negative timeout in Wait: {self._time_to_complete}")
         rehearse = timeout if rehearsal_time_to_complete is None else rehearsal_time_to_complete
         super().__init__(rehearsal_time_to_complete=rehearse)
+        self._simpy_event: SIM.Timeout | None = None
 
     @classmethod
     def from_random_uniform(
@@ -241,8 +242,9 @@ class Wait(BaseEvent):
         Returns:
             SIM.Timeout
         """
-        assert not isinstance(self.env, MockEnvironment)
-        self._simpy_event = self.env.timeout(self._time_to_complete)
+        assert isinstance(self.env, SIM.Environment)
+        if self._simpy_event is None:
+            self._simpy_event = self.env.timeout(self._time_to_complete)
         return self._simpy_event
 
     def cancel(self) -> None:
@@ -330,6 +332,7 @@ class Put(BaseRequestEvent):
 
         self.put_location = put_location
         self.put_object = put_object
+        self._request_event: ContainerPut | StorePut | None = None
 
     def as_event(self) -> ContainerPut | StorePut:
         """Convert event to a ``simpy`` Event.
@@ -340,7 +343,8 @@ class Put(BaseRequestEvent):
             Put request as a simpy event.
 
         """
-        self._request_event = self.put_location.put(self.put_object)
+        if self._request_event is None:
+            self._request_event = self.put_location.put(self.put_object)
         return self._request_event
 
 
@@ -561,6 +565,7 @@ class Get(BaseRequestEvent):
         self.get_args = get_args
         self.get_kwargs = get_kwargs
         self.__is_store = issubclass(get_location.__class__, SIM.Store)
+        self._request_event: ContainerGet | StoreGet | None = None
 
     def calculate_time_to_complete(self) -> float:
         """Calculate time elapsed until the event is triggered.
@@ -578,10 +583,11 @@ class Get(BaseRequestEvent):
             ContainerGet | StoreGet
         """
         # TODO: optional checking for container types for feasibility
-        self._request_event = self.get_location.get(
-            *self.get_args,
-            **self.get_kwargs,
-        )
+        if self._request_event is None:
+            self._request_event = self.get_location.get(
+                *self.get_args,
+                **self.get_kwargs,
+            )
         return self._request_event
 
     def get_value(self) -> tyAny:

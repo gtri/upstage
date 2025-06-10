@@ -725,8 +725,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         queue = self._task_queue.get(network_name)
         if queue and queue[0] != task_name:
             raise SimulationError(
-                f"Actor {self.name} commanded to perform '{task_name}' "
-                f"but '{queue[0]}' is expected"
+                f"Actor {self.name} commanded to perform '{task_name}' but '{queue[0]}' is expected"
             )
         elif not queue:
             self.set_task_queue(network_name, [task_name])
@@ -1147,6 +1146,20 @@ class Actor(SettableEnv, NamedUpstageEntity):
         if self._state_listener is None:
             raise SimulationError("Expected a nucleus, but none found.")
         return self._state_listener
+
+    def record_state(self, state_name: str) -> None:
+        """Record a state by its name.
+
+        Useful for states that have attributes that aren't set
+        via the descriptor, such as dictionaries or dataclasses.
+
+        Args:
+            state_name (str): The name of the state.
+        """
+        if state_name not in self.states:
+            raise SimulationError(f"No state '{state_name}' to record.")
+        v = getattr(self, state_name)
+        self._state_defs[state_name]._do_record(self, v)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}: {self.name}"

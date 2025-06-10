@@ -99,9 +99,9 @@ def test_put_event_with_stores() -> None:
 
         assert put_event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = put_event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Put
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Put), (
+            "Event returned is not simpy put event"
+        )
         env.run()
         assert isinstance(returned_object, StorePut)
         assert returned_object.item is put_object, "Wrong object put"
@@ -127,9 +127,9 @@ def test_put_event_with_containers() -> None:
 
         assert put_event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = put_event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Put
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Put), (
+            "Event returned is not simpy put event"
+        )
         env.run()
         assert isinstance(returned_object, ContainerPut)
         assert returned_object.amount == put_arg, "Wrong amount put"
@@ -157,9 +157,9 @@ def test_get_event_with_stores() -> None:
         event = Get(store)
         assert event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Get
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Get), (
+            "Event returned is not simpy put event"
+        )
 
         env.run()
         assert isinstance(event._request_event, StoreGet)
@@ -187,9 +187,9 @@ def test_get_event_with_containers() -> None:
         event = Get(container, get_arg)
         assert event.calculate_time_to_complete() == 0.0, "Incorrect time to complete"
         returned_object = event.as_event()
-        assert issubclass(
-            returned_object.__class__, base.Get
-        ), "Event returned is not simpy put event"
+        assert issubclass(returned_object.__class__, base.Get), (
+            "Event returned is not simpy put event"
+        )
 
         env.run()
         assert isinstance(event._request_event, ContainerGet)
@@ -248,17 +248,17 @@ def test_resource_events() -> None:
         assert newest_request._request is not None
         assert not newest_request._request.processed, "Request went through when it shouldn't"
 
-        assert (
-            newest_request._request in a_resource.put_queue
-        ), "Resource isn't waiting to be gathered"
+        assert newest_request._request in a_resource.put_queue, (
+            "Resource isn't waiting to be gathered"
+        )
         with pytest.raises(SimulationError, match="Resource release requested.*?"):
             newest_request.as_event()
 
         newest_request.cancel()
         env.run()
-        assert (
-            newest_request._request not in a_resource.put_queue
-        ), "Resource hasn't left the wait queue"
+        assert newest_request._request not in a_resource.put_queue, (
+            "Resource hasn't left the wait queue"
+        )
 
 
 def test_multi_event() -> None:
@@ -476,3 +476,104 @@ def test_conflicts() -> None:
         env.run()
         assert data["time_two"] == data["time_three"]
         assert data["time_five"] == 1.1
+
+
+def test_resubmit_wait_events() -> None:
+    # Test the bug found in github issue 41
+    # Where Wait wasn't acting like timeout for being resubmitted.
+
+    # This illustrates the simpy behavior
+    with EnvironmentContext() as env:
+        w1 = Wait(1.1)
+        w2 = Wait(2.2)
+
+        # put the events into simpy
+        w1.as_event()
+        w2.as_event()
+
+        env.run()
+        assert env.now == 2.2
+
+    # even when the timeout has no callbacks, it completes
+    with EnvironmentContext() as env:
+        w1 = Wait(1.1)
+        w2 = Wait(2.2)
+
+        def _proc() -> SIMPY_GEN:
+            yield w1.as_event() | w2.as_event()
+            assert env.now == 1.1
+
+        env.process(_proc())
+        env.run()
+        assert env.now == 2.2
+
+    # if we re-wait on w2, it should end at the right time.
+    with EnvironmentContext() as env:
+        w1 = Wait(1.1)
+        w2 = Wait(2.2)
+
+        def _proc() -> SIMPY_GEN:
+            yield w1.as_event() | w2.as_event()
+            assert env.now == 1.1
+            yield w2.as_event()
+            assert env.now == 2.2
+
+        env.process(_proc())
+        env.run()
+        assert env.now == 2.2
+
+
+def test_resubmit_get_put_events() -> None:
+    # Make sure that get/put events don't hang.
+    with EnvironmentContext() as env:
+        store1 = SIM.Store(env)
+        store2 = SIM.Store(env)
+
+        def _put_stuff() -> SIMPY_GEN:
+            yield Wait(1.0).as_event()
+            yield store1.put("thing")
+            yield Wait(1.0).as_event()
+            yield store2.put("other")
+
+        def _get_stuff() -> SIMPY_GEN:
+            g1 = Get(store1)
+            g2 = Get(store2)
+            yield g1.as_event() | g2.as_event()
+            assert g1.is_complete()
+            assert g1.get_value() == "thing"
+            assert env.now == 1.0
+            yield g2.as_event()
+            assert env.now == 2.0
+            assert g2.is_complete()
+            assert g2.get_value() == "other"
+
+        env.process(_put_stuff())
+        env.process(_get_stuff())
+        env.run()
+
+    # run the same through UPSTAGE
+    with EnvironmentContext() as env:
+        store1 = SIM.Store(env)
+        store2 = SIM.Store(env)
+
+        def _put_stuff() -> SIMPY_GEN:
+            yield Wait(1.0).as_event()
+            yield store1.put("thing")
+            yield Wait(1.0).as_event()
+            yield store2.put("other")
+
+        def _get_stuff() -> SIMPY_GEN:
+            g1 = Get(store1)
+            g2 = Get(store2)
+            yield Any(g1, g2).as_event()
+            assert g1.is_complete()
+            assert g1.get_value() == "thing"
+            assert env.now == 1.0
+            yield g2.as_event()
+            assert env.now == 2.0
+            assert g2.is_complete()
+            assert g2.get_value() == "other"
+
+        env.process(_put_stuff())
+        env.process(_get_stuff())
+        env.run()

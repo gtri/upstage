@@ -37,8 +37,8 @@ ST = TypeVar("ST")
 
 
 class ActiveStatus(Enum):
-    activating: str = "ACTIVATING"
-    deactivating: str = "DEACTIVATING"
+    activating = "ACTIVATING"
+    deactivating = "DEACTIVATING"
 
 
 def _compare(a: Any, b: Any) -> bool:
@@ -235,7 +235,7 @@ class State(Generic[ST]):
             tuple[Any,...]: The state type
         """
         state_class = instance._state_defs[self.name]
-        args = get_args(state_class.__orig_class__) # type: ignore [attr-defined]
+        args = get_args(state_class.__orig_class__)  # type: ignore [attr-defined]
         return args
 
     def _set_default(self, instance: "Actor") -> None:

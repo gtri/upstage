@@ -98,11 +98,13 @@ class SelfMonitoringStore(
         super()._do_put(event)
         if event.triggered:
             self._record("put")
+        return None
 
     def _do_get(self, event: StoreGet) -> None:
         super()._do_get(event)
         if event.triggered:
             self._record("get")
+        return None
 
 
 class SelfMonitoringFilterStore(
@@ -156,10 +158,11 @@ class SelfMonitoringFilterStore(
         if event.triggered:
             self._record("put")
 
-    def _do_get(self, event: FilterStoreGet) -> None:  # type: ignore[override]
-        super()._do_get(event)
+    def _do_get(self, event: FilterStoreGet) -> bool | None:  # type: ignore [override]
+        ans = super()._do_get(event)
         if event.triggered:
             self._record("get")
+        return ans
 
 
 class SelfMonitoringContainer(
@@ -202,15 +205,17 @@ class SelfMonitoringContainer(
         super()._trigger_get(event)
         self._record()
 
-    def _do_put(self, event: ContainerPut) -> None:
-        super()._do_put(event)
+    def _do_put(self, event: ContainerPut) -> bool | None:
+        ans = super()._do_put(event)
         if event.triggered:
             self._record()
+        return ans
 
-    def _do_get(self, event: ContainerGet) -> None:
-        super()._do_get(event)
+    def _do_get(self, event: ContainerGet) -> bool | None:
+        ans = super()._do_get(event)
         if event.triggered:
             self._record()
+        return ans
 
 
 class SelfMonitoringContinuousContainer(
