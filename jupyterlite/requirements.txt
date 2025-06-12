@@ -1,0 +1,8 @@
+jupyterlite-core==0.6.1
+jupyterlab~=4.4.3
+notebook~=7.4.3
+jupyterlite-pyodide-kernel==0.6.1
+jupyterlab-night
+plotly>=6,<7
+nbformat
+upstage_des>=0.3.2,<0.4
