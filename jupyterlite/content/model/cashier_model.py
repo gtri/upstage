@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for license terms.
@@ -12,8 +12,8 @@ import upstage_des.api as UP
 from upstage_des.task import InterruptStates
 from upstage_des.type_help import SIMPY_GEN, TASK_GEN
 
-BREAK_TIME = 15.0
 
+BREAK_TIME = 15.0
 
 class Cashier(UP.Actor):
     scan_speed = UP.State[float](
@@ -71,9 +71,7 @@ class StoreBoss(UP.UpstageBase):
 
 class CashierBreakTimer(UP.Task):
     def task(self, *, actor: Cashier) -> TASK_GEN:
-        times = [
-            self.env.now + actor.time_until_break * b for b in range(1, actor.breaks_until_done + 1)
-        ]
+        times = [self.env.now + actor.time_until_break*b for b in range(1, actor.breaks_until_done+1)]
         for t in times:
             yield UP.Wait(t - self.env.now)
             actor.interrupt_network("CashierJob", cause=dict(reason="BREAK TIME"))
@@ -102,7 +100,7 @@ class InterruptibleTask(UP.Task):
         marker = self.get_marker() or "none"
         if marker == "on break" and "Break" in job_list:
             job_list.remove("Break")
-
+            
         self.clear_actor_task_queue(actor)
         self.set_actor_task_queue(actor, job_list)
         if marker == "cancellable":
@@ -264,7 +262,7 @@ def customer_spawner(
 ) -> Generator[SIM.Event, None, None]:
     # sneaky way to get access to stage
     stage = lanes[0].stage
-    t_until = (8 * 60 + 1) - env.now
+    t_until = (8*60+1) - env.now
     t_until = max(t_until, 0.0)
     yield env.timeout(t_until)
     while True:
@@ -272,7 +270,7 @@ def customer_spawner(
         days = hrs // 24
         time_of_day = hrs % 24
         if time_of_day >= 18.5:
-            time_at_open = 24 * (days + 1) + 8
+            time_at_open = 24 * (days + 1) + 8 
             mins_to_open = (time_at_open - hrs) * 60
             yield env.timeout(mins_to_open)
 
@@ -296,45 +294,3 @@ def manager_process(boss: StoreBoss, cashiers: list[Cashier]) -> SIMPY_GEN:
             return
         cash = boss.stage.random.choice(possible)
         yield cash.messages.put(["Restock"])
-
-
-def test_cashier_example() -> None:
-    with UP.EnvironmentContext(initial_time=8 * 60) as env:
-        UP.add_stage_variable("time_unit", "min")
-        cashier = Cashier(
-            name="Bob",
-            scan_speed=1.0,
-            time_until_break=120.0,
-            breaks_until_done=4,
-            debug_log=True,
-        )
-        lane_1 = CheckoutLane(name="Lane 1")
-        lane_2 = CheckoutLane(name="Lane 2")
-        boss = StoreBoss(lanes=[lane_1, lane_2])
-
-        UP.add_stage_variable("boss", boss)
-
-        net = cashier_task_network.make_network()
-        cashier.add_task_network(net)
-        cashier.start_network_loop(net.name, "GoToWork")
-
-        net = cashier_message_net.make_network()
-        cashier.add_task_network(net)
-        cashier.start_network_loop(net.name, "CashierMessages")
-
-        customer_proc = customer_spawner(env, [lane_1, lane_2])
-        _ = env.process(customer_proc)
-
-        _ = env.process(manager_process(boss, [cashier]))
-
-        env.run(until=20 * 60)
-
-    for line in cashier.get_log():
-        if "Interrupt" in line:
-            print(line)
-
-    print(cashier.items_scanned)
-
-
-if __name__ == "__main__":
-    test_cashier_example()
