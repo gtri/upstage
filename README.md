@@ -4,6 +4,10 @@ UPSTAGE is a **U**niversal **P**latform for **S**imulating
 **T**asks and **A**ctors with **G**raphs and **E**vents built atop
 [__`SimPy 4`__][simpy-repo].
 
+## ✨ Try it in your browser ✨
+
+➡️ **https://gtri.github.io/upstage/demo**
+
 ## What is UPSTAGE for?
 
 __UPSTAGE__ is a Python framework for creating robust, behavior-driven Discrete Event Simulations (DES). The primary goal of UPSTAGE is to enable the quick creation of simulations at any desired level of abstraction with built-in data recording, simulation integrity and runtime checks, and assistance for the usual pitfalls in custom discrete-event simulation: interrupts and cancellations. It is designed is to simplify the development process for simulation models of *complex systems of systems*.
