@@ -29,6 +29,17 @@ Additional features include:
 This project is under active development.
 ```
 
+## Demo
+
+Try one of these demos in your browser with JupyterLite.
+
+```{toctree}
+:caption: UPSTAGE Demos
+:maxdepth: 1
+
+demo.md
+```
+
 ## Installation
 
 In a suitable Python environment (3.11+):
