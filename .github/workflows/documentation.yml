@@ -16,19 +16,9 @@ jobs:
           pixi-version: v0.41.0
           cache: true
       - run: pixi run -e py312 build_html_docs
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install the dependencies
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        run: |
-          python -m pip install -r jupyterlite/requirements.txt
       - name: Build the JupyterLite site
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        run: |
-          cp README.md jupyterlite/content
-          jupyter lite build --contents jupyterlite/content --output-dir build/docs/demo
+        run: pixi run -e py312 build_jl
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

@@ -72,15 +72,21 @@ depends-on = ["autogen"]
 description = "Set up and test"
 depends-on = ["lint-check", "test", "build_html_docs"]
 
+[feature.tasks-jlite.tasks.build_jl]
+description = "Create jupyterlite page"
+cmd = "jupyter lite build --contents jupyterlite/content --output-dir build/docs/demo"
+
 [environments.dev]
 features = [
   "deps-lint",
   "deps-test",
   "deps-docs",
+  "deps-jlite",
   "tasks-lint",
   "tasks-test",
   "tasks-docs",
   "tasks-start",
+  "tasks-jlite",
 ]
 
 [environments.py311]
@@ -99,9 +105,11 @@ features  = [
   "deps-lint",
   "deps-test",
   "deps-docs",
+  "deps-jlite",
   "tasks-lint",
   "tasks-test",
   "tasks-docs",
+  "tasks-jlite",
 ]
 
 [environments.py313]
@@ -141,3 +149,8 @@ pytest-json-report = "*"
 myst-parser = "*"
 pydata-sphinx-theme = "*"
 sphinx = ">=7"
+
+[feature.deps-jlite.dependencies]
+jupyterlite-core = "==0.6.1"
+jupyterlite-pyodide-kernel = "==0.6.1"
+jupyterlab = "~=4.4.3"
