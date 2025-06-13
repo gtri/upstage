@@ -1,0 +1,53 @@
+upstage\_des.motion package
+===========================
+
+Submodules
+----------
+
+upstage\_des.motion.cartesian\_model module
+-------------------------------------------
+
+.. automodule:: upstage_des.motion.cartesian_model
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.motion.geodetic\_model module
+------------------------------------------
+
+.. automodule:: upstage_des.motion.geodetic_model
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.motion.great\_circle\_calcs module
+-----------------------------------------------
+
+.. automodule:: upstage_des.motion.great_circle_calcs
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.motion.motion module
+---------------------------------
+
+.. automodule:: upstage_des.motion.motion
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.motion.stepped\_motion module
+------------------------------------------
+
+.. automodule:: upstage_des.motion.stepped_motion
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: upstage_des.motion
+   :members:
+   :show-inheritance:
+   :undoc-members:
