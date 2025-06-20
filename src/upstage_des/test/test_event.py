@@ -274,6 +274,18 @@ def test_multi_event() -> None:
             event3 = SIM.Timeout(env, 1.5)
             All(event1, event3)  # type: ignore [arg-type]
 
+    with EnvironmentContext() as env:
+        w = Wait(1.0)
+        e = Event()
+        evt = All(w, e)
+        w.as_event()
+        e.as_event()
+        evt.as_event()
+
+        with pytest.raises(SimulationError, match="failed to cancel"):
+            e.cancel()
+            evt.cancel()
+
 
 def test_and_event() -> None:
     with EnvironmentContext() as env:
@@ -577,3 +589,7 @@ def test_resubmit_get_put_events() -> None:
         env.process(_put_stuff())
         env.process(_get_stuff())
         env.run()
+
+
+if __name__ == "__main__":
+    test_multi_event()
