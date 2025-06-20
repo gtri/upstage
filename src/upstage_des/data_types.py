@@ -591,6 +591,16 @@ class GeodeticLocationData:
         self.alt = alt
         self.in_radians = in_radians
 
+    def latlon(self) -> tuple[float, float]:
+        """Return a tuple of just lat/lon as degrees.
+
+        Returns:
+            tuple[float, float]: Latitude and longitude in degrees.
+        """
+        lat = degrees(self.lat) if self.in_radians else self.lat
+        lon = degrees(self.lon) if self.in_radians else self.lon
+        return (lat, lon)
+
     def make_location(self) -> GeodeticLocation:
         """Create a location from the data.
 
