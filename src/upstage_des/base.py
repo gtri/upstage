@@ -207,6 +207,7 @@ class SpecialContexts:
 
     actors: list["Actor"] = field(default_factory=list)
     monitored: list["MonitoringMixin"] = field(default_factory=list)
+    data_recorded: list[tuple[float, Any]] = field(default_factory=list)
 
 
 ENV_CONTEXT_VAR: ContextVar[SimpyEnv] = ContextVar("Environment")
@@ -300,6 +301,19 @@ class UpstageBase:
         ans: list[MonitoringMixin] = []
         try:
             ans = SPECIAL_ENTITY_CONTEXT_VAR.get().monitored
+        except LookupError:
+            raise UpstageError(CONTEXT_ERROR_MSG)
+        return ans
+
+    def get_recorded(self) -> list[tuple[float, Any]]:
+        """Return custom recorded data.
+
+        Returns:
+            list[tuple[float, Any]]: Lists of time and data object
+        """
+        ans: list[tuple[float, Any]] = []
+        try:
+            ans = SPECIAL_ENTITY_CONTEXT_VAR.get().data_recorded
         except LookupError:
             raise UpstageError(CONTEXT_ERROR_MSG)
         return ans
