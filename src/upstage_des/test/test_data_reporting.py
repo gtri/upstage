@@ -6,7 +6,12 @@ from dataclasses import dataclass
 import simpy as SIM
 
 import upstage_des.api as UP
-from upstage_des.data_utils import create_location_table, create_table
+from upstage_des.data_utils import (
+    create_location_table,
+    create_table,
+    get_recorded_data,
+    record_data,
+)
 from upstage_des.type_help import SIMPY_GEN
 
 
@@ -241,6 +246,36 @@ def test_store_failure() -> None:
 
         data, cols = create_table()
         assert data == []
+
+
+def test_data_recorder() -> None:
+    with UP.EnvironmentContext() as env:
+        record_data("First")
+        record_data({"ok": "working"})
+        env.run(until=3.0)
+        record_data(1.23)
+        env.run(until=4.0)
+        info = Information(1, 2.0)
+        record_data(info, copy=True)
+        record_data(info, copy=False)
+        info.value_1 = 5
+
+        the_data = get_recorded_data()
+        assert len(the_data) == 5
+        assert the_data[0] == (0.0, "First")
+        assert the_data[1] == (0.0, {"ok": "working"})
+        assert the_data[2] == (3.0, 1.23)
+        assert the_data[3][0] == 4.0
+        info_stored = the_data[3][1]
+        assert getattr(info_stored, "value_1", None) == 1
+        assert getattr(info_stored, "value_2", None) == 2.0
+        assert id(info_stored) != id(info)
+
+        assert the_data[4][0] == 4.0
+        info_stored_2 = the_data[4][1]
+        assert getattr(info_stored_2, "value_1", None) == 5
+        assert getattr(info_stored_2, "value_2", None) == 2.0
+        assert id(info_stored_2) == id(info)
 
 
 if __name__ == "__main__":
