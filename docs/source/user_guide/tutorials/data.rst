@@ -2,7 +2,7 @@
 Simulation Data Gathering and Processing
 ========================================
 
-UPSTAGE has three features for data recording:
+UPSTAGE has four features for data recording:
 
 1. Use ``Actor.log()`` to log a string message at a given time.
 
@@ -21,7 +21,12 @@ UPSTAGE has three features for data recording:
    * Access the data with ``a_store._quantities``
    * The data will be in the form ``tuple[time, value]``
 
-UPSTAGE also has utility methods for pulling all of the available data into a
+4. Use the generic data recorder: ``record_data(data_object)``.
+
+   * Access data with ``get_recorded_data()``.
+   * The data will be in the form ``[(time, data), (time, data), ...]
+
+UPSTAGE also has utility methods for pulling most of the available data into a
 tabular format, along with providing column headers.
 
 
@@ -298,12 +303,32 @@ Or use the actor init to pass the item function:
     )
 
 
+General Data Recording
+======================
+
+General data recording is for data that may not conveniently work with states or monitored
+stores. UPSTAGE provides a simple interface for storing general information:
+
+.. code-block:: python
+
+    from upstage_des.data_utils import record_data
+
+    with UP.EnvironmentContext() as env:
+        ...
+        record_data("The cashier made a funny joke")
+        ...
+        record_data({"received": ["fruit", "eggs"], "shipping method": "car"})
+        ...
+
+The optional parameter ``copy`` can be set to ``True`` to attempt a deep copy of the
+object to record a snapshot of a mutable type that may change.        
+
 Data Gathering
 ==============
 
-There are two functions for gathering data from UPSTAGE:
+There are three functions for gathering data from UPSTAGE:
 
-1. :py:func:`upstage_des.data_utils.create_table`
+1. :py:func:`upstage_des.data_utils.data_utils.create_table`
    
    * Finds all actors and their recording states
    * Finds all ``SelfMonitoring<>`` resources that are not attached
@@ -318,7 +343,7 @@ There are two functions for gathering data from UPSTAGE:
      column value of ``"Last Seen"``.
    * Data are in long-form, meaning rows may share a timestamp.
 
-2. :py:func:`upstage_des.data_utils.create_location_table`
+2. :py:func:`upstage_des.data_utils.data_utils.create_location_table`
   
    * Finds all location states on Actors
    * Reports location data as individual columns for the dimensions
@@ -326,6 +351,12 @@ There are two functions for gathering data from UPSTAGE:
    * Reports on active/inactive state data.
    * Data are not completely in long-form. XYZ are on a single row, but
      rows can have the same timestamp if they are different states.
+
+3. :py:func:`upstage_des.data_utils.data_recorder.get_recorded_data`
+
+   * Returns the list of tuples of time and data that was recorded.
+   * No other features, it is up to the user to pick what they want
+     and how they want to process it.
 
 Using the example in :doc:`Data Gathering Example </user_guide/tutorials/data_creation_example>`, the
 following table (a partial amount shown) would be obtained from the ``create_table`` function:
