@@ -22,11 +22,9 @@ if TYPE_CHECKING:
 from .base import ENV_CONTEXT_VAR, MockEnvironment, SettableEnv, SimulationError
 from .constants import PLANNING_FACTOR_OBJECT
 from .events import BaseEvent, Event
+from .type_help import TASK_GEN, _TRoutine
 
-TASK_TYPE = Generator[BaseEvent | Process, Any, None]
-
-
-__all__ = ("DecisionTask", "Task", "process", "TerminalTask", "TASK_TYPE", "InterruptStates")
+__all__ = ("DecisionTask", "Task", "process", "TerminalTask", "InterruptStates")
 
 
 NOT_IMPLEMENTED_MSG = "User must define the actions performed when executing this task"
@@ -104,7 +102,6 @@ class Task(SettableEnv):
     def __init__(self) -> None:
         """Create a task instance."""
         super().__init__()
-        self._proc: TASK_TYPE | None = None
         self._network_name: str | None = None
         self._network_ref: TaskNetwork | None = None
         self._marker: str | None = None
@@ -112,7 +109,7 @@ class Task(SettableEnv):
         self._interrupt_action: InterruptStates = InterruptStates.END
         self._rehearsing: bool = False
 
-    def task(self, *, actor: Any) -> TASK_TYPE:
+    def task(self, *, actor: Any) -> TASK_GEN:
         """Define the process this task follows."""
         raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
@@ -405,11 +402,11 @@ class Task(SettableEnv):
                 else:
                     next_event = generator.send(returned_item)
                     returned_item = None
-                if not issubclass(next_event.__class__, BaseEvent):
+                if not issubclass(next_event.__class__, BaseEvent | _TRoutine):
                     msg = f"Task {self} event {next_event}"
                     if isinstance(next_event, Process):
                         raise SimulationError(msg + " cannot be a process during rehearsal.")
-                    raise SimulationError(msg + " must be a subclass of BaseEvent!")
+                    raise SimulationError(msg + " must be a subclass of BaseEvent or Routine.")
                 time_advance, returned_item = next_event.rehearse()
                 mocked_env.now += time_advance
 
@@ -425,7 +422,7 @@ class Task(SettableEnv):
 
     def _handle_interruption(
         self, actor: "Actor", interrupt: Interrupt, next_event: BaseEvent | Process
-    ) -> tuple[bool, bool]:
+    ) -> InterruptStates:
         """Clean up after an interrupt and perform interrupt checks/actions.
 
         Args:
@@ -434,12 +431,9 @@ class Task(SettableEnv):
             next_event (BaseEvent): _description_
 
         Returns:
-            bool: If the task should be stopped
-            bool: If the task should be restarted
+            InterruptStates: action to take
         """
         # test the interrupt behavior:
-        stop_run = False
-        restart = False
         _interrupt_action = self.on_interrupt(
             actor=actor,
             cause=interrupt.cause,
@@ -461,17 +455,9 @@ class Task(SettableEnv):
                 next_event.interrupt(cause=interrupt.cause)
             else:
                 raise SimulationError(f"Bad event passed: {next_event}")
-            stop_run = True
-            if _interrupt_action is InterruptStates.RESTART:
-                restart = True
-        elif _interrupt_action is InterruptStates.IGNORE:
-            # go back to waiting on the event
-            stop_run = False
-        else:
+        elif _interrupt_action != InterruptStates.IGNORE:
             raise SimulationError(f"Wrong interrupt action value: {_interrupt_action}")
-        if restart and not stop_run:
-            raise SimulationError("Restarting a task, but it isn't stopping")
-        return stop_run, restart
+        return _interrupt_action
 
     @process
     def run(self, *, actor: "Actor") -> Generator[SimpyEvent | Process, Any, None]:
@@ -483,65 +469,84 @@ class Task(SettableEnv):
         Returns:
             Generator[SimpyEvent, Any, None]
         """
-        generator = self.task(actor=actor)
-        self._proc = generator
+        generators = [
+            self.task(actor=actor),
+        ]
+        gen_objs: list[Task | _TRoutine] = [
+            self,
+        ]
         return_item = None
         stop_run = False
-        restart = False
-        come_back_to = False
+        back_from_interrupt = False
         event_to_yield: Process | SimpyEvent
         while not stop_run:
             try:
                 while True:
-                    try:
-                        if not come_back_to:
+                    if not back_from_interrupt:
+                        try:
                             if return_item is None:
-                                next_event = next(generator)
+                                next_event = next(generators[-1])
                             else:
-                                next_event = generator.send(return_item)
-                            # Allows processes to be yielded on inside an event
-                            # This is dangerous
-                            if isinstance(next_event, Process):
-                                warn(
-                                    f"Yielding a simpy.Process from {self}. "
-                                    f"This is dangerous, take care. ",
-                                    UserWarning,
-                                )
-                                event_to_yield = next_event
-                            elif isinstance(next_event, BaseEvent):
-                                event_to_yield = next_event.as_event()
-                            else:
-                                raise SimulationError(
-                                    f"Unexpected yielded event type: {next_event}"
-                                )
+                                next_event = generators[-1].send(return_item)
+                        except StopIteration:
+                            generators.pop()
+                            gen_objs.pop()
+                            if not generators:
+                                stop_run = True
+                                break
+
+                        # A routine class gives us a generator, so go back to the
+                        # start and run it as such.
+                        if isinstance(next_event, _TRoutine):
+                            generators.append(next_event._run())
+                            gen_objs.append(next_event)
+                            continue
+
+                        if isinstance(next_event, Process):
+                            warn(
+                                f"Yielding a simpy.Process from {self}. "
+                                f"This is dangerous, take care. ",
+                                UserWarning,
+                            )
+                            event_to_yield = next_event
+                        elif isinstance(next_event, BaseEvent):
+                            event_to_yield = next_event.as_event()
                         else:
-                            come_back_to = False
-                        return_item = yield event_to_yield
-                        # TODO: test if the return_item is for a multi-event
-                        # that way we can return it as a more useful object
-                    except AttributeError as exc:
-                        if "as_event" in exc.args[0]:
-                            raise SimulationError("Task is yielding objects without `as_event`")
-                        else:
-                            raise exc
-                    except StopIteration:
-                        stop_run = True
-                        break
+                            raise SimulationError(f"Unexpected yielded event type: {next_event}")
+                    else:
+                        back_from_interrupt = False
+                    return_item = yield event_to_yield
+                    # TODO: test if the return_item is for a multi-event
+                    # that way we can return it as a more useful object
 
             except Interrupt as interrupt:
-                stop_run, restart = self._handle_interruption(
+                assert not isinstance(next_event, _TRoutine)
+                action = self._handle_interruption(
                     actor,
                     interrupt,
                     next_event,
                 )
-                if not stop_run:
-                    come_back_to = True
-                if restart:
-                    generator = self.task(actor=actor)
-                    self._proc = generator
-                    return_item = None
-                    stop_run = False
-                    restart = False
+                if action == InterruptStates.IGNORE:
+                    back_from_interrupt = True
+                else:
+                    # This is restart or end; either way we have to cancel
+                    # any routines in the stack.
+                    while generators:
+                        gen = generators.pop()
+                        gen_obj = gen_objs.pop()
+                        if isinstance(gen_obj, _TRoutine):
+                            gen.close()
+                            yield from gen_obj._run_cancel()
+                    if action == InterruptStates.RESTART:
+                        generators = [
+                            self.task(actor=actor),
+                        ]
+                        gen_objs = [
+                            self,
+                        ]
+                        return_item = None
+                    else:
+                        stop_run = True
 
 
 class DecisionTask(Task):
@@ -549,7 +554,7 @@ class DecisionTask(Task):
 
     DO_NOT_HOLD = False
 
-    def task(self, *, actor: Any) -> TASK_TYPE:
+    def task(self, *, actor: Any) -> TASK_GEN:
         """Define the process this task follows."""
         raise SimulationError("No need to call `task` on a DecisionTask")
 
@@ -653,7 +658,7 @@ class TerminalTask(Task):
         )
         return InterruptStates.END
 
-    def task(self, *, actor: "Actor") -> TASK_TYPE:
+    def task(self, *, actor: "Actor") -> TASK_GEN:
         """The terminal task.
 
         It's just a long wait.
