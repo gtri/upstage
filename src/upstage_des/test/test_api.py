@@ -72,6 +72,8 @@ def test_api() -> None:
         "SharedLinearChangingState",
         "CommunicationStore",
         "unit_convert",
+        "Routine",
+        "WindowedGet",
     )
 
     for item in items_to_test:

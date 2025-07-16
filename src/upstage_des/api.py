@@ -64,6 +64,9 @@ from upstage_des.resources.monitoring import (
 from upstage_des.resources.reserve import ReserveContainer
 from upstage_des.resources.sorted import SortedFilterGet, SortedFilterStore
 
+# Routine
+from upstage_des.routines import Routine, WindowedGet
+
 # Nucleus-friendly states
 from upstage_des.state_sharing import SharedLinearChangingState
 
@@ -150,4 +153,6 @@ __all__ = [
     "SensorMotionManager",
     "SteppedMotionManager",
     "unit_convert",
+    "Routine",
+    "WindowedGet",
 ]
