@@ -93,6 +93,19 @@ tasks while reducing the lines of code in your tasks. If the
 simulation had several card drawing tasks with different conditions
 you could design a ``Routine`` that was usable for all of them.
 
+Take Care with ``cancel()``
+***************************
+
+The ``cancel()`` method of a routine, unlike the interrupt of a ``Task``,
+is allowed to send events out. This makes it possible for ``cancel()``
+to have side effects or get hung up on an event longer than a simulation
+creator may expect. For example, returning items to a store may hang if 
+other processes have put items into the store (up to capacity) while the
+``Routine`` was running. 
+
+It is up to you to make sure to test if your cancellation is actually zero-
+time or not. 
+
 Built-In Routines
 *****************
 
