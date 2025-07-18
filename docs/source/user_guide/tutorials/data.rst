@@ -24,7 +24,7 @@ UPSTAGE has four features for data recording:
 4. Use the generic data recorder: ``record_data(data_object)``.
 
    * Access data with ``get_recorded_data()``.
-   * The data will be in the form ``[(time, data), (time, data), ...]
+   * The data will be in the form ``[(time, data), (time, data), ...]``.
 
 UPSTAGE also has utility methods for pulling most of the available data into a
 tabular format, along with providing column headers.
