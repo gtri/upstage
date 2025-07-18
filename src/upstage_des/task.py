@@ -488,12 +488,15 @@ class Task(SettableEnv):
                                 next_event = next(generators[-1])
                             else:
                                 next_event = generators[-1].send(return_item)
-                        except StopIteration:
+                        except StopIteration as e:
                             generators.pop()
                             gen_objs.pop()
+                            if e.value is not None:
+                                return_item = e.value
                             if not generators:
                                 stop_run = True
                                 break
+                            continue
 
                         # A routine class gives us a generator, so go back to the
                         # start and run it as such.
