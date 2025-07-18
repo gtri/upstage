@@ -55,6 +55,7 @@ myst_substitutions = {
     "ResourceState": "{py:class}`~upstage_des.states.ResourceState`",
     "SelfMonitoringStore": "{py:class}`~upstage_des.stores.SelfMonitoringStore`",
     "DecisionTask": "{py:class}`~upstage_des.task.DecisionTask`",
+    "Routine": "{py:class}`~upstage_des.routines.Routine`",
 }
 
 
