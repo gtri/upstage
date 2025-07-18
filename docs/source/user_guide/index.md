@@ -74,4 +74,5 @@ how_tos/motion_manager.rst
 how_tos/communications.rst
 how_tos/typing.rst
 how_tos/random_numbers.rst
+how_tos/routines.rst
 ```
