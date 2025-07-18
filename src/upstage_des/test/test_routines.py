@@ -161,8 +161,8 @@ class WindowedTask(UP.Task):
             reset_window=actor.reset,
             get_kwargs=dict(rehearsal_time_to_complete=2.2),
         )
-        yield routine
-        self.set_actor_knowledge(actor, "result", routine.result)
+        answer = yield routine
+        self.set_actor_knowledge(actor, "result", answer)
 
     def on_interrupt(self, *, actor: TestActor3, cause: str) -> UP.InterruptStates:
         if cause == "end":
@@ -288,3 +288,7 @@ def test_windowed_get() -> None:
         new = task.rehearse(actor=act)
         assert new._knowledge["result"] == [UP.PLANNING_FACTOR_OBJECT]
         assert new.env.now == 2.2
+
+
+if __name__ == "__main__":
+    test_windowed_get()

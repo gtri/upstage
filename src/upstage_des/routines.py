@@ -20,9 +20,8 @@ class Routine(SettableEnv, _TRoutine):
 
        class SomeTask(Task):
            def task(self, *, actor):
-              routine = Routine(...)
-              yield routine
-              do_something_with(routine.value)
+              result = yield Routine(...)
+              do_something_with(result)
     """
 
     def __init__(self) -> None:
@@ -43,10 +42,14 @@ class Routine(SettableEnv, _TRoutine):
 
     def _run(self) -> ROUTINE_GEN:
         try:
-            for evt in self.run():
+            gen = self.run()
+            while True:
+                evt = next(gen)
                 if not isinstance(evt, BaseEvent):
                     raise SimulationError("Routines only support BaseEvent subclasses.")
                 yield evt
+        except StopIteration as e:
+            return e.value
         except GeneratorExit:
             # The parent task will close this generator and handle everything
             # else.
@@ -152,13 +155,14 @@ class WindowedGet(Routine):
             need_wait = True
             obj = incoming.get_value()
             self.result.append(obj)
+        return self.result
 
     def cancel(self) -> ROUTINE_GEN:
         """Return all the items to the store and cancel the get."""
         while self.result:
             yield Put(self.store, self.result.pop(0))
 
-    def rehearse(self) -> tuple[float, None]:
+    def rehearse(self) -> tuple[float, Any]:
         """Rehearse the windowed get.
 
         This just expects one return value at the expected time of the get.
@@ -169,4 +173,4 @@ class WindowedGet(Routine):
         get = Get(self.store, *self.get_args, **self.get_kwargs)
         t, v = get.rehearse()
         self.result = [v]
-        return t, None
+        return t, self.result

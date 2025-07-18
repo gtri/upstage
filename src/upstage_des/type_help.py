@@ -14,7 +14,7 @@ from simpy import Event as SimEvent
 from upstage_des.events import BaseEvent
 
 SIMPY_GEN = Generator[SimEvent, Any, Any]
-ROUTINE_GEN = Generator[BaseEvent, Any, None]
+ROUTINE_GEN = Generator[BaseEvent, Any, Any]
 
 
 @runtime_checkable

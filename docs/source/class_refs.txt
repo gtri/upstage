@@ -15,3 +15,4 @@
 .. |ResourceState| replace:: :py:class:`~upstage_des.states.ResourceState`
 .. |SelfMonitoringStore| replace:: :py:class:`~upstage_des.stores.SelfMonitoringStore`
 .. |DecisionTask| replace:: :py:class:`~upstage_des.task.DecisionTask`
+.. |Routine| replace:: :py:class:`~upstage_des.routines.Routine`
