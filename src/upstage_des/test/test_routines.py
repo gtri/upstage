@@ -147,8 +147,144 @@ def test_routine_cancel() -> None:
         assert actor_clone.value == [UP.PLANNING_FACTOR_OBJECT] * 2
 
 
-def test_windowed_get() -> None: ...
+class TestActor3(UP.Actor):
+    reset = UP.State[bool](default=True)
+    timeout = UP.State[float]()
+    store = UP.ResourceState[SIM.Store](default=SIM.Store)
 
 
-if __name__ == "__main__":
-    test_routine_cancel()
+class WindowedTask(UP.Task):
+    def task(self, *, actor: TestActor3) -> TASK_GEN:
+        routine = UP.WindowedGet(
+            store=actor.store,
+            timeout=actor.timeout,
+            reset_window=actor.reset,
+            get_kwargs=dict(rehearsal_time_to_complete=2.2),
+        )
+        yield routine
+        self.set_actor_knowledge(actor, "result", routine.result)
+
+    def on_interrupt(self, *, actor: TestActor3, cause: str) -> UP.InterruptStates:
+        if cause == "end":
+            return UP.InterruptStates.END
+        elif cause == "ignore":
+            return UP.InterruptStates.IGNORE
+        elif cause == "restart":
+            return UP.InterruptStates.RESTART
+        else:
+            raise UP.SimulationError("Bad cause")
+
+
+def _placer(env: SIM.Environment, act: TestActor3) -> SIMPY_GEN:
+    yield env.timeout(1.0)
+    yield act.store.put("1")
+    yield env.timeout(3.0)
+    yield act.store.put("2")
+    yield env.timeout(4.0)
+    yield act.store.put("3")
+
+
+def test_windowed_get() -> None:
+    # Test the windowed get w/ window reset on
+    with UP.EnvironmentContext() as env:
+        act = TestActor3(
+            name="example",
+            reset=True,
+            timeout=5.0,
+        )
+
+        task = WindowedTask()
+        task.run(actor=act)
+
+        env.process(_placer(env, act))
+        env.run()
+
+        assert act._knowledge["result"] == ["1", "2", "3"]
+
+    # Same test, but no reset. We shouldn't get the 3rd item.
+    with UP.EnvironmentContext() as env:
+        act = TestActor3(
+            name="example",
+            reset=False,
+            timeout=5.0,
+        )
+
+        task = WindowedTask()
+        task.run(actor=act)
+
+        env.process(_placer(env, act))
+        env.run()
+
+        assert act._knowledge["result"] == ["1", "2"]
+
+    # An interrupt in the task process will cancel the routine
+    # and everything will be back in the store.
+    with UP.EnvironmentContext() as env:
+        act = TestActor3(
+            name="example",
+            reset=True,
+            timeout=5.0,
+        )
+
+        task = WindowedTask()
+        proc = task.run(actor=act)
+
+        env.process(_placer(env, act))
+        env.run(until=5.0)
+        proc.interrupt(cause="end")
+        env.run()
+
+        assert "result" not in act._knowledge
+        assert act.store.items == ["1", "2", "3"]
+
+    # Interrupt with IGNORE and see the result as before.
+    with UP.EnvironmentContext() as env:
+        act = TestActor3(
+            name="example",
+            reset=True,
+            timeout=5.0,
+        )
+
+        task = WindowedTask()
+        proc = task.run(actor=act)
+
+        env.process(_placer(env, act))
+        env.run(until=5.0)
+        proc.interrupt(cause="ignore")
+        env.run()
+
+        assert act._knowledge["result"] == ["1", "2", "3"]
+
+    # Interrupt with RESTART and modify the timeout. The request will be redone
+    # but won't last long enough to get the 3rd item.
+    with UP.EnvironmentContext() as env:
+        act = TestActor3(
+            name="example",
+            reset=False,
+            timeout=5.0,
+        )
+
+        task = WindowedTask()
+        proc = task.run(actor=act)
+
+        env.process(_placer(env, act))
+        env.run(until=5.0)
+        act.timeout = 1
+        proc.interrupt(cause="restart")
+        env.run()
+
+        assert act._knowledge["result"] == ["1", "2"]
+        assert act.store.items == ["3"]
+
+    # Rehearsal
+    with UP.EnvironmentContext() as env:
+        act = TestActor3(
+            name="example",
+            reset=False,
+            timeout=5.0,
+        )
+
+        task = WindowedTask()
+        new = task.rehearse(actor=act)
+        assert new._knowledge["result"] == [UP.PLANNING_FACTOR_OBJECT]
+        assert new.env.now == 2.2
