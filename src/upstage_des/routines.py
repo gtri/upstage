@@ -20,8 +20,14 @@ class Routine(SettableEnv, _TRoutine):
 
        class SomeTask(Task):
            def task(self, *, actor):
-              result = yield Routine(...)
+              routine = Routine(...)
+              yield routine
+              do_something_with(routine.value)
     """
+
+    def __init__(self) -> None:
+        """Create the routine."""
+        super().__init__()
 
     def run(self) -> ROUTINE_GEN:
         """Define the routine."""
@@ -113,6 +119,7 @@ class WindowedGet(Routine):
             reset_window (bool, optional): If we restart the window on later successes.
                 Defaults to False.
         """
+        super().__init__()
         self.store = store
         self.timeout = timeout
         self.timeout_unit = timeout_unit
@@ -134,7 +141,7 @@ class WindowedGet(Routine):
             if need_wait:
                 if wait is None or self.reset_window:
                     wait = Wait(self.timeout, timeout_unit=self.timeout_unit)
-                    evts.append(wait)
+                evts.append(wait)
 
             yield AnyEvent(*evts)
 
@@ -149,7 +156,7 @@ class WindowedGet(Routine):
     def cancel(self) -> ROUTINE_GEN:
         """Return all the items to the store and cancel the get."""
         while self.result:
-            yield Put(self.store, self.result.pop())
+            yield Put(self.store, self.result.pop(0))
 
     def rehearse(self) -> tuple[float, None]:
         """Rehearse the windowed get.
