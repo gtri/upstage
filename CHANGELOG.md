@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.3
+
+* Added jupyterlite example to documentation
+* MultiEvent was given a more informative error
+* GeodeticLocationData type was given a latlon() method to match GeodeticLocation
+* Generalized data recording function in upstage_des.data_utils.record_data()
+* Routines were added, which are a way to re-use more complicated event flows in Tasks.
+
 ## v0.3.2
 
 * Knowledge events are cancelled and cleared from knowledge on interrupt
