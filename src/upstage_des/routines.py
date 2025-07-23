@@ -1,16 +1,18 @@
 """A routine is something small done by an Actor in a Task."""
 
+from collections.abc import Generator
 from typing import Any
 
 import simpy as SIM
 
-from upstage_des.base import SettableEnv, SimulationError
+from upstage_des.base import SIMPY_GEN, SettableEnv, SimulationError
 from upstage_des.events import Any as AnyEvent
 from upstage_des.events import BaseEvent, Get, Put, Wait
-from upstage_des.type_help import ROUTINE_GEN, SIMPY_GEN, _TRoutine
+
+ROUTINE_GEN = Generator[BaseEvent, Any, Any]
 
 
-class Routine(SettableEnv, _TRoutine):
+class Routine(SettableEnv):
     """A base class for creating simple routines from.
 
     Routines are meant to be subclassed, and if you want actor or other data,

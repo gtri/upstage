@@ -6,7 +6,7 @@
 """Base classes and exceptions for UPSTAGE."""
 
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from functools import wraps
@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Protocol, Union
 from warnings import warn
 
 from simpy import Environment as SimpyEnv
+from simpy import Event as SimEvent
 
 from upstage_des.geography import INTERSECTION_LOCATION_CALLABLE, EarthProtocol
 from upstage_des.units.convert import STANDARD_TIMES, TIME_ALTERNATES, unit_convert
@@ -27,6 +28,9 @@ CONTEXT_ERROR_MSG = "Undefined context variable: use EnvironmentContext"
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
     from upstage_des.resources.monitoring import MonitoringMixin
+
+
+SIMPY_GEN = Generator[SimEvent, Any, Any]
 
 
 class DotDict(dict):
