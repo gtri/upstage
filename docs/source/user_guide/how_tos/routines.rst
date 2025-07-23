@@ -104,7 +104,12 @@ other processes have put items into the store (up to capacity) while the
 ``Routine`` was running. 
 
 It is up to you to make sure to test if your cancellation is actually zero-
-time or not. 
+time or not.
+
+Finally, UPSTAGE will already cancel the event that is being yielded on when
+the task is interrupted. Your cancel method doesn't have to worry about that.
+Its purpose is to do cleanup and interactions beyond that scope. By the time
+the cancel method is called, the yielded event will have already been cancelled.
 
 Built-In Routines
 *****************
