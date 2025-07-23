@@ -41,12 +41,13 @@ These states already have an assigned type, or have a limited scope of types:
 Task and Process Types
 ----------------------
 
-Tasks and simpy processes have output types that are ``Generator`` types. UPSTAGE has a type alias for each of these:
+Tasks, Routines, and simpy processes have output types that are ``Generator`` types.
+UPSTAGE has a type alias for each of these:
 
 .. code-block:: python
 
     from simpy import Environment
-    from upstage_des.type_help import TASK_GEN, SIMPY_GEN
+    from upstage_des.type_help import ROUTINE_GEN, SIMPY_GEN, TASK_GEN
     from upstage_des.api import Task, Actor, process, InterruptStates
 
     class SomeTask(Task):
@@ -57,27 +58,36 @@ Tasks and simpy processes have output types that are ``Generator`` types. UPSTAG
             ...
             return self.INTERRUPT.END
 
+    class SimpleRoutine(UP.Routine):
+        def __init__(self, time: float) -> None:
+            self.time = time
+
+        def run(self) -> ROUTINE_GEN:
+            yield UP.Wait(self.time, rehearsal_time_to_complete=self.time * 2)
+
     @process
     def a_simpy_process(env: Environment, wait: float) -> SIMPY_GEN:
         yield env.timeout(wait)
 
 The methods on decision tasks should all return ``None``.
 
+Routines and SimPy generators expect to be able to receive data into themselves and
+to return data, but the ``Task.task()`` methods do not give a return value other than
+``None`` to indicate a stopping of the iteration.
 
 --------------------
 Avoiding Circularity
 --------------------
 
 If you have a lot of circularity in your code, such as actors needing to know about each other within their definitions,
-there are a few things to try. First, is to use ``Protocol`` classes to define the interfaces. Then, ensure that your state
-definitions, methods, etc. match the protocols. This can limit the effectiveness of the protocol if you'd like type hinting and
-tab completion in your IDE. If at all possible, use the actual |Actor| subclasses as types in |Task| classes and elsewhere to get all
-the features they have as hints.
+there are a few things to try. The first option is to use ``Protocol`` classes to define the interfaces. Then, ensure that your state
+definitions, methods, etc. match the protocols. Your protocol will need to inherit from ``Actor`` at some point, otherwise the
+type hint system won't let you know about actor specific methods.
 
-An alternative is to use ``typing.TYPE_CHECKING`` to allow circular imports for when ``mypy`` checks. Use a string of the type
+The alternative is to use ``typing.TYPE_CHECKING`` to allow circular imports during type checking. Use a string of the type
 instead of the actual type in this case. There are several examples of this in UPSTAGE and in SIMPY, both for circularity and for
-making the API easier to understand for ``mypy`` and your IDE. This will allow your IDE to hint more things to you, and can prevent
-mypy errors if you use a protocol an forget to add something like ``add_knowledge`` to it.
+making the API easier to understand for type checkers and your IDE. This will allow your IDE to hint more things to you, and can prevent
+errors if you use a protocol an forget to add something like ``add_knowledge()`` to it.
 
 The first thing to check is if inheritence in the actors can solve your problem, but often it cannot. If you actors are in
 the same file, you can simply use strings for the types, and you're all set. If they are in separate files, use the above two

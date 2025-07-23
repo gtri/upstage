@@ -5,30 +5,12 @@
 
 """Help for typing task and simpy generators."""
 
-from abc import abstractmethod
-from collections.abc import Generator
-from typing import Any, Protocol, runtime_checkable
+from upstage_des.base import SIMPY_GEN
+from upstage_des.routines import ROUTINE_GEN
+from upstage_des.task import TASK_GEN
 
-from simpy import Event as SimEvent
-
-from upstage_des.events import BaseEvent
-
-SIMPY_GEN = Generator[SimEvent, Any, Any]
-ROUTINE_GEN = Generator[BaseEvent, Any, Any]
-
-
-@runtime_checkable
-class _TRoutine(Protocol):
-    @abstractmethod
-    def run(self) -> ROUTINE_GEN: ...
-    @abstractmethod
-    def cancel(self) -> ROUTINE_GEN: ...
-    @abstractmethod
-    def _run(self) -> ROUTINE_GEN: ...
-    @abstractmethod
-    def _run_cancel(self) -> SIMPY_GEN: ...
-    @abstractmethod
-    def rehearse(self) -> tuple[float, Any | None]: ...
-
-
-TASK_GEN = Generator[BaseEvent | _TRoutine, Any, None]
+__all__ = [
+    "SIMPY_GEN",
+    "ROUTINE_GEN",
+    "TASK_GEN",
+]

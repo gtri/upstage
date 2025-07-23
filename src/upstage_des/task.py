@@ -22,12 +22,14 @@ if TYPE_CHECKING:
 from .base import ENV_CONTEXT_VAR, MockEnvironment, SettableEnv, SimulationError
 from .constants import PLANNING_FACTOR_OBJECT
 from .events import BaseEvent, Event
-from .type_help import TASK_GEN, _TRoutine
+from .routines import Routine
 
 __all__ = ("DecisionTask", "Task", "process", "TerminalTask", "InterruptStates")
 
 
 NOT_IMPLEMENTED_MSG = "User must define the actions performed when executing this task"
+
+TASK_GEN = Generator[BaseEvent | Routine, Any, None]
 
 
 class InterruptStates(IntFlag):
@@ -402,7 +404,7 @@ class Task(SettableEnv):
                 else:
                     next_event = generator.send(returned_item)
                     returned_item = None
-                if not issubclass(next_event.__class__, BaseEvent | _TRoutine):
+                if not issubclass(next_event.__class__, BaseEvent | Routine):
                     msg = f"Task {self} event {next_event}"
                     if isinstance(next_event, Process):
                         raise SimulationError(msg + " cannot be a process during rehearsal.")
@@ -472,7 +474,7 @@ class Task(SettableEnv):
         generators = [
             self.task(actor=actor),
         ]
-        gen_objs: list[Task | _TRoutine] = [
+        gen_objs: list[Task | Routine] = [
             self,
         ]
         return_item = None
@@ -500,7 +502,7 @@ class Task(SettableEnv):
 
                         # A routine class gives us a generator, so go back to the
                         # start and run it as such.
-                        if isinstance(next_event, _TRoutine):
+                        if isinstance(next_event, Routine):
                             generators.append(next_event._run())
                             gen_objs.append(next_event)
                             continue
@@ -523,7 +525,7 @@ class Task(SettableEnv):
                     # that way we can return it as a more useful object
 
             except Interrupt as interrupt:
-                assert not isinstance(next_event, _TRoutine)
+                assert not isinstance(next_event, Routine)
                 action = self._handle_interruption(
                     actor,
                     interrupt,
@@ -537,7 +539,7 @@ class Task(SettableEnv):
                     while generators:
                         gen = generators.pop()
                         gen_obj = gen_objs.pop()
-                        if isinstance(gen_obj, _TRoutine):
+                        if isinstance(gen_obj, Routine):
                             gen.close()
                             yield from gen_obj._run_cancel()
                     if action == InterruptStates.RESTART:
