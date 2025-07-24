@@ -55,6 +55,7 @@ myst_substitutions = {
     "ResourceState": "{py:class}`~upstage_des.states.ResourceState`",
     "SelfMonitoringStore": "{py:class}`~upstage_des.stores.SelfMonitoringStore`",
     "DecisionTask": "{py:class}`~upstage_des.task.DecisionTask`",
+    "Routine": "{py:class}`~upstage_des.routines.Routine`",
 }
 
 
@@ -64,6 +65,7 @@ myst_substitutions = {
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 html_logo = "_static/upstage-logo-medium.png"
+html_show_sourcelink = False
 html_theme_options = {
   "show_nav_level": 2,
   "navbar_center": ["navbar-nav"],

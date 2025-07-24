@@ -192,7 +192,7 @@ Let's define the tasks that wait for a customer and check the customer out.
 .. code-block:: python
     :linenos:
 
-    from typing import Generator
+    from collections.abc import Generator
     from upstage_des.type_help import TASK_GEN
 
 

@@ -429,7 +429,11 @@ class MultiEvent(BaseEvent):
         self._simpy_event.fail(Exception("defused"))
         for event in self.events:
             if isinstance(event, BaseEvent):
-                event.cancel()
+                try:
+                    event.cancel()
+                except Exception as e:
+                    msg = f"Event {event} in {self} failed to cancel\n\t:{e}"
+                    raise SimulationError(msg)
 
     def calculate_time_to_complete(
         self,

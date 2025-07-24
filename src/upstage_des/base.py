@@ -6,7 +6,7 @@
 """Base classes and exceptions for UPSTAGE."""
 
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from functools import wraps
@@ -29,6 +29,9 @@ CONTEXT_ERROR_MSG = "Undefined context variable: use EnvironmentContext"
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
     from upstage_des.resources.monitoring import MonitoringMixin
+
+
+SIMPY_GEN = Generator[SimEvent, Any, Any]
 
 
 class DotDict(dict):
@@ -218,6 +221,7 @@ class SpecialContexts:
 
     actors: list["Actor"] = field(default_factory=list)
     monitored: list["MonitoringMixin"] = field(default_factory=list)
+    data_recorded: list[tuple[float, Any]] = field(default_factory=list)
 
 
 ENV_CONTEXT_VAR: ContextVar[SimpyEnv] = ContextVar("Environment")
@@ -311,6 +315,19 @@ class UpstageBase:
         ans: list[MonitoringMixin] = []
         try:
             ans = SPECIAL_ENTITY_CONTEXT_VAR.get().monitored
+        except LookupError:
+            raise UpstageError(CONTEXT_ERROR_MSG)
+        return ans
+
+    def get_recorded(self) -> list[tuple[float, Any]]:
+        """Return custom recorded data.
+
+        Returns:
+            list[tuple[float, Any]]: Lists of time and data object
+        """
+        ans: list[tuple[float, Any]] = []
+        try:
+            ans = SPECIAL_ENTITY_CONTEXT_VAR.get().data_recorded
         except LookupError:
             raise UpstageError(CONTEXT_ERROR_MSG)
         return ans

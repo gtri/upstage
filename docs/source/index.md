@@ -22,11 +22,23 @@ Additional features include:
 6. The stage: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
 7. Rehearsal: Write planning and simulation code in one place only, and "rehearse" an actor through a task network using planning factors to discover task feasibility.
 8. All States are recordable
-9. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.
-10. And more!
+9. A {{ Routine }} class for building reusable event behaviors to simplify {{ Task }} coding.
+10. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.
+11. And more!
 
 ```{note}
 This project is under active development.
+```
+
+## Demo
+
+Try one of these demos in your browser with JupyterLite.
+
+```{toctree}
+:caption: UPSTAGE Demos
+:maxdepth: 1
+
+demo.md
 ```
 
 ## Installation

@@ -5,12 +5,12 @@
 
 """Help for typing task and simpy generators."""
 
-from collections.abc import Generator
-from typing import Any
+from upstage_des.base import SIMPY_GEN
+from upstage_des.routines import ROUTINE_GEN
+from upstage_des.task import TASK_GEN
 
-from simpy import Event as SimEvent
-
-from upstage_des.events import BaseEvent
-
-TASK_GEN = Generator[BaseEvent, Any, None]
-SIMPY_GEN = Generator[SimEvent, Any, Any]
+__all__ = [
+    "SIMPY_GEN",
+    "ROUTINE_GEN",
+    "TASK_GEN",
+]

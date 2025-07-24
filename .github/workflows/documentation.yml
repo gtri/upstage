@@ -10,12 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.8.4
+      - uses: prefix-dev/setup-pixi@v0.8.10
         with:
           manifest-path: pixi.toml
           pixi-version: v0.41.0
           cache: true
       - run: pixi run -e py312 build_html_docs
+      - name: Build the JupyterLite site
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: pixi run -e py312 build_jl
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
