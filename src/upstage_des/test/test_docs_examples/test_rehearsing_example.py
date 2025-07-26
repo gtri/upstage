@@ -127,8 +127,8 @@ def test_model() -> None:
 
         plane = Plane(
             name="searcher",
-            speed=2,
-            fuel=200,
+            speed=2.0,
+            fuel=200.0,
             fuel_burn=5.0,
             location=UP.CartesianLocation(20, 10),
             debug_log=True,

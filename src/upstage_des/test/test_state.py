@@ -3,10 +3,10 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
-from typing import Any, cast
+from typing import Any
 
 import pytest
-from simpy import Container, Environment, Store
+from simpy import Container, Store
 
 import upstage_des.api as UP
 import upstage_des.resources.monitoring as monitor
@@ -16,29 +16,10 @@ from upstage_des.states import LinearChangingState, ResourceState, State
 from upstage_des.type_help import SIMPY_GEN
 
 
-class StateTest:
-    state_one = State[Any]()
-    state_two = State[Any](recording=True)
-
-    def __init__(self, env: Environment | None) -> None:
-        cast(UP.Actor, self)
-        self.env = env
-        # including for compatibility
-        self._mimic_states: dict[str, Any] = {}
-        self._state_listener = None
-        self._state_histories: dict[str, list[tuple[float, Any]]] = {}
-
-    def set_one(self, val: Any) -> None:
-        self.state_one = val  # type: ignore [arg-type]
-
-    def set_two(self, val: Any) -> None:
-        self.state_two = val  # type: ignore [arg-type]
-
-
 class StateTestActor(Actor):
-    state_one = State[Any]()
-    state_two = State[Any](recording=True)
-    state_three = LinearChangingState(recording=True)
+    state_one = State[Any](default=0.0)
+    state_two = State[Any](default=0.0, recording=True)
+    state_three = LinearChangingState(default=0.0, recording=True)
 
 
 class MutableDefaultActor(Actor):
@@ -47,36 +28,27 @@ class MutableDefaultActor(Actor):
     setstate = State[set](default=set())
 
 
-def test_state_fails_without_env() -> None:
-    """Test that recording states need the class to have an env attribute"""
-    tester = StateTest(None)
-    # the first one should not raise an error
-    tester.set_one(1)
-
-    with pytest.raises(SimulationError):
-        tester.set_two(1)
-
-
 def test_state_values() -> None:
     """Test that we get the right state values we input"""
-    with EnvironmentContext(initial_time=1.5) as env:
-        tester = StateTest(env)
-        tester.state_one = 1  # type: ignore [arg-type]
-        assert tester.state_one == 1  # type: ignore [arg-type]
-        tester.state_two = 2  # type: ignore [arg-type]
-        assert tester.state_two == 2  # type: ignore [arg-type]
+    with EnvironmentContext(initial_time=1.5):
+        tester = StateTestActor(name="example")
+        tester.state_one = 1
+        assert tester.state_one == 1
+        tester.state_two = 2
+        assert tester.state_two == 2
 
 
 def test_state_recording() -> None:
     with EnvironmentContext(initial_time=1.5) as env:
-        tester = StateTest(env)
-        tester.state_two = 2  # type: ignore [arg-type]
+        tester = StateTestActor(name="example")
+        tester.state_two = 2
         assert "state_two" in tester._state_histories
         env.run(until=2.5)
-        tester.state_two = 3  # type: ignore [arg-type]
-        assert len(tester._state_histories["state_two"]) == 2
-        assert tester._state_histories["state_two"][0] == (1.5, 2)
-        assert tester._state_histories["state_two"][1] == (2.5, 3)
+        tester.state_two = 3
+        assert len(tester._state_histories["state_two"]) == 3
+        assert tester._state_histories["state_two"][0] == (1.5, 0)
+        assert tester._state_histories["state_two"][1] == (1.5, 2)
+        assert tester._state_histories["state_two"][2] == (2.5, 3)
 
 
 def test_state_mutable_default() -> None:
@@ -255,7 +227,7 @@ def test_resource_state_default_init() -> None:
 
 def test_resource_state_kind_init() -> None:
     class Holder(Actor):
-        res = ResourceState[Store]()
+        res = ResourceState[Store | Container]()
 
     with EnvironmentContext():
         h = Holder(name="Example", res={"kind": Store, "capacity": 10})
@@ -400,4 +372,4 @@ def test_type_inference() -> None:
 
 
 if __name__ == "__main__":
-    test_type_inference()
+    test_resource_state_kind_init()

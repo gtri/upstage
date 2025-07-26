@@ -438,7 +438,7 @@ def test_motion_coordination_cli() -> None:
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(name="A Mover", loc=mover_start, speed=1, detect=True)
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1.0, detect=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -473,7 +473,7 @@ def test_background_motion() -> None:
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(name="A Mover", loc=mover_start, speed=1, detect=True)
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1.0, detect=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -502,7 +502,7 @@ def test_background_rehearse() -> None:
 
         # This is the key change relative to the above
         flyer_start = UP.CartesianLocation(*[8, 8, 2])
-        flyer = RealMover(name="A Mover", loc=flyer_start, speed=1, detect=True)
+        flyer = RealMover(name="A Mover", loc=flyer_start, speed=1.0, detect=True)
         waypoints = [
             flyer_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -531,7 +531,7 @@ def test_interrupt_clean() -> None:
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(name="A Mover", loc=mover_start, speed=1, detect=True, debug_log=True)
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1.0, detect=True, debug_log=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -580,7 +580,7 @@ def test_undetectable_cli() -> None:
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=True)
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1.0, debug_log=True, detect=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -612,7 +612,7 @@ def test_redetectable() -> None:
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=False)
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1.0, debug_log=True, detect=False)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -639,7 +639,7 @@ def test_undetectable_after() -> None:
         sensor = DummySensor(env, loc, radius=10.0)
 
         mover_start = UP.CartesianLocation(*[8, 8, 2])
-        mover = RealMover(name="A Mover", loc=mover_start, speed=1, debug_log=True, detect=True)
+        mover = RealMover(name="A Mover", loc=mover_start, speed=1.0, debug_log=True, detect=True)
         waypoints = [
             mover_start,
             UP.CartesianLocation(*[-8, 8, 2]),
@@ -740,7 +740,7 @@ def test_motion_coordination_gi() -> None:
 
         t = 2
         geo_mover_start = UP.GeodeticLocation(*[t, t, 4000])
-        geo_mover = RealGeodeticMover(name="Mover", loc=geo_mover_start, speed=1, detect=True)
+        geo_mover = RealGeodeticMover(name="Mover", loc=geo_mover_start, speed=1.0, detect=True)
 
         waypoints = [
             geo_mover_start,
@@ -850,7 +850,7 @@ def test_motion_coordination_agi() -> None:
 
         t = 2
         geo_mover_start = UP.GeodeticLocation(*[t, t, 4000])
-        geo_mover = RealGeodeticMover(name="Mover", loc=geo_mover_start, speed=1, detect=True)
+        geo_mover = RealGeodeticMover(name="Mover", loc=geo_mover_start, speed=1.0, detect=True)
 
         waypoints = [
             geo_mover_start,

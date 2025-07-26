@@ -5,6 +5,7 @@
 
 import pytest
 import simpy as SIM
+from simpy.events import ConditionValue
 from simpy.resources import base
 from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.store import StoreGet, StorePut
@@ -357,18 +358,18 @@ def test_process_in_multi() -> None:
             yield env.timeout(2)
 
         class Thing(Actor):
-            result = State[dict]()
+            result = State[ConditionValue]()
             events = State[list]()
 
         class TheTask(Task):
             def task(self, *, actor: Thing) -> TASK_GEN:
                 wait = Wait(3.0)
                 proc = env.process(a_process())
-                res = yield Any(wait, proc)
+                res: ConditionValue = yield Any(wait, proc)
                 actor.events = [wait, proc]
                 actor.result = res
 
-        t = Thing(name="Thing", result=None, events=None)
+        t = Thing(name="Thing", result=ConditionValue(), events=[])
         task = TheTask()
         task.run(actor=t)
         with pytest.warns(UserWarning):

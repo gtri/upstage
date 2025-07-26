@@ -120,12 +120,12 @@ def test_dual_sense() -> None:
         move1 = Mover(
             name="A_Mover1",
             location=UP.CartesianLocation(-3, 0, 1),
-            radius=2,
+            radius=2.0,
         )
         move2 = Mover(
             name="A_Mover2",
             location=UP.CartesianLocation(3, 0, 0.5),
-            radius=1,
+            radius=1.0,
         )
 
         for obj in [move1, move2]:
@@ -170,12 +170,12 @@ def test_detectability_change() -> None:
         move1 = Mover(
             name="A_Mover1",
             location=UP.CartesianLocation(-3, 0, 1),
-            radius=2,
+            radius=2.0,
         )
         move2 = Mover(
             name="A_Mover2",
             location=UP.CartesianLocation(3, 0, 0.5),
-            radius=1,
+            radius=1.0,
         )
 
         for obj in [move1, move2]:

@@ -108,9 +108,9 @@ class Aircraft(Actor):
     code = State[int]()
     fuel = LinearChangingState(recording=True)
     fuel_burn = State[float]()
-    parking_token = State[int]()
-    parking_spot = State[int]()
-    command_data = State[Any]()
+    parking_token = State[int | None]()
+    parking_spot = State[int | None]()
+    command_data = State[Any | None]()
     world = State[World]()
 
     def calculate_bingo(self, max_time: float = float("inf")) -> float:
@@ -511,12 +511,12 @@ def _build_test(env: Environment) -> Aircraft:
         name="my plane",
         base=None,
         location=CartesianLocation(0, 0),
-        speed=12,
-        landing_time=5 / 60,
-        takeoff_time=10 / 60,
+        speed=12.0,
+        landing_time=5 / 60.0,
+        takeoff_time=10 / 60.0,
         code=2,
-        fuel=100,
-        fuel_burn=15,
+        fuel=100.0,
+        fuel_burn=15.0,
         parking_token=None,
         parking_spot=None,
         command_data=None,

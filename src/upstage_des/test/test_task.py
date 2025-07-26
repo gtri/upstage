@@ -19,7 +19,7 @@ from upstage_des.type_help import SIMPY_GEN, TASK_GEN
 
 
 class ActorForTest(Actor):
-    dummy = State[float](recording=True)
+    dummy = State[float | int](recording=True)
 
 
 class ActorChangeForTest(Actor):

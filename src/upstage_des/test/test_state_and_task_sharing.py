@@ -110,9 +110,9 @@ def test_regular_run() -> None:
         mover = Mover(
             name="example",
             location=CartesianLocation(0, 0),
-            speed=10,
-            fuel=500,
-            fuel_burn=10,
+            speed=10.0,
+            fuel=500.0,
+            fuel_burn=10.0,
         )
         waypoints = [CartesianLocation(*x) for x in WAYPOINTS]
         mover.set_knowledge("destinations", waypoints)
@@ -133,9 +133,9 @@ def test_first_interrupt() -> None:
         mover = Mover(
             name="example",
             location=CartesianLocation(0, 0),
-            speed=10,
-            fuel=500,
-            fuel_burn=10,
+            speed=10.0,
+            fuel=500.0,
+            fuel_burn=10.0,
         )
         waypoints = [CartesianLocation(*x) for x in WAYPOINTS]
         mover.set_knowledge("destinations", waypoints)
@@ -158,9 +158,9 @@ def test_second_interrupt() -> None:
         mover = Mover(
             name="example",
             location=CartesianLocation(0, 0),
-            speed=10,
-            fuel=500,
-            fuel_burn=10,
+            speed=10.0,
+            fuel=500.0,
+            fuel_burn=10.0,
         )
         waypoints = [CartesianLocation(*x) for x in WAYPOINTS]
         mover.set_knowledge("destinations", waypoints)
@@ -183,9 +183,9 @@ def test_regular_run_geo() -> None:
         mover = MoverGeo(
             name="example",
             location=GeodeticLocation(*SAN_FRAN),
-            speed=10,
-            fuel=500000,
-            fuel_burn=10,
+            speed=10.0,
+            fuel=500000.0,
+            fuel_burn=10.0,
         )
         waypoints = [GeodeticLocation(*x) for x in WAYPOINTS_GEO]
         mover.set_knowledge("destinations", waypoints)
@@ -206,9 +206,9 @@ def test_first_interrupt_geo() -> None:
         mover = MoverGeo(
             name="example",
             location=GeodeticLocation(*SAN_FRAN),
-            speed=10,
-            fuel=500000,
-            fuel_burn=10,
+            speed=10.0,
+            fuel=500000.0,
+            fuel_burn=10.0,
         )
         waypoints = [GeodeticLocation(*x) for x in WAYPOINTS_GEO]
         mover.set_knowledge("destinations", waypoints)
@@ -231,9 +231,9 @@ def test_second_interrupt_geo() -> None:
         mover = MoverGeo(
             name="example",
             location=GeodeticLocation(*SAN_FRAN),
-            speed=10,
-            fuel=500000,
-            fuel_burn=10,
+            speed=10.0,
+            fuel=500000.0,
+            fuel_burn=10.0,
         )
         waypoints = [GeodeticLocation(*x) for x in WAYPOINTS_GEO]
         mover.set_knowledge("destinations", waypoints)

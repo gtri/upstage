@@ -279,4 +279,4 @@ def test_data_recorder() -> None:
 
 
 if __name__ == "__main__":
-    test_store_failure()
+    test_data_reporting()
