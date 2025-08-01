@@ -5,7 +5,7 @@
 
 """This file contains the fundamental Actor class for UPSTAGE."""
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable
 from copy import copy, deepcopy
 from dataclasses import dataclass
@@ -100,6 +100,18 @@ class Actor(SettableEnv, NamedUpstageEntity):
             )
         if "log" in seen:
             raise UpstageError("Do not name a state `log`")
+        # Check that we won't name clash state names and recording function names
+        recording_names: dict[str, int] = Counter()
+        for name, state_def in self._state_defs.items():
+            recording_names[name] += 1
+            for _, rec_name in state_def._recording_functions:
+                recording_names[rec_name] += 1
+        error_msg = ""
+        for k, v in recording_names.items():
+            if v > 1:
+                error_msg += f"Duplicated state or recording name: {k}\n"
+        if error_msg:
+            raise SimulationError(error_msg)
 
     def __init__(
         self,
