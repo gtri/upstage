@@ -83,6 +83,7 @@ class State(Generic[ST]):
         record_duplicates: bool = False,
         default_factory: Callable[[], ST] | None = None,
         allow_none_default: bool = False,
+        recording_functions: list[tuple[Callable[[float, ST], Any], str]] | None = None,
     ) -> None:
         """Create a state descriptor for an Actor.
 
@@ -112,6 +113,9 @@ class State(Generic[ST]):
                 Defaults to None.
             allow_none_default (bool, optional): Consider a `None` default to be
                 valid
+            recording_functions (list[tuple[Callable[[ST], Any], str]], optional):
+                A list of functions to call when the state records paired with
+                strings of the name to use in `_state_histories` when recording.
         """
         if default is None and default_factory is not None:
             default = default_factory()
@@ -120,8 +124,11 @@ class State(Generic[ST]):
         self._frozen = frozen
         self._recording = recording
         self._record_duplicates = record_duplicates
-        self._recording_callbacks: dict[Any, CALLBACK_FUNC] = {}
+        self._change_callbacks: dict[Any, CALLBACK_FUNC] = {}
         self._allow_none_default = allow_none_default
+        self._recording_functions = (
+            list(recording_functions) if recording_functions is not None else []
+        )
 
         self._types: tuple[type, ...]
 
@@ -143,19 +150,25 @@ class State(Generic[ST]):
         """
         if not self._recording:
             return
-        env = getattr(instance, "env", None)
-        if env is None:
+        if getattr(instance, "env", None) is None:
             raise SimulationError(
                 f"Actor {instance} does not have an `env` attribute for state {self.name}"
             )
+        now = float(instance.env.now)
         use = value if override is None else override
-        to_append = (env.now, deepcopy(use))
+        to_append = (now, deepcopy(use))
         if self.name not in instance._state_histories:
             instance._state_histories[self.name] = [to_append]
         elif self._record_duplicates or not _compare(
             to_append, instance._state_histories[self.name][-1]
         ):
             instance._state_histories[self.name].append(to_append)
+
+        for func, name in self._recording_functions:
+            result = func(*to_append)
+            if self.name not in instance._state_histories:
+                instance._state_histories[name] = []
+            instance._state_histories[name].append((now, result))
 
     def _do_callback(self, instance: "Actor", value: ST) -> None:
         """Run callbacks for the state change.
@@ -164,7 +177,7 @@ class State(Generic[ST]):
             instance (Actor): The actor holding the state
             value (Any): The value of the state
         """
-        for _, callback in self._recording_callbacks.items():
+        for _, callback in self._change_callbacks.items():
             callback(instance, value)
 
     def _broadcast_change(self, instance: "Actor", name: str, value: ST) -> None:
@@ -256,7 +269,7 @@ class State(Generic[ST]):
             source (Any): A key for the callback
             callback (Callable[[Actor, Any], None]): A function to call
         """
-        self._recording_callbacks[source] = callback
+        self._change_callbacks[source] = callback
 
     def _remove_callback(self, source: Any) -> None:
         """Remove a callback.
@@ -264,7 +277,7 @@ class State(Generic[ST]):
         Args:
             source (Any): The callback's key
         """
-        del self._recording_callbacks[source]
+        del self._change_callbacks[source]
 
     @property
     def is_recording(self) -> bool:
