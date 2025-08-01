@@ -984,7 +984,7 @@ class ResourceState(State, Generic[T]):
             )
 
         # This is unreliable, likely until PEP 718 is in.
-        # Typing and valid_types is not required, though, so we'll skip by it
+        # Typing and valid_types is not required, though, so we can skip it if it's None
         if self._types is None:
             self._types = self._infer_state(instance)
             if self._types == (Any,):
