@@ -113,10 +113,12 @@ class State(Generic[ST]):
             allow_none_default (bool, optional): Consider a `None` default to be
                 valid
         """
-        if default is None and default_factory is not None:
-            default = default_factory()
-
         self._default = default
+        self._default_factory = default_factory
+
+        if self._default is not None and self._default_factory is not None:
+            raise UpstageError("State needs to only use default or default factory.")
+
         self._frozen = frozen
         self._recording = recording
         self._record_duplicates = record_duplicates
@@ -232,12 +234,17 @@ class State(Generic[ST]):
         Args:
             instance (Actor): Actor holding the state.
         """
+        # The default sits on the descriptor class, not on the instance.
+        # If there's a factory we need to remake the default
+        if self._default_factory is not None:
+            value = self._default_factory()
+            self.__set__(instance, value)
+            return
         if self._default is None:
             if self._allow_none_default:
                 return
-            raise SimulationError("State not allowed `None` default.")
-        value = deepcopy(self._default)
-        self.__set__(instance, value)
+            raise SimulationError(f"State {self.name} not allowed `None` default.")
+        self.__set__(instance, self._default)
 
     def has_default(self) -> bool:
         """Check if a default exists.
@@ -247,7 +254,7 @@ class State(Generic[ST]):
         """
         if self._allow_none_default:
             return True
-        return self._default is not None
+        return self._default is not None or self._default_factory is not None
 
     def _add_callback(self, source: Any, callback: CALLBACK_FUNC) -> None:
         """Add a recording callback.
@@ -347,10 +354,6 @@ class ActiveState(State, Generic[ST]):
         if instance is None:
             # instance attribute accessed on class, return self
             return self  # pragma: no cover
-        if self.name not in instance.__dict__:
-            # Just set the value to the default
-            # Mutable types will be tricky here, so deepcopy them
-            instance.__dict__[self.name] = deepcopy(self._default)  # pragma: no cover
         if self.name in instance._mimic_states:
             actor, name = instance._mimic_states[self.name]
             value = getattr(actor, name)

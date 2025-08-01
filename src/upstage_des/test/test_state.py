@@ -42,9 +42,9 @@ class StateTestActor(Actor):
 
 
 class MutableDefaultActor(Actor):
-    lister = State[list](default=[])
-    diction = State[dict](default={})
-    setstate = State[set](default=set())
+    lister = State[list](default_factory=list)
+    diction = State[dict](default_factory=dict)
+    setstate = State[set](default_factory=set)
 
 
 def test_state_fails_without_env() -> None:
@@ -385,3 +385,7 @@ def test_matching_states() -> None:
         assert state_name is not None
         value = getattr(worker, state_name)
         assert value is worker.walkie, "Wrong state retrieved"
+
+
+if __name__ == "__main__":
+    test_state_mutable_default()
