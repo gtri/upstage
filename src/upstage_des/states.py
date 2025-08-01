@@ -166,7 +166,7 @@ class State(Generic[ST]):
 
         for func, name in self._recording_functions:
             result = func(*to_append)
-            if self.name not in instance._state_histories:
+            if name not in instance._state_histories:
                 instance._state_histories[name] = []
             instance._state_histories[name].append((now, result))
 

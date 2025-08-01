@@ -385,3 +385,75 @@ def test_matching_states() -> None:
         assert state_name is not None
         value = getattr(worker, state_name)
         assert value is worker.walkie, "Wrong state retrieved"
+
+
+def test_extra_recording() -> None:
+    """Test that the extra recording works."""
+
+    def recorder(time: float, value: float) -> float:
+        return time * value
+
+    def recorder2(time: float, value: float) -> float:
+        return time * (value + 1)
+
+    class FailingRecord(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+
+    class FailingRecord2(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "a_state")],
+        )
+
+    class RecordingStates(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording=True,
+            recording_functions=[(recorder, "a_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording=True,
+            recording_functions=[
+                (recorder, "b_mult"),
+                (recorder2, "b_mult2"),
+            ],
+        )
+
+    with UP.EnvironmentContext() as env:
+        with pytest.raises(SimulationError, match="Duplicated state or recording name"):
+            FailingRecord(name="example")
+
+        with pytest.raises(SimulationError, match="Duplicated state or recording name"):
+            FailingRecord2(name="example")
+
+        rs = RecordingStates(name="example")
+        env.run(until=1)
+        rs.a_state = 3
+        rs.b_state = 4
+        env.run(until=3)
+        rs.a_state += 1
+        rs.b_state += 1
+        assert "a_state" in rs._state_histories
+        assert "a_mult" in rs._state_histories
+        assert "b_mult" in rs._state_histories
+        assert "b_mult2" in rs._state_histories
+        assert "b_state" in rs._state_histories
+        assert len(rs._state_histories) == 5
+
+        assert rs._state_histories["a_state"] == [(0.0, 0), (1.0, 3), (3.0, 4)]
+        assert rs._state_histories["a_mult"] == [(0.0, 0), (1.0, 3), (3.0, 12)]
+        assert rs._state_histories["b_state"] == [(0.0, 0), (1.0, 4), (3.0, 5)]
+        assert rs._state_histories["b_mult"] == [(0.0, 0), (1.0, 4), (3.0, 15)]
+        assert rs._state_histories["b_mult2"] == [(0.0, 0), (1.0, 5), (3.0, 18)]
