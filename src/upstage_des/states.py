@@ -5,10 +5,11 @@
 
 """A state defines the conditions of an actor over time."""
 
+from abc import abstractmethod
 from collections.abc import Callable
 from copy import deepcopy
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, cast, runtime_checkable
 
 from simpy import Container, Store
 
@@ -33,7 +34,19 @@ __all__ = (
 )
 
 CALLBACK_FUNC = Callable[["Actor", Any], None]
+
 ST = TypeVar("ST")
+
+RECORD_FUNC = Callable[[float, ST], Any]
+
+
+@runtime_checkable
+class RecordClass(Protocol):
+    @abstractmethod
+    def __call__(self, time: float, value: ST) -> Any: ...
+
+
+RECORD_TUPLES = tuple[RECORD_FUNC, str] | tuple[type, str]
 
 
 class ActiveStatus(Enum):
@@ -83,7 +96,7 @@ class State(Generic[ST]):
         record_duplicates: bool = False,
         default_factory: Callable[[], ST] | None = None,
         allow_none_default: bool = False,
-        recording_functions: list[tuple[Callable[[float, ST], Any], str]] | None = None,
+        recording_functions: list[RECORD_TUPLES] | None = None,
     ) -> None:
         """Create a state descriptor for an Actor.
 
@@ -113,9 +126,10 @@ class State(Generic[ST]):
                 Defaults to None.
             allow_none_default (bool, optional): Consider a `None` default to be
                 valid
-            recording_functions (list[tuple[Callable[[ST], Any], str]], optional):
-                A list of functions to call when the state records paired with
-                strings of the name to use in `_state_histories` when recording.
+            recording_functions (list[RECORD_TUPLES], optional):
+                A list of functions or callable classes to use when the state records.
+                The second entry in the tuple is a string of the name to use in
+                `_state_histories`.
         """
         if default is None and default_factory is not None:
             default = default_factory()
@@ -126,9 +140,15 @@ class State(Generic[ST]):
         self._record_duplicates = record_duplicates
         self._change_callbacks: dict[Any, CALLBACK_FUNC] = {}
         self._allow_none_default = allow_none_default
-        self._recording_functions = (
-            list(recording_functions) if recording_functions is not None else []
-        )
+        self._recording_functions: list[tuple[RECORD_FUNC, str]] = []
+        if recording_functions is not None:
+            for thing, name in recording_functions:
+                if isinstance(thing, type):
+                    use = thing()
+                    assert isinstance(use, RecordClass)
+                    self._recording_functions.append((use, name))
+                else:
+                    self._recording_functions.append((thing, name))
 
         self._types: tuple[type, ...]
 
@@ -166,9 +186,13 @@ class State(Generic[ST]):
 
         for func, name in self._recording_functions:
             result = func(*to_append)
+            new_append = (now, result)
             if name not in instance._state_histories:
-                instance._state_histories[name] = []
-            instance._state_histories[name].append((now, result))
+                instance._state_histories[name] = [new_append]
+            elif self._record_duplicates or not _compare(
+                new_append, instance._state_histories[name][-1]
+            ):
+                instance._state_histories[name].append(new_append)
 
     def _do_callback(self, instance: "Actor", value: ST) -> None:
         """Run callbacks for the state change.

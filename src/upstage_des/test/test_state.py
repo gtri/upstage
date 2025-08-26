@@ -457,3 +457,104 @@ def test_extra_recording() -> None:
         assert rs._state_histories["b_state"] == [(0.0, 0), (1.0, 4), (3.0, 5)]
         assert rs._state_histories["b_mult"] == [(0.0, 0), (1.0, 4), (3.0, 15)]
         assert rs._state_histories["b_mult2"] == [(0.0, 0), (1.0, 5), (3.0, 18)]
+
+
+def test_extra_recording_docs() -> None:
+    """Test the recording example from the docs.
+
+    This also checks the typing and loading from a class.
+    """
+
+    from collections import Counter
+
+    class NameStorage:
+        def __init__(self) -> None:
+            self.seen: dict[str, int] = Counter()
+            self.seen[""] = 0
+
+        def __call__(self, time: float, value: str) -> float:
+            if value:
+                self.seen[value] += 1
+            return max(self.seen.values())
+
+    def first_letter(time: float, value: str) -> str:
+        if value:
+            return value[0]
+        return ""
+
+    class Cashier(UP.Actor):
+        people_seen = UP.State[str](
+            default="",
+            recording=True,
+            record_duplicates=True,
+            recording_functions=[
+                (NameStorage, "max_repeats"),
+                (first_letter, "first_letter"),
+            ],
+        )
+
+    with UP.EnvironmentContext():
+        cash = Cashier(name="Ertha")
+        cash2 = Cashier(name="Bertha")
+        cash.people_seen = "James"
+        cash.people_seen = "Bob"
+        cash.people_seen = "James"
+        cash.people_seen = "Fred"
+        cash.people_seen = "James"
+
+        assert cash._state_histories["max_repeats"] == [
+            (0.0, 0),
+            (0.0, 1),
+            (0.0, 1),
+            (0.0, 2),
+            (0.0, 2),
+            (0.0, 3),
+        ]
+        assert cash._state_histories["first_letter"] == [
+            (0.0, ""),
+            (0.0, "J"),
+            (0.0, "B"),
+            (0.0, "J"),
+            (0.0, "F"),
+            (0.0, "J"),
+        ]
+
+        assert cash2._state_histories["max_repeats"] == [(0.0, 0)]
+
+    class CashierNonDup(UP.Actor):
+        people_seen = UP.State[str](
+            default="",
+            recording=True,
+            record_duplicates=False,
+            recording_functions=[
+                (NameStorage, "max_repeats"),
+                (first_letter, "first_letter"),
+            ],
+        )
+
+    with UP.EnvironmentContext():
+        cash3 = CashierNonDup(name="Ertha")
+        cash3.people_seen = "James"
+        cash3.people_seen = "Bob"
+        cash3.people_seen = "James"
+        cash3.people_seen = "Fred"
+        cash3.people_seen = "James"
+
+        assert cash3._state_histories["max_repeats"] == [
+            (0.0, 0),
+            (0.0, 1),
+            (0.0, 2),
+            (0.0, 3),
+        ]
+        assert cash3._state_histories["first_letter"] == [
+            (0.0, ""),
+            (0.0, "J"),
+            (0.0, "B"),
+            (0.0, "J"),
+            (0.0, "F"),
+            (0.0, "J"),
+        ]
+
+
+if __name__ == "__main__":
+    test_extra_recording_docs()
