@@ -15,6 +15,7 @@ UPSTAGE has four features for data recording:
    * For :doc:`ActiveStates </user_guide/how_tos/active_states>`, the ``value`` may be
      a special ``Enum`` saying if the state is being activated, deactivated,
      or is active/inactive.
+   * Supply additional recording functions with ``recording_functions=[(function, name), ...]``
 
 3. Use a ``SelfMonitoring<>`` Store or Container.
 
@@ -132,6 +133,67 @@ but not mutable types:
 Note that the string State of ``people_seen`` acts as a way to record data, even if we don't care in
 the moment the name of the last scanned person. This lets states behave as carriers of current or past
 information, depending on your needs.
+
+Recording Functions
+-------------------
+
+If a state is recording, it can also record custom data whenever the state updates. This can
+provide some capabilities for data tracking inline, without having to post-process. The
+state can take either a function or a class object that has a ``__call__`` method that has
+a signature that accepts a time and a value of the same type as the state.
+
+.. note::
+
+    Recording functions follow the same rule for duplicate recording as the state does.
+    Same-time recordings only compare to the last entry in the history, so recorded
+    values can alternate just like the state itself.
+
+
+Future versions of UPSTAGE may update this to allow the actor to be and input. This is not
+done currently to avoid accidentally modifying the actor inside the recording.
+
+.. code:: python
+
+    from collections import Counter
+
+    class NameStorage:
+        def __init__(self) -> None:
+            self.seen: dict[str, int] = Counter()
+            self.seen[""] = 0
+        
+        def __call__(self, time: float, value: str) -> float:
+            if value:
+                self.seen[value] += 1
+            return max(self.seen.values())
+
+    def first_letter(time: float, value: str) -> str:
+        if value:
+            return value[0]
+        return ""
+
+    class Cashier(UP.Actor):
+        people_seen = UP.State[str](
+            default="",
+            recording=True,
+            recording_functions=[
+                (NameStorage, "max_repeats"),
+                (first_letter, "first_letter"),
+            ],
+        )
+
+    with UP.EnvironmentContext() as env:
+        cash = Cashier(name="Ertha")
+        cash.people_seen = "James"
+        cash.people_seen = "Bob"
+        cash.people_seen = "James"
+        cash.people_seen = "Fred"
+        cash.people_seen = "James"
+
+        print(cash._state_histories["max_repeats"])
+        >>> [(0.0, 0), (0.0, 1), (0.0, 2), (0.0, 3)]
+
+        print(cash._state_histories["first_letter"])
+        >>> [(0.0, ""), (0.0, "J"), (0.0, "B"), (0.0, "J"), (0.0, "F"), (0.0, "J")]
 
 Complex States
 --------------
