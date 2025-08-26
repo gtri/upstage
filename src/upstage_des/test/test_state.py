@@ -387,5 +387,170 @@ def test_matching_states() -> None:
         assert value is worker.walkie, "Wrong state retrieved"
 
 
-if __name__ == "__main__":
-    test_state_mutable_default()
+def test_extra_recording() -> None:
+    """Test that the extra recording works."""
+
+    def recorder(time: float, value: float) -> float:
+        return time * value
+
+    def recorder2(time: float, value: float) -> float:
+        return time * (value + 1)
+
+    class FailingRecord(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+
+    class FailingRecord2(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "a_state")],
+        )
+
+    class RecordingStates(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording=True,
+            recording_functions=[(recorder, "a_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording=True,
+            recording_functions=[
+                (recorder, "b_mult"),
+                (recorder2, "b_mult2"),
+            ],
+        )
+
+    with UP.EnvironmentContext() as env:
+        with pytest.raises(SimulationError, match="Duplicated state or recording name"):
+            FailingRecord(name="example")
+
+        with pytest.raises(SimulationError, match="Duplicated state or recording name"):
+            FailingRecord2(name="example")
+
+        rs = RecordingStates(name="example")
+        env.run(until=1)
+        rs.a_state = 3
+        rs.b_state = 4
+        env.run(until=3)
+        rs.a_state += 1
+        rs.b_state += 1
+        assert "a_state" in rs._state_histories
+        assert "a_mult" in rs._state_histories
+        assert "b_mult" in rs._state_histories
+        assert "b_mult2" in rs._state_histories
+        assert "b_state" in rs._state_histories
+        assert len(rs._state_histories) == 5
+
+        assert rs._state_histories["a_state"] == [(0.0, 0), (1.0, 3), (3.0, 4)]
+        assert rs._state_histories["a_mult"] == [(0.0, 0), (1.0, 3), (3.0, 12)]
+        assert rs._state_histories["b_state"] == [(0.0, 0), (1.0, 4), (3.0, 5)]
+        assert rs._state_histories["b_mult"] == [(0.0, 0), (1.0, 4), (3.0, 15)]
+        assert rs._state_histories["b_mult2"] == [(0.0, 0), (1.0, 5), (3.0, 18)]
+
+
+def test_extra_recording_docs() -> None:
+    """Test the recording example from the docs.
+
+    This also checks the typing and loading from a class.
+    """
+
+    from collections import Counter
+
+    class NameStorage:
+        def __init__(self) -> None:
+            self.seen: dict[str, int] = Counter()
+            self.seen[""] = 0
+
+        def __call__(self, time: float, value: str) -> float:
+            if value:
+                self.seen[value] += 1
+            return max(self.seen.values())
+
+    def first_letter(time: float, value: str) -> str:
+        if value:
+            return value[0]
+        return ""
+
+    class Cashier(UP.Actor):
+        people_seen = UP.State[str](
+            default="",
+            recording=True,
+            record_duplicates=True,
+            recording_functions=[
+                (NameStorage, "max_repeats"),
+                (first_letter, "first_letter"),
+            ],
+        )
+
+    with UP.EnvironmentContext():
+        cash = Cashier(name="Ertha")
+        cash2 = Cashier(name="Bertha")
+        cash.people_seen = "James"
+        cash.people_seen = "Bob"
+        cash.people_seen = "James"
+        cash.people_seen = "Fred"
+        cash.people_seen = "James"
+
+        assert cash._state_histories["max_repeats"] == [
+            (0.0, 0),
+            (0.0, 1),
+            (0.0, 1),
+            (0.0, 2),
+            (0.0, 2),
+            (0.0, 3),
+        ]
+        assert cash._state_histories["first_letter"] == [
+            (0.0, ""),
+            (0.0, "J"),
+            (0.0, "B"),
+            (0.0, "J"),
+            (0.0, "F"),
+            (0.0, "J"),
+        ]
+
+        assert cash2._state_histories["max_repeats"] == [(0.0, 0)]
+
+    class CashierNonDup(UP.Actor):
+        people_seen = UP.State[str](
+            default="",
+            recording=True,
+            record_duplicates=False,
+            recording_functions=[
+                (NameStorage, "max_repeats"),
+                (first_letter, "first_letter"),
+            ],
+        )
+
+    with UP.EnvironmentContext():
+        cash3 = CashierNonDup(name="Ertha")
+        cash3.people_seen = "James"
+        cash3.people_seen = "Bob"
+        cash3.people_seen = "James"
+        cash3.people_seen = "Fred"
+        cash3.people_seen = "James"
+
+        assert cash3._state_histories["max_repeats"] == [
+            (0.0, 0),
+            (0.0, 1),
+            (0.0, 2),
+            (0.0, 3),
+        ]
+        assert cash3._state_histories["first_letter"] == [
+            (0.0, ""),
+            (0.0, "J"),
+            (0.0, "B"),
+            (0.0, "J"),
+            (0.0, "F"),
+            (0.0, "J"),
+        ]
