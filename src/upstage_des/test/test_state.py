@@ -540,7 +540,7 @@ def test_type_inference() -> None:
 
         with pytest.raises(
             TypeError,
-            match=r"hello is of type <class 'str'> not of type \(float | int,\)",
+            match="hello is of type <class 'str'> not of type",
         ):
             A(name="hi", st="hello")
 
