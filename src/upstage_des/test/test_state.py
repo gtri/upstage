@@ -412,11 +412,11 @@ def test_extra_recording() -> None:
 
         rs = RecordingStates(name="example")
         env.run(until=1)
-        rs.a_state = 3
-        rs.b_state = 4
+        rs.a_state = 3.0
+        rs.b_state = 4.0
         env.run(until=3)
-        rs.a_state += 1
-        rs.b_state += 1
+        rs.a_state += 1.0
+        rs.b_state += 1.0
         assert "a_state" in rs._state_histories
         assert "a_mult" in rs._state_histories
         assert "b_mult" in rs._state_histories
