@@ -10,7 +10,7 @@ from upstage_des.type_help import TASK_GEN
 
 
 class Dummy(UP.Actor):
-    number = UP.State[float]()
+    number = UP.State[float | int]()
     results = UP.State[int](default=0)
 
 

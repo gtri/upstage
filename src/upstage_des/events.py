@@ -14,7 +14,7 @@ from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.resource import Release, Request
 from simpy.resources.store import StoreGet, StorePut
 
-from .base import SimulationError, UpstageBase, UpstageError
+from .base import MockEnvironment, SimulationError, UpstageBase, UpstageError
 from .constants import PLANNING_FACTOR_OBJECT
 from .units import unit_convert
 
@@ -417,7 +417,7 @@ class MultiEvent(BaseEvent):
             SIM.Event: typically an Any or All
         """
         sub_events = [self._make_event(event) for event in self.events]
-        assert isinstance(self.env, SIM.Environment)
+        assert not isinstance(self.env, MockEnvironment)
         self._simpy_event = self.simpy_equivalent(self.env, sub_events)
         return self._simpy_event
 
@@ -792,7 +792,7 @@ class Event(BaseEvent):
         # yielded on
         self._payload: dict[str, Any] = {}
         self._auto_reset = auto_reset
-        assert isinstance(self.env, SIM.Environment)
+        assert not isinstance(self.env, MockEnvironment)
         self._event = SIM.Event(self.env)
 
     def calculate_time_to_complete(self) -> float:
@@ -847,7 +847,7 @@ class Event(BaseEvent):
 
     def reset(self) -> None:
         """Reset the event to allow it to be held again."""
-        assert isinstance(self.env, SIM.Environment)
+        assert not isinstance(self.env, MockEnvironment)
         self._event = SIM.Event(self.env)
 
     def cancel(self) -> None:

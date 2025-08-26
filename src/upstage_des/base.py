@@ -18,6 +18,7 @@ from warnings import warn
 
 from simpy import Environment as SimpyEnv
 from simpy import Event as SimEvent
+from simpy.core import SimTime
 
 from upstage_des.geography import INTERSECTION_LOCATION_CALLABLE, EarthProtocol
 from upstage_des.units.convert import STANDARD_TIMES, TIME_ALTERNATES, unit_convert
@@ -167,7 +168,7 @@ class RulesError(UpstageError):
     """Raised by the user when a simulation rule is violated."""
 
 
-class MockEnvironment:
+class MockEnvironment(SimpyEnv):
     """A fake environment that holds the ``now`` property and all-caps attributes."""
 
     def __init__(self, now: float):
@@ -176,7 +177,16 @@ class MockEnvironment:
         Args:
             now (float): The time the environment is at.
         """
-        self.now = now
+        super().__init__(initial_time=now)
+
+    @property
+    def now(self) -> SimTime:
+        """The current simulation time."""
+        return self._now
+
+    @now.setter
+    def now(self, value: SimTime) -> None:
+        self._now = value
 
     @classmethod
     def mock(cls, env: Union[SimpyEnv, "MockEnvironment"]) -> "MockEnvironment":
@@ -196,11 +206,11 @@ class MockEnvironment:
         return mock_env
 
     @classmethod
-    def run(cls, until: float | int) -> None:
+    def run(cls, until: SimTime | SimEvent | None = None) -> Any | None:
         """Method stub for playing nice with rehearsal.
 
         Args:
-            until (float | int): Placeholder
+            until (SimTime | SimEvent | None): Placeholder
         """
         raise UpstageError("You tried to use `run` on a mock environment")
 
@@ -458,7 +468,7 @@ class SettableEnv(UpstageBase):
         self._new_env: MockEnvironment | None = None
         super().__init__(*args, **kwargs)
 
-    @property  # type: ignore [override]
+    @property
     def env(self) -> SimpyEnv | MockEnvironment:
         """Get the relevant environment.
 

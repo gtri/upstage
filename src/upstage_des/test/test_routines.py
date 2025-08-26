@@ -269,7 +269,7 @@ def test_windowed_get() -> None:
 
         env.process(_placer(env, act))
         env.run(until=5.0)
-        act.timeout = 1
+        act.timeout = 1.0
         proc.interrupt(cause="restart")
         env.run()
 

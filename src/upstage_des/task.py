@@ -11,7 +11,6 @@ from functools import wraps
 from typing import TYPE_CHECKING, Any, TypeVar
 from warnings import warn
 
-from simpy import Environment as SimpyEnv
 from simpy import Event as SimpyEvent
 from simpy import Interrupt, Process
 
@@ -615,7 +614,7 @@ class DecisionTask(Task):
             Generator[SimpyEvent, None, None]: Generator for SimPy event queue.
         """
         self.make_decision(actor=actor)
-        assert isinstance(self.env, SimpyEnv)
+        assert not isinstance(self.env, MockEnvironment)
         yield self.env.timeout(0.0)
 
     def run_skip(self, *, actor: "Actor") -> None:

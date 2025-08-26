@@ -9,7 +9,17 @@ from abc import abstractmethod
 from collections.abc import Callable
 from copy import deepcopy
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, cast, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Protocol,
+    TypeVar,
+    cast,
+    get_args,
+    get_origin,
+    runtime_checkable,
+)
 
 from simpy import Container, Store
 
@@ -152,12 +162,12 @@ class State(Generic[ST]):
                 else:
                     self._recording_functions.append((thing, name))
 
-        self._types: tuple[type, ...]
+        self._types: tuple[type, ...] | None
 
         if isinstance(valid_types, type):
             self._types = (valid_types,)
         elif valid_types is None:
-            self._types = tuple()
+            self._types = None
         else:
             self._types = valid_types
         self.IGNORE_LOCK: bool = False
@@ -218,6 +228,37 @@ class State(Generic[ST]):
         if instance._state_listener is not None:
             instance._state_listener.send_change(name, value)
 
+    def _infer_state(self, instance: "Actor") -> tuple[type, ...]:
+        """Infer types for the state.
+
+        This should allow isinstance(value, self._infer_state(instance))
+
+        Args:
+            instance (Actor): The actor the state is attached to.
+
+        Returns:
+            tuple[Any,...]: The state type
+        """
+        state_class = instance._state_defs[self.name]
+        if hasattr(state_class, "__orig_class__"):
+            args = get_args(state_class.__orig_class__)
+            return args
+        return tuple()
+
+    def _test_state(self, value: Any, typing: tuple[type, ...]) -> bool:
+        """Check for some basic type matches."""
+        correct = False
+        for _type in typing:
+            try:
+                correct |= isinstance(value, _type)
+            except TypeError as e:
+                if "parameterized generic" not in str(e):
+                    raise e
+                origin = get_origin(_type)
+                if origin is not None:
+                    correct |= isinstance(value, origin)
+        return correct
+
     # NOTE: A dictionary as a descriptor doesn't work well,
     # because all the operations seem to happen *after* the get
     # NOTE: Lists also have the same issue that
@@ -236,7 +277,14 @@ class State(Generic[ST]):
                     f"to value of {old_value}. It cannot be changed once set!"
                 )
 
-        if self._types and not isinstance(value, self._types):
+        # This is unreliable, likely until PEP 718 is in.
+        # Typing and valid_types is not required, though, so we can skip by it if it's None
+        if self._types is None:
+            self._types = self._infer_state(instance)
+            if self._types == (Any,):
+                self._types = ()
+
+        if self._types and not self._test_state(value, self._types):
             raise TypeError(f"{value} is of type {type(value)} not of type {self._types}")
 
         instance.__dict__[self.name] = value
@@ -957,8 +1005,6 @@ class ResourceState(State, Generic[T]):
             for v in valid_types:
                 if not isinstance(v, type) or not issubclass(v, Store | Container):
                     raise UpstageError(f"Bad valid type for {self}: {v}")
-        else:
-            valid_types = (Store, Container)
 
         if default is not None and (
             not isinstance(default, type) or not issubclass(default, Store | Container)
@@ -986,6 +1032,13 @@ class ResourceState(State, Generic[T]):
                 f"State '{self}' on '{instance}' has already been created "
                 "It cannot be changed once set!"
             )
+
+        # This is unreliable, likely until PEP 718 is in.
+        # Typing and valid_types is not required, though, so we can skip it if it's None
+        if self._types is None:
+            self._types = self._infer_state(instance)
+            if self._types == (Any,):
+                self._types = (Store, Container)
 
         if not isinstance(value, dict):
             # we've been passed an actual resource, so save it and leave
@@ -1061,7 +1114,7 @@ class ResourceState(State, Generic[T]):
         """
         base_class = type(copy)
         memory: dict[str, Any] = instance.__dict__[f"_memory_for_{self.name}"]
-        new = base_class(instance.env, **memory)  # type: ignore [arg-type]
+        new = base_class(instance.env, **memory)
         if isinstance(copy, Store) and isinstance(new, Store):
             new.items = list(copy.items)
         if isinstance(copy, Container) and isinstance(new, Container):
