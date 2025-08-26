@@ -42,9 +42,9 @@ class StateTestActor(Actor):
 
 
 class MutableDefaultActor(Actor):
-    lister = State[list](default=[])
-    diction = State[dict](default={})
-    setstate = State[set](default=set())
+    lister = State[list](default_factory=list)
+    diction = State[dict](default_factory=dict)
+    setstate = State[set](default_factory=set)
 
 
 def test_state_fails_without_env() -> None:
@@ -554,7 +554,3 @@ def test_extra_recording_docs() -> None:
             (0.0, "F"),
             (0.0, "J"),
         ]
-
-
-if __name__ == "__main__":
-    test_extra_recording_docs()

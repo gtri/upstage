@@ -43,4 +43,4 @@ State inputs:
 The ``allow_none_default`` input is useful if you won't have access to the information needed to set a state when
 your Actor is instantiated. This is common when you need actors to have mutual references to each other, for example.
 
-If you set a default and a default factory, UPSTAGE will use the default and ignore the factory.
+If you set a default and a default factory, UPSTAGE will raise an error to force you to pick one or the other.
