@@ -534,7 +534,19 @@ def test_type_inference() -> None:
 
     with UP.EnvironmentContext():
         a = A(name="hi", st=1)
-        print(a.st)
 
         v = a._state_defs["st"]._infer_state(a)
-        print(v)
+        assert v == (float | int, )
+
+        with pytest.raises(
+            TypeError,
+            match=r"hello is of type <class 'str'> not of type \(float | int,\)",
+        ):
+            A(name="hi", st="hello")
+
+    class B(UP.Actor):
+        st = UP.State[list[int]](default_factory=list)
+
+    with UP.EnvironmentContext():
+        with pytest.raises(TypeError):
+            B(name="next", st=[1.0])
