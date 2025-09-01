@@ -18,8 +18,8 @@ jobs:
       matrix:
         environment: [py312]
     steps:
-     - uses: actions/checkout@v4
-     - uses: prefix-dev/setup-pixi@v0.8.14
+     - uses: actions/checkout@v5
+     - uses: prefix-dev/setup-pixi@v0.9.0
        with:
          environments: ${{ matrix.environment }}
          manifest-path: pixi.toml
@@ -33,8 +33,8 @@ jobs:
       matrix:
         environment: [py311, py312, py313]
     steps:
-     - uses: actions/checkout@v4
-     - uses: prefix-dev/setup-pixi@v0.8.14
+     - uses: actions/checkout@v5
+     - uses: prefix-dev/setup-pixi@v0.9.0
        with:
          environments: ${{ matrix.environment }}
          manifest-path: pixi.toml
