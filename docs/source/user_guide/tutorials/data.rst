@@ -195,6 +195,7 @@ done currently to avoid accidentally modifying the actor inside the recording.
         print(cash._state_histories["first_letter"])
         >>> [(0.0, ""), (0.0, "J"), (0.0, "B"), (0.0, "J"), (0.0, "F"), (0.0, "J")]
 
+.. _complex_states:
 Complex States
 --------------
 
@@ -227,6 +228,10 @@ operation.
 UPSTAGE will output data from ``dataclass`` states, and ``dict[str, Any]`` states by creating rows in the
 data table with the naming convention ``state_name.attribute_name``, where the attribute is either a dataclass
 attribute or a key from the dictionary.
+
+.. note::
+
+    The :doc:`Dictionary State </how_tos/dictionary_state>` was created to mitigate some of these issues.
 
 Geographic Types
 ----------------

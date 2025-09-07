@@ -5,6 +5,11 @@ Mimic States
 Mimic states allow one actor to use another actor's state in place of its own. If you have two "Worker" actors riding in a car, it is
 useful to have their location mimic that of the car, rather than write a task for the workers that does the same thing as the car.
 
+.. note::
+
+    Mimic states test to see if their types are compatible (if defined through ``valid_types``). If they
+    are note, an error will be raised.
+
 Mimic states are activated and deactivated in a similar manner to other states, and they can mimic :doc:`ActiveStates <active_states>` as well.
 
 .. code-block:: python

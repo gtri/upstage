@@ -11,6 +11,7 @@ from upstage_des.states import (
     ActiveStatus,
     CartesianLocationChangingState,
     GeodeticLocationChangingState,
+    _DictionaryProxy,
 )
 
 ACTUAL_LOCATION = GeodeticLocation | CartesianLocation
@@ -94,17 +95,36 @@ def _actor_state_data(
             continue
         _value = actor.__dict__[state_name]
         is_active = isinstance(state, ActiveState)
+        is_prefilled = any(key.startswith(f"{state_name}.") for key in actor._state_histories)
         if state_name in actor._state_histories:
             data.extend(
                 _state_history_to_table(
                     name, kind, state_name, is_active, actor._state_histories[state_name]
                 )
             )
+        elif is_prefilled:
+            for key in _value.keys():
+                sname = f"{state_name}.{key}"
+                assert sname in actor._state_histories
+                data.extend(
+                    _state_history_to_table(
+                        name, kind, sname, is_active, actor._state_histories[sname]
+                    )
+                )
         elif hasattr(_value, "_quantities"):
             resources.append(_value)
             data.extend(_state_history_to_table(name, kind, state_name, False, _value._quantities))
         elif save_static:
-            data.append((name, kind, state_name, 0.0, getattr(actor, state_name), STATIC_STATE))
+            the_value = getattr(actor, state_name)
+            if isinstance(the_value, _DictionaryProxy):
+                data.extend(
+                    [
+                        (name, kind, f"{state_name}.{k}", 0.0, v, STATIC_STATE)
+                        for k, v in _value.items()
+                    ]
+                )
+            else:
+                data.append((name, kind, state_name, 0.0, the_value, STATIC_STATE))
 
     return data, resources
 
@@ -127,7 +147,7 @@ def _actor_location_data(actor: Actor) -> tuple[list[LOCATION_DATA_ROW], list[st
     is_xyz = True
     name, kind = actor.name, actor.__class__.__name__
     for state_name, state_data in actor._state_histories.items():
-        _state = actor._state_defs[state_name]
+        _state = actor._state_defs.get(state_name, None)
         if not isinstance(_state, LOCATION_TYPES):
             continue
         value: ACTUAL_LOCATION | ActiveStatus

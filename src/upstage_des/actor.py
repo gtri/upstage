@@ -32,6 +32,7 @@ from .states import (
     GeodeticLocationChangingState,
     ResourceState,
     State,
+    _KeyValueBase,
 )
 from .task import Task
 from .task_network import TaskNetwork, TaskNetworkFactory
@@ -427,10 +428,23 @@ class Actor(SettableEnv, NamedUpstageEntity):
             raise UpstageError("Mimic state activated on rehearsal. This is unsupported/unstable")
         if self_state in self._mimic_states:
             raise UpstageError(f"{self_state} already mimicked")
+
+        state = self._state_defs[self_state]
+        if isinstance(state, _KeyValueBase):
+            raise SimulationError(f"States of type {type(state)} are not mimic-able.")
+        if isinstance(mimic_actor._state_defs[mimic_state], _KeyValueBase):
+            raise SimulationError(
+                f"States of type {type(mimic_actor._state_defs[mimic_state])} are not mimic-able."
+            )
+        their_v = getattr(mimic_actor, mimic_state)
+        if not state._type_check(their_v, throw=False):
+            raise SimulationError(
+                f"Cannot mimic states of different types: {state._types} vs {type(their_v)}"
+            )
+
         self._mimic_states[self_state] = (mimic_actor, mimic_state)
         self._mimic_states_by_task[task].add(self_state)
 
-        state = self._state_defs[self_state]
         self_state_name = self._mimic_state_name(self_state)
         if state.is_recording:
 
