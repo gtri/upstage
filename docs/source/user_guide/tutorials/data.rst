@@ -196,6 +196,7 @@ done currently to avoid accidentally modifying the actor inside the recording.
         >>> [(0.0, ""), (0.0, "J"), (0.0, "B"), (0.0, "J"), (0.0, "F"), (0.0, "J")]
 
 .. _complex_states:
+
 Complex States
 --------------
 
@@ -231,7 +232,7 @@ attribute or a key from the dictionary.
 
 .. note::
 
-    The :doc:`Dictionary State </how_tos/dictionary_state>` was created to mitigate some of these issues.
+    The :doc:`Dictionary State </user_guide/how_tos/keyvalue_states>` was created to mitigate some of these issues.
 
 Geographic Types
 ----------------
