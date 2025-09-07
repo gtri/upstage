@@ -55,6 +55,7 @@ These pages detail the specific activities that can be accomplished using UPSTAG
 
 how_tos/environment.rst
 how_tos/states.rst
+how_tos/keyvalue_states.rst
 how_tos/knowledge.rst
 how_tos/task.rst
 how_tos/resources.rst
