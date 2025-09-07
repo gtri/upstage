@@ -2,23 +2,15 @@
 
 from collections.abc import ItemsView, Iterable, KeysView, ValuesView
 from dataclasses import is_dataclass
-from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 VTD = TypeVar("VTD")
-
-
-class DCProtocol(Protocol):
-    """Protocol for dataclass like things."""
-
-    __dataclass_fields__: Any
-
-
-TDC = TypeVar("TDC", bound=DCProtocol)
+TDC = TypeVar("TDC")
 
 
 if TYPE_CHECKING:
-    from .actor import Actor
-    from .states import _KeyValueBase
+    from .actor import Actor  # pragma: no cover
+    from .states import _KeyValueBase  # pragma: no cover
 
 
 class _DictionaryProxy(Generic[VTD]):
@@ -84,12 +76,21 @@ class _DataclassProxy(Generic[TDC]):
     def __init__(self, descr: "_KeyValueBase", instance: "Actor", wrapped: TDC):
         self._descr = descr
         self._inst = instance
+        if not is_dataclass(wrapped):
+            raise TypeError("Wrapped value is not dataclass")
         self._wrapped = wrapped
 
     @property
     def __dataclass_fields__(self) -> Any:
         """Support asking for fields() on the proxy."""
         return self._wrapped.__dataclass_fields__
+
+    def _typecheck(self, name: str, value: Any) -> None:
+        field_type = self._wrapped.__annotations__[name]
+        if not isinstance(value, field_type):
+            raise TypeError(
+                f"Dataclass value {value} for field {name} doesn't match type: {field_type}."
+            )
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._wrapped, name)
@@ -99,4 +100,6 @@ class _DataclassProxy(Generic[TDC]):
             super().__setattr__(name, value)
         elif is_dataclass(self._wrapped):
             if hasattr(self._wrapped, name):
+                self._typecheck(name, value)
                 setattr(self._wrapped, name, value)
+                self._descr._record_state(self._inst, name, all=False)

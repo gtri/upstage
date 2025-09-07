@@ -3,6 +3,7 @@
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from dataclasses import dataclass, fields
 from typing import Any, cast
 
 import pytest
@@ -436,6 +437,8 @@ def test_dictionary_state() -> None:
         for key in ta.holder.keys():
             rec_key = f"holder.{key}"
             assert rec_key in ta._state_histories
+        for key in ta.holder:
+            assert key in ks
         assert ta._state_histories["holder.item"] == [(0.0, 0), (3.0, 42), (5.0, 10)]
         assert ta._state_histories["holder.other"] == [(0.0, 4), (5.0, 11)]
         assert ta._state_histories["holder.new"] == [(0.0, "A"), (3.0, 1)]
@@ -476,7 +479,54 @@ def test_dictionary_state_record() -> None:
 
 
 def test_dataclass_state() -> None:
-    ...
+    @dataclass
+    class TestDC:
+        a: int
+        b: float
+
+    def recorder(time: float, value: TestDC) -> float:
+        return value.a + value.b
+
+    class ExampleActor(UP.Actor):
+        dc_state = UP.DataclassState[TestDC](
+            valid_types=TestDC,
+            recording=True,
+            recording_functions=[(recorder, "total_of_data")],
+        )
+
+    class SomeTask(UP.Task):
+        def task(self, *, actor: ExampleActor) -> TASK_GEN:
+            actor.dc_state.a += 1
+            actor.dc_state.b += 4
+            yield UP.Wait(0.1)
+            actor.dc_state.b += 4
+            yield UP.Wait(0.1)
+            actor.dc_state.a -= 3
+
+    with UP.EnvironmentContext() as env:
+        ea = ExampleActor(name="Exam", dc_state=TestDC(0, 0.0))
+        task = SomeTask()
+        task.run(actor=ea)
+        env.run()
+        assert env.now == 0.2
+        # does fields work?
+        fs = fields(ea.dc_state)
+        assert [f.name for f in fs] == ["a", "b"]
+
+        with pytest.raises(TypeError, match="doesn't match type:"):
+            ea.dc_state.a = "cause error"  # type: ignore [assignment]
+
+        # let's check histories
+        assert len(ea._state_histories) == 3
+        assert ea._state_histories["dc_state.a"] == [(0.0, 0), (0.0, 1), (0.2, -2)]
+        assert ea._state_histories["dc_state.b"] == [(0.0, 0.0), (0.0, 4.0), (0.1, 8.0)]
+        assert ea._state_histories["total_of_data"] == [
+            (0.0, 0.0),
+            (0.0, 1.0),
+            (0.0, 5.0),
+            (0.1, 9.0),
+            (0.2, 6.0),
+        ]
 
 
 def test_extra_recording() -> None:
@@ -649,4 +699,4 @@ def test_extra_recording_docs() -> None:
 
 
 if __name__ == "__main__":
-    test_dictionary_state_record()
+    test_dataclass_state()
