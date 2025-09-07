@@ -44,3 +44,16 @@ The ``allow_none_default`` input is useful if you won't have access to the infor
 your Actor is instantiated. This is common when you need actors to have mutual references to each other, for example.
 
 If you set a default and a default factory, UPSTAGE will raise an error to force you to pick one or the other.
+
+Some states do not use all these parameters, so consult the specific documentation for more.
+
+Particular States
+#################
+
+Specific state descriptions and other state features can be found on these pages:
+
+1. :doc:`Active States <active_states>`
+2. :doc:`Resource States <resource_states>`
+3. :doc:`Dictionary States <dictionary_states>`
+4. :doc:`State Sharing <state_sharing>`
+5. :doc:`Mimic States <mimic_state>`

@@ -8,6 +8,7 @@
 from abc import abstractmethod
 from collections.abc import Callable
 from copy import deepcopy
+from dataclasses import fields
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, cast, runtime_checkable
 
@@ -17,10 +18,12 @@ from upstage_des.base import SimulationError, UpstageError
 from upstage_des.data_types import CartesianLocation, GeodeticLocation
 from upstage_des.math_utils import _vector_add, _vector_subtract
 from upstage_des.resources.monitoring import SelfMonitoringStore
+from upstage_des.state_proxies import DCProtocol, _DataclassProxy, _DictionaryProxy
 from upstage_des.task import Task
 
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
+
 
 __all__ = (
     "ActiveState",
@@ -162,6 +165,17 @@ class State(Generic[ST]):
             self._types = valid_types
         self.IGNORE_LOCK: bool = False
 
+    def _do_record_funcs(self, instance: "Actor", now: float, value: ST) -> None:
+        for func, name in self._recording_functions:
+            result = func(now, value)
+            new_append = (now, result)
+            if name not in instance._state_histories:
+                instance._state_histories[name] = [new_append]
+            elif self._record_duplicates or not _compare(
+                new_append, instance._state_histories[name][-1]
+            ):
+                instance._state_histories[name].append(new_append)
+
     def _do_record(self, instance: "Actor", value: ST, override: Any = None) -> None:
         """Record the value of the state.
 
@@ -186,15 +200,7 @@ class State(Generic[ST]):
         ):
             instance._state_histories[self.name].append(to_append)
 
-        for func, name in self._recording_functions:
-            result = func(*to_append)
-            new_append = (now, result)
-            if name not in instance._state_histories:
-                instance._state_histories[name] = [new_append]
-            elif self._record_duplicates or not _compare(
-                new_append, instance._state_histories[name][-1]
-            ):
-                instance._state_histories[name].append(new_append)
+        self._do_record_funcs(instance, *to_append)
 
     def _do_callback(self, instance: "Actor", value: ST) -> None:
         """Run callbacks for the state change.
@@ -221,7 +227,16 @@ class State(Generic[ST]):
     # NOTE: A dictionary as a descriptor doesn't work well,
     # because all the operations seem to happen *after* the get
     # NOTE: Lists also have the same issue that
-    def __set__(self, instance: "Actor", value: ST) -> None:
+    def _type_check(self, value: Any, throw: bool = True) -> bool:
+        """Check if a type matches this state."""
+        if not self._types:
+            return True
+        ans = isinstance(value, self._types)
+        if throw and not ans:
+            raise TypeError(f"{value} is of type {type(value)} not of type {self._types}")
+        return ans
+
+    def __set__(self, instance: "Actor", value: Any) -> None:
         """Set the state's value.
 
         Args:
@@ -236,8 +251,7 @@ class State(Generic[ST]):
                     f"to value of {old_value}. It cannot be changed once set!"
                 )
 
-        if self._types and not isinstance(value, self._types):
-            raise TypeError(f"{value} is of type {type(value)} not of type {self._types}")
+        self._type_check(value, throw=True)
 
         instance.__dict__[self.name] = value
 
@@ -1126,3 +1140,123 @@ class CommunicationStore(ResourceState[Store]):
                 raise SimulationError("CommunicationStore must use a Store subclass")
         super().__init__(default=default, valid_types=valid_types)
         self._mode = mode
+
+
+class _KeyValueBase(State):
+    """A base state for holding key/value pairs.
+
+    This is greatly simplified state meant for a runtime
+    definition, rather than assuming defaults.
+
+    Use either a dataclass or a dictionary for the value of
+    the state when instantiating the Actor.
+    """
+
+    def __init__(
+        self,
+        *,
+        valid_types: type | tuple[type, ...] | None = None,
+        recording: bool = False,
+        record_duplicates: bool = False,
+        recording_functions: list[RECORD_TUPLES] | None = None,
+    ) -> None:
+        # Frozen, recording, and record duplicates are set so
+        # that the overall state's value (a dictionary) is
+        # never touched, and only its members are accessed.
+        super().__init__(
+            frozen=True,
+            valid_types=valid_types,
+            recording=False,
+            record_duplicates=False,
+            recording_functions=recording_functions,
+        )
+        self._record_indiv = recording
+        self._record_indiv_dupe = record_duplicates
+
+    def _record_single(self, instance: "Actor", time: float, key: str, value: Any) -> None:
+        name = f"{self.name}.{key}"
+        new = (time, value)
+        if name not in instance._state_histories:
+            instance._state_histories[name] = [new]
+        elif self._record_duplicates or not _compare(new, instance._state_histories[name][-1]):
+            instance._state_histories[name].append(new)
+
+    def _get_keys_values(self, instance: "Actor") -> list[tuple[str, Any]]:
+        raise NotImplementedError()
+
+    def _get_value(self, instance: "Actor", key: str) -> Any:
+        raise NotImplementedError
+
+    def _record_state(self, instance: "Actor", key: str | None = None, all: bool = False) -> None:
+        if not self._record_indiv:
+            return
+
+        if getattr(instance, "env", None) is None:
+            raise SimulationError(
+                f"Actor {instance} does not have an `env` attribute for state {self.name}"
+            )
+        now = float(instance.env.now)
+        if all:
+            for k, v in self._get_keys_values(instance):
+                self._record_single(instance, now, k, v)
+        elif key is not None:
+            v = self._get_value(instance, key)
+            self._record_single(instance, now, key, v)
+        else:
+            raise SimulationError(f"No key given for recording on {instance}")
+
+        self._do_record_funcs(instance, now, instance.__dict__[self.name])
+
+
+VT = TypeVar("VT")
+
+
+class DictionaryState(_KeyValueBase, Generic[VT]):
+    def __get__(self, instance: "Actor", objtype: type | None = None) -> dict[str, VT]:
+        return cast(
+            dict[str, VT], _DictionaryProxy[VT](self, instance, instance.__dict__[self.name])
+        )
+
+    def __set__(self, instance: "Actor", value: dict[str, VT]) -> None:
+        if self.name in instance.__dict__:
+            raise SimulationError(f"State {self.name} already set on {instance}.")
+
+        instance.__dict__[self.name] = {}
+        for k, v in value.items():
+            self._type_check(v, throw=True)
+            instance.__dict__[self.name][k] = v
+
+        self._record_state(instance, all=True)
+
+    def _get_keys_values(self, instance: "Actor") -> list[tuple[str, Any]]:
+        return list(instance.__dict__[self.name].items())
+
+    def _get_value(self, instance: "Actor", key: str) -> Any:
+        return instance.__dict__[self.name][key]
+
+
+DCT = TypeVar("DCT", bound=DCProtocol)
+
+
+class DataclassState(_KeyValueBase, Generic[DCT]):
+    def __get__(self, instance: "Actor", objtype: type | None = None) -> DCT:
+        return cast(DCT, _DataclassProxy[DCT](self, instance, instance.__dict__[self.name]))
+
+    def __set__(self, instance: "Actor", value: DCT) -> None:
+        if self.name in instance.__dict__:
+            raise SimulationError(f"State {self.name} already set on {instance}.")
+
+        self._type_check(value, throw=True)
+        instance.__dict__[self.name] = value
+
+        self._record_state(instance, all=True)
+
+    def _get_keys_values(self, instance: "Actor") -> list[tuple[str, Any]]:
+        ans = []
+        dc = instance.__dict__[self.name]
+        for field in fields(dc):
+            ans.append((field.name, getattr(dc, field.name)))
+        return ans
+
+    def _get_value(self, instance: "Actor", key: str) -> Any:
+        return getattr(instance.__dict__[self.name], key)

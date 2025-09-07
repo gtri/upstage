@@ -28,6 +28,8 @@ class Cashier(UP.Actor):
     cue2 = UP.ResourceState[UP.SelfMonitoringContainer](default=UP.SelfMonitoringContainer)
     time_working = UP.LinearChangingState(default=0.0, recording=True, record_duplicates=True)
     info = UP.State[Information](recording=True)
+    dicttype = UP.DictionaryState[int](recording=True)
+    nrdt = UP.DictionaryState[str]()
 
 
 class Cart(UP.Actor):
@@ -46,6 +48,8 @@ def test_data_reporting() -> None:
             items_scanned=0,
             cue=UP.SelfMonitoringStore(env),
             info=Information(0, 0),
+            dicttype={"Coupons": 0},
+            nrdt={"Special": 4},
         )
 
         cash2 = Cashier(
@@ -54,6 +58,8 @@ def test_data_reporting() -> None:
             items_scanned=0,
             cue=UP.SelfMonitoringStore(env),
             info=Information(1, 1),
+            dicttype={"Coupons": 0},
+            nrdt={"Special": 3},
         )
         store = UP.SelfMonitoringFilterStore(env, name="Store Test")
         cart = Cart(
@@ -90,6 +96,7 @@ def test_data_reporting() -> None:
                 rate=1.0,
                 task=t,
             )
+            c.dicttype["Coupons"] += 1
 
         env.run(until=1)
         cart.location
@@ -156,6 +163,8 @@ def test_data_reporting() -> None:
     assert ctr[("Store Test", "SelfMonitoringFilterStore", "Resource")] == 3
     assert ctr[("Ertha", "Cashier", "info.value_1")] == 2
     assert ctr[("Ertha", "Cashier", "info.value_2")] == 2
+    assert ctr[("Ertha", "Cashier", "dicttype.Coupons")] == 2
+    assert ctr[("Bertha", "Cashier", "dicttype.Coupons")] == 2
     assert ctr[("Bertha", "Cashier", "info.value_1")] == 2
     assert ctr[("Bertha", "Cashier", "info.value_2")] == 2
     # Test for default values untouched in the sim showing up in the data.
@@ -166,7 +175,7 @@ def test_data_reporting() -> None:
     assert row[4] == 0
     assert row[3] == 0.0
     # Continuing as before
-    assert len(state_table) == 50
+    assert len(state_table) == 54
     assert cols == all_cols
     assert cols == [
         "Entity Name",
@@ -190,7 +199,7 @@ def test_data_reporting() -> None:
     assert ctr[("Wobbly Wheel", "Cart", "holding")] == 1
     assert ctr[("Wobbly Wheel", "Cart", "location")] == 4
     assert ctr[("Wobbly Wheel", "Cart", "location_two")] == 4
-    assert len(all_state_table) == 38 + 8 + 12
+    assert len(all_state_table) == 38 + 8 + 12 + 4
 
     assert loc_cols == [
         "Entity Name",
@@ -222,8 +231,15 @@ def test_data_reporting() -> None:
     assert match2 in new_table
     assert match2 not in all_state_table
 
-    # Only the two "other" states should show up
-    assert len(new_table) - len(orig_table) == 2
+    match3 = ("Bertha", "Cashier", "nrdt.Special", 0.0, 3, "Last Seen")
+    match4 = ("Ertha", "Cashier", "nrdt.Special", 0.0, 4, "Last Seen")
+    assert match3 in new_table
+    assert match3 not in all_state_table
+    assert match4 in new_table
+    assert match4 not in all_state_table
+
+    # Only the two "other" states should show up, and the new DictionaryState
+    assert len(new_table) - len(orig_table) == 4
 
 
 def test_store_failure() -> None:
@@ -279,4 +295,4 @@ def test_data_recorder() -> None:
 
 
 if __name__ == "__main__":
-    test_store_failure()
+    test_data_reporting()

@@ -13,6 +13,7 @@ import upstage_des.resources.monitoring as monitor
 from upstage_des.actor import Actor
 from upstage_des.api import EnvironmentContext, SimulationError, UpstageError
 from upstage_des.states import LinearChangingState, ResourceState, State
+from upstage_des.task import TASK_GEN
 from upstage_des.type_help import SIMPY_GEN
 
 
@@ -387,6 +388,97 @@ def test_matching_states() -> None:
         assert value is worker.walkie, "Wrong state retrieved"
 
 
+def test_dictionary_state() -> None:
+    """Test multi states."""
+
+    class TheActor(UP.Actor):
+        holder = UP.DictionaryState[int | str](valid_types=(int, str), recording=True)
+
+    use = {"item": 0, "other": 4, "new": "A"}
+
+    with UP.EnvironmentContext() as env:
+        ta = TheActor(name="example", holder=use)
+        ans = {k: v for k, v in ta.holder.items()}
+        assert ans == use
+
+        for k, v in use.items():
+            assert ta.holder[k] == v
+
+        # Making sure we are not using the original object
+        use["newer"] = 4
+        assert "newer" not in ta.holder
+
+        ta.holder["newer"] = 5
+        env.run(3)
+        ta.holder["new"] = 1
+        with pytest.raises(
+            TypeError,
+            match="Bad type for dictionary",
+        ):
+            ta.holder["item"] = 2.0  # type: ignore [assignment]
+        ta.holder["item"] = 42
+        res = ta.holder.setdefault("newest", "a value")
+        assert res == "a value"
+        res = ta.holder.setdefault("item", "xyz")
+        # Since the error is skipped, it's still set as 2.0
+        assert res == 42
+
+        ks = ["item", "other", "new", "newer", "newest"]
+        vs = [42, 4, 1, 5, "a value"]
+        assert list(ta.holder.keys()) == ks
+        assert list(ta.holder.values()) == vs
+        assert list(ta.holder.items()) == [(k, v) for k, v in zip(ks, vs)]
+
+        env.run(5)
+        ta.holder["item"] = 10
+        ta.holder["other"] = 11
+
+        for key in ta.holder.keys():
+            rec_key = f"holder.{key}"
+            assert rec_key in ta._state_histories
+        assert ta._state_histories["holder.item"] == [(0.0, 0), (3.0, 42), (5.0, 10)]
+        assert ta._state_histories["holder.other"] == [(0.0, 4), (5.0, 11)]
+        assert ta._state_histories["holder.new"] == [(0.0, "A"), (3.0, 1)]
+        assert ta._state_histories["holder.newer"] == [(0.0, 5)]
+        assert ta._state_histories["holder.newest"] == [(3.0, "a value")]
+
+
+def test_dictionary_state_record() -> None:
+    def total_recorder(time: float, value: dict[str, int]) -> int:
+        return sum(value.values())
+
+    class Usher(UP.Actor):
+        people_seen = UP.DictionaryState[int](
+            valid_types=int,
+            recording=True,
+            recording_functions=[(total_recorder, "total_customers")],
+        )
+        rando = UP.DictionaryState[Any](recording=True)
+
+    class TicketTaking(UP.Task):
+        def task(self, *, actor: Usher) -> TASK_GEN:
+            for customer in ["adult", "adult", "child", "adult", "child", "vip"]:
+                actor.people_seen.setdefault(customer, 0)
+                actor.people_seen[customer] += 1
+                yield UP.Wait(0.1)
+
+    with UP.EnvironmentContext() as env:
+        ush = Usher(name="Yeah", people_seen={"adult": 0, "child": 0}, rando={"stuff": {}})
+        task = TicketTaking()
+        task.run(actor=ush)
+        env.run()
+        ush.rando["stuff"]["here"] = 1
+        assert env.now == 0.6
+        assert "people_seen.adult" in ush._state_histories
+        assert "people_seen.child" in ush._state_histories
+        assert "people_seen.vip" in ush._state_histories
+        assert "total_customers" in ush._state_histories
+
+
+def test_dataclass_state() -> None:
+    ...
+
+
 def test_extra_recording() -> None:
     """Test that the extra recording works."""
 
@@ -554,3 +646,7 @@ def test_extra_recording_docs() -> None:
             (0.0, "F"),
             (0.0, "J"),
         ]
+
+
+if __name__ == "__main__":
+    test_dictionary_state_record()

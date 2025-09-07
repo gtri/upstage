@@ -74,7 +74,9 @@ from upstage_des.state_sharing import SharedLinearChangingState
 from upstage_des.states import (
     CartesianLocationChangingState,
     CommunicationStore,
+    DataclassState,
     DetectabilityState,
+    DictionaryState,
     GeodeticLocationChangingState,
     LinearChangingState,
     ResourceState,
@@ -130,6 +132,8 @@ __all__ = [
     "CartesianLocationData",
     "GeodeticLocationData",
     "LinearChangingState",
+    "DictionaryState",
+    "DataclassState",
     "CartesianLocationChangingState",
     "State",
     "GeodeticLocationChangingState",

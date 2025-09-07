@@ -48,6 +48,8 @@ def test_api() -> None:
         "CartesianLocationData",
         "GeodeticLocationData",
         "LinearChangingState",
+        "DataclassState",
+        "DictionaryState",
         "CartesianLocationChangingState",
         "State",
         "GeodeticLocationChangingState",
