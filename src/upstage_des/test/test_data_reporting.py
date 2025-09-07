@@ -30,6 +30,7 @@ class Cashier(UP.Actor):
     info = UP.State[Information](recording=True)
     dicttype = UP.DictionaryState[int](recording=True)
     nrdt = UP.DictionaryState[str]()
+    dc_state = UP.DataclassState[Information](valid_types=Information, recording=True)
 
 
 class Cart(UP.Actor):
@@ -50,6 +51,7 @@ def test_data_reporting() -> None:
             info=Information(0, 0),
             dicttype={"Coupons": 0},
             nrdt={"Special": 4},
+            dc_state=Information(1, 1.0),
         )
 
         cash2 = Cashier(
@@ -60,6 +62,7 @@ def test_data_reporting() -> None:
             info=Information(1, 1),
             dicttype={"Coupons": 0},
             nrdt={"Special": 3},
+            dc_state=Information(2, 2.0),
         )
         store = UP.SelfMonitoringFilterStore(env, name="Store Test")
         cart = Cart(
@@ -107,6 +110,9 @@ def test_data_reporting() -> None:
         cash.record_state("info")
         cash2.info.value_2 = 4.3
         cash2.record_state("info")
+
+        cash.dc_state.value_1 += 1
+        cash2.dc_state.value_1 += 2
 
         for c in [cash, cash2]:
             c.cue.put("B")
@@ -167,6 +173,10 @@ def test_data_reporting() -> None:
     assert ctr[("Bertha", "Cashier", "dicttype.Coupons")] == 2
     assert ctr[("Bertha", "Cashier", "info.value_1")] == 2
     assert ctr[("Bertha", "Cashier", "info.value_2")] == 2
+    assert ctr[("Ertha", "Cashier", "dc_state.value_1")] == 2
+    assert ctr[("Bertha", "Cashier", "dc_state.value_1")] == 2
+    assert ctr[("Ertha", "Cashier", "dc_state.value_2")] == 1
+    assert ctr[("Bertha", "Cashier", "dc_state.value_2")] == 1
     # Test for default values untouched in the sim showing up in the data.
     assert ctr[("Wobbly Wheel", "Cart", "holding")] == 1
     assert ctr[("Wobbly Wheel", "Cart", "some_data.exam")] == 3
@@ -175,7 +185,7 @@ def test_data_reporting() -> None:
     assert row[4] == 0
     assert row[3] == 0.0
     # Continuing as before
-    assert len(state_table) == 54
+    assert len(state_table) == 60
     assert cols == all_cols
     assert cols == [
         "Entity Name",
@@ -199,7 +209,7 @@ def test_data_reporting() -> None:
     assert ctr[("Wobbly Wheel", "Cart", "holding")] == 1
     assert ctr[("Wobbly Wheel", "Cart", "location")] == 4
     assert ctr[("Wobbly Wheel", "Cart", "location_two")] == 4
-    assert len(all_state_table) == 38 + 8 + 12 + 4
+    assert len(all_state_table) == 38 + 8 + 12 + 4 + 6
 
     assert loc_cols == [
         "Entity Name",

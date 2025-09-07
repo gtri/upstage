@@ -18,7 +18,7 @@ from upstage_des.base import SimulationError, UpstageError
 from upstage_des.data_types import CartesianLocation, GeodeticLocation
 from upstage_des.math_utils import _vector_add, _vector_subtract
 from upstage_des.resources.monitoring import SelfMonitoringStore
-from upstage_des.state_proxies import DCProtocol, _DataclassProxy, _DictionaryProxy
+from upstage_des.state_proxies import _DataclassProxy, _DictionaryProxy
 from upstage_des.task import Task
 
 if TYPE_CHECKING:
@@ -1235,7 +1235,7 @@ class DictionaryState(_KeyValueBase, Generic[VT]):
         return instance.__dict__[self.name][key]
 
 
-DCT = TypeVar("DCT", bound=DCProtocol)
+DCT = TypeVar("DCT")
 
 
 class DataclassState(_KeyValueBase, Generic[DCT]):

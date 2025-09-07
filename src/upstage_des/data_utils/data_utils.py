@@ -1,6 +1,6 @@
 """Utilities for gathering all recorded simulation data."""
 
-from dataclasses import asdict, is_dataclass
+from dataclasses import asdict, fields, is_dataclass
 from typing import Any, cast
 
 from upstage_des.actor import Actor
@@ -68,6 +68,14 @@ def _state_history_to_table(
     return data
 
 
+def _key_list(obj: Any) -> list[str]:
+    if isinstance(obj, dict):
+        return [str(x) for x in obj.keys()]
+    if is_dataclass(obj):
+        return [f.name for f in fields(obj)]
+    raise ValueError(f"Unexpected data type for state history: {obj}")
+
+
 def _actor_state_data(
     actor: Actor,
     skip_locations: bool = True,
@@ -103,7 +111,7 @@ def _actor_state_data(
                 )
             )
         elif is_prefilled:
-            for key in _value.keys():
+            for key in _key_list(_value):
                 sname = f"{state_name}.{key}"
                 assert sname in actor._state_histories
                 data.extend(
