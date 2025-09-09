@@ -1212,6 +1212,58 @@ VT = TypeVar("VT")
 
 
 class DictionaryState(_KeyValueBase, Generic[VT]):
+    """A state that contains a {str: value} dictionary.
+
+    This state provides features for holding a dictionary that is self-recording
+    when attributes are set. Similar to States, recording functions can augment
+    the recorded information on every key/value update. Recorded keys are
+    given the variable name of <state name>.<key>
+
+    For simplicity of data recording, this state expects all keys to be strings.
+    If you supply a valid_type input, the state will type check your values
+    against it.
+
+    The dictionary state does not expect any default factories or settings, you
+    must initialize it with at least a blank dictionary.
+
+    The state is not actually a dictionary, but a proxy for the dictionary where
+    get, set, contains, and iter operations are supported.
+
+    Example:
+
+    .. code-block:: python
+
+        class VendingMachine(UP.Actor):
+            inventory = UP.DictionaryState[int](valid_types=(int,), recording=True)
+            requested = UP.DictionaryState[int](valid_types=(int,), recording=True)
+            request = UP.ResourceState[Store](default=Store)
+
+        class TrackRequests(UP.Task):
+            def task(self, *, actor: VendingMachine) -> TASK_GEN:
+                get = UP.Get(actor.request)
+                yield get
+                item_name = get.get_value()
+                actor.requested.setdefault(item_name, 0)
+                actor.requested[item_name] += 1
+                if item_name in actor.inventory:
+                    actor.inventory[item_name] -= 1
+                else:
+                    print(f"We have no items named {item_name}".)
+
+        inventory = {"chips": 10, "cookies":10, "granola bars": 24}
+        with UP.EnvironmentContext() as env:
+            vend = VendingMachine(
+                name="Machine",
+                inventory=inventory,
+                request={},
+            )
+            ...
+
+
+    Args:
+        Generic (_type_): The type information for the values
+    """
+
     def __get__(self, instance: "Actor", objtype: type | None = None) -> dict[str, VT]:
         return cast(
             dict[str, VT], _DictionaryProxy[VT](self, instance, instance.__dict__[self.name])
@@ -1239,6 +1291,60 @@ DCT = TypeVar("DCT")
 
 
 class DataclassState(_KeyValueBase, Generic[DCT]):
+    """A state that contains a dataclass.
+
+    This state provides features for holding a dataclass that is self-recording
+    when attributes are set. Similar to States, recording functions can augment
+    the recorded information on every key/value update. Recorded keys are
+    given the variable name of <state name>.<attribute name>
+
+    If you supply a dataclass object to the valid_type input, the state will
+    type check your values against it. These states are less flexible than
+    dictionary states, but do provide more specific type information on a per-
+    attribute basis. If you have common data structures that you might update
+    frequently, a DataclassState can provide some structure that is more flexible
+    than changing an actor's states. It also allows other models to be incorporated
+    that are dependent on data only, and not the actors themselves.
+
+    The dataclass state does not expect any default factories or settings, you
+    must initialize it with a dataclass instance.
+
+    The state is not actually a dataclass, but a proxy for the dataclass where
+    get, set, contains, and iter operations are supported.
+
+    Example:
+
+    .. code-block:: python
+
+        @dataclass
+        class Properties:
+            speed: float
+            health: float
+            damage: float
+            armor: float = field(default=0.0)
+
+        class Barbarian(UP.Actor):
+            properties = UP.DataclassState[Properties](
+                valid_types=(Properties,),
+                recording=True,
+            )
+
+        def fight_model(fighter1: Properties, fighter2: Properties):
+            ...
+
+        class ArenaBattle(UP.Task):
+            def task(self, *, actor: ArenaActor) -> TASK_GEN:
+                get = UP.Get(actor.next_fight)
+                yield get
+                b1: Barbarian
+                b2: Barbarian
+                b1, b2 = get.get_value()
+                winner = fight_model(b1.properties, b2.properties)
+
+    Args:
+        Generic (_type_): The type information for the values
+    """
+
     def __get__(self, instance: "Actor", objtype: type | None = None) -> DCT:
         return cast(DCT, _DataclassProxy[DCT](self, instance, instance.__dict__[self.name]))
 

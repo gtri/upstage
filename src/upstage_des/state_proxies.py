@@ -2,7 +2,7 @@
 
 from collections.abc import ItemsView, Iterable, KeysView, ValuesView
 from dataclasses import is_dataclass
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 VTD = TypeVar("VTD")
 TDC = TypeVar("TDC")
@@ -62,6 +62,16 @@ class _DictionaryProxy(Generic[VTD]):
         """
         return self._wrapped.values()
 
+    def raw_object(self) -> dict[str, VTD]:
+        """Give access to the underlying object.
+
+        Any operations on that object won't be recorded.
+
+        Returns:
+            dict[str, VTD]: The dictionary
+        """
+        return self._wrapped
+
     def __getitem__(self, key: str) -> VTD:
         return self._wrapped[key]
 
@@ -70,6 +80,14 @@ class _DictionaryProxy(Generic[VTD]):
 
     def __contains__(self, key: str) -> bool:
         return key in self._wrapped
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, dict):
+            return False
+        return other == self._wrapped
+
+    def __repr__(self) -> str:
+        return repr(self._wrapped)
 
 
 class _DataclassProxy(Generic[TDC]):
@@ -92,6 +110,16 @@ class _DataclassProxy(Generic[TDC]):
                 f"Dataclass value {value} for field {name} doesn't match type: {field_type}."
             )
 
+    def raw_object(self) -> TDC:
+        """Give access to the underlying object.
+
+        Any operations on that object won't be recorded.
+
+        Returns:
+            TDC: The dataclass object
+        """
+        return cast(TDC, self._wrapped)
+
     def __getattr__(self, name: str) -> Any:
         return getattr(self._wrapped, name)
 
@@ -103,3 +131,11 @@ class _DataclassProxy(Generic[TDC]):
                 self._typecheck(name, value)
                 setattr(self._wrapped, name, value)
                 self._descr._record_state(self._inst, name, all=False)
+
+    def __eq__(self, other: Any) -> bool:
+        if not is_dataclass(other):
+            return False
+        return other == self._wrapped
+
+    def __repr__(self) -> str:
+        return repr(self._wrapped)
