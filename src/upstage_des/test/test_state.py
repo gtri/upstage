@@ -429,6 +429,7 @@ def test_dictionary_state() -> None:
         assert list(ta.holder.keys()) == ks
         assert list(ta.holder.values()) == vs
         assert list(ta.holder.items()) == [(k, v) for k, v in zip(ks, vs)]
+        assert ta.holder == {k: v for k, v in zip(ks, vs)}
 
         env.run(5)
         ta.holder["item"] = 10
@@ -527,6 +528,8 @@ def test_dataclass_state() -> None:
             (0.1, 9.0),
             (0.2, 6.0),
         ]
+
+        assert ea.dc_state == TestDC(-2, 8.0)
 
 
 def test_extra_recording() -> None:
