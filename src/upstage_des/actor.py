@@ -935,6 +935,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
             state_obj = self._state_defs[state]
             if isinstance(state_obj, ResourceState):
                 states[state] = state_obj._make_clone(self, getattr(self, state))
+            elif isinstance(state_obj, _KeyValueBase):
+                states[state] = state_obj._make_clone(self)
             else:
                 states[state] = copy(getattr(self, state))
         states.update(new_states)
