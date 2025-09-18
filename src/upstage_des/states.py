@@ -6,13 +6,13 @@
 """A state defines the conditions of an actor over time."""
 
 from abc import abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from copy import deepcopy
-from dataclasses import fields
+from dataclasses import fields, replace
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, cast, runtime_checkable
 
-from simpy import Container, Store
+from simpy import Container, Environment, Store
 
 from upstage_des.base import SimulationError, UpstageError
 from upstage_des.data_types import CartesianLocation, GeodeticLocation
@@ -1207,6 +1207,9 @@ class _KeyValueBase(State):
 
         self._do_record_funcs(instance, now, instance.__dict__[self.name])
 
+    def _make_clone(self, instance: "Actor") -> Any:
+        raise NotImplementedError()
+
 
 VT = TypeVar("VT")
 
@@ -1285,6 +1288,9 @@ class DictionaryState(_KeyValueBase, Generic[VT]):
 
     def _get_value(self, instance: "Actor", key: str) -> Any:
         return instance.__dict__[self.name][key]
+
+    def _make_clone(self, instance: "Actor") -> dict[str, VT]:
+        return cast(dict[str, VT], instance.__dict__[self.name].copy())
 
 
 DCT = TypeVar("DCT")
@@ -1366,3 +1372,80 @@ class DataclassState(_KeyValueBase, Generic[DCT]):
 
     def _get_value(self, instance: "Actor", key: str) -> Any:
         return getattr(instance.__dict__[self.name], key)
+
+    def _make_clone(self, instance: "Actor") -> DCT:
+        return cast(DCT, replace(instance.__dict__[self.name]))
+
+
+class MultiStoreState(DictionaryState[T]):
+    """A state for holding stores or containers keyed by a string.
+
+    Works best when all values are the same kind of container.
+    """
+
+    def __init__(
+        self,
+        *,
+        valid_types: type | tuple[type, ...] | None = None,
+        default: Store | Container | None = None,
+        default_kwargs: dict[str, Any] | None = None,
+    ) -> None:
+        self._default = default
+        self._default_kwargs = {} if default_kwargs is None else default_kwargs.copy()
+        super().__init__(valid_types=valid_types)
+
+    def _type_checker(self, resource_type: Any) -> None:
+        any_type = False
+        for t in self._types:
+            if not (issubclass(t, Store) or issubclass(t, Container)):
+                raise UpstageError("Bad valid_type for MultiStoreState.")
+            if issubclass(resource_type, t):
+                any_type = True
+        if self._types and not any_type:
+            raise UpstageError(
+                f"{resource_type} is of type {type(resource_type)} not of type {self._types}"
+            )
+
+    def _make_resource(self, env: Environment, input: T | dict[str, Any]) -> T:
+        if not isinstance(input, dict):
+            # we've been passed an actual resource, so save it and leave
+            self._type_checker(input)
+            return input
+
+        kwargs = self._default_kwargs.copy()
+        kwargs.update({k: v for k, v in input.items() if k != "kind"})
+
+        resource_type = input.get("kind", self._default)
+        if resource_type is None:
+            raise UpstageError("No default specified for MultiStoreState. Did you forget 'kind'?")
+        self._type_checker(resource_type)
+        try:
+            resource_obj = resource_type(env, **kwargs)
+        except TypeError as e:
+            raise UpstageError(
+                f"Bad argument input to resource state {self.name}"
+                f" resource class {resource_type} :{e}"
+            )
+        except Exception as e:
+            raise UpstageError(f"Exception in ResourceState init: {e}")
+        return cast(T, resource_obj)
+
+    def __set__(
+        self, instance: "Actor", value: dict[str, T | dict[str, Any]] | Iterable[str]
+    ) -> None:
+        if self.name in instance.__dict__:
+            raise SimulationError(f"State {self.name} already set on {instance}.")
+        env = getattr(instance, "env", None)
+        if env is None or not isinstance(env, Environment):
+            raise UpstageError(
+                f"Actor {instance} does not have the right `env` attribute for state {self.name}"
+            )
+        # process the values
+        use: dict[str, T] = {}
+        if isinstance(value, Iterable):
+            value = {name: {} for name in value}
+        attrs: dict[str, Any]
+        for name, attrs in value.items():
+            use[name] = self._make_resource(env, attrs)
+
+        super().__set__(instance, use)
