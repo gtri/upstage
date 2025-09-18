@@ -55,6 +55,7 @@ def test_api() -> None:
         "GeodeticLocationChangingState",
         "DetectabilityState",
         "ResourceState",
+        "MultiStoreState",
         "DecisionTask",
         "Task",
         "process",

@@ -1390,20 +1390,26 @@ class MultiStoreState(DictionaryState[T]):
         default: Store | Container | None = None,
         default_kwargs: dict[str, Any] | None = None,
     ) -> None:
+        super().__init__(valid_types=valid_types)
         self._default = default
         self._default_kwargs = {} if default_kwargs is None else default_kwargs.copy()
-        super().__init__(valid_types=valid_types)
+
+    def has_default(self) -> bool:
+        # Force the state to be defined.
+        return False
 
     def _type_checker(self, resource_type: Any) -> None:
         any_type = False
         for t in self._types:
             if not (issubclass(t, Store) or issubclass(t, Container)):
                 raise UpstageError("Bad valid_type for MultiStoreState.")
-            if issubclass(resource_type, t):
+            inst = isinstance(resource_type, t)
+            typ = issubclass(resource_type, t) if type(resource_type) is type else True
+            if inst or typ:
                 any_type = True
         if self._types and not any_type:
             raise UpstageError(
-                f"{resource_type} is of type {type(resource_type)} not of type {self._types}"
+                f"{resource_type} is of type {resource_type} not of type {self._types}"
             )
 
     def _make_resource(self, env: Environment, input: T | dict[str, Any]) -> T:
@@ -1442,7 +1448,7 @@ class MultiStoreState(DictionaryState[T]):
             )
         # process the values
         use: dict[str, T] = {}
-        if isinstance(value, Iterable):
+        if not isinstance(value, dict):
             value = {name: {} for name in value}
         attrs: dict[str, Any]
         for name, attrs in value.items():

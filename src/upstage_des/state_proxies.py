@@ -85,6 +85,9 @@ class _DictionaryProxy(Generic[VTD]):
         if not isinstance(other, dict):
             return False
         return other == self._wrapped
+    
+    def __len__(self) -> int:
+        return len(self._wrapped)
 
     def __repr__(self) -> str:
         return repr(self._wrapped)

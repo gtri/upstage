@@ -532,6 +532,63 @@ def test_dataclass_state() -> None:
         assert ea.dc_state == TestDC(-2, 8.0)
 
 
+def test_multistore_state() -> None:
+    class MSActor(UP.Actor):
+        mstate = UP.MultiStoreState[UP.SelfMonitoringStore](
+            valid_types=Store,
+            default=UP.SelfMonitoringStore,
+            default_kwargs={"capacity": 3},
+        )
+        cstate = UP.MultiStoreState[Container](
+            valid_types=Container,
+            default=Container,
+        )
+
+    with UP.EnvironmentContext() as env:
+        ms = MSActor(
+            name="Example",
+            mstate=["One", "Two"],
+            cstate={"New": {"kind": UP.SelfMonitoringContainer, "init": 100}},
+        )
+        mstate = ms.mstate
+        assert len(mstate) == 2
+        assert "One" in mstate
+        assert "Two" in mstate
+        assert ms.mstate["One"].capacity == 3
+        assert ms.mstate["Two"].capacity == 3
+        assert ms.cstate["New"].level == 100
+        
+        def _proc() -> SIMPY_GEN:
+            yield ms.mstate["One"].put(1)
+            yield ms.mstate["Two"].put(2)
+            yield env.timeout(1.0)
+            yield ms.cstate["New"].put(20)
+        
+        env.process(_proc())
+        env.run()
+        assert ms.mstate["One"].items == [1]
+        assert ms.mstate["Two"].items == [2]
+        assert ms.cstate["New"].level == 120
+
+        with pytest.raises(UpstageError, match="is of type <class 'simpy.resources.container"):
+            MSActor(
+                name="Example2",
+                mstate={"Other": {}, "AContainer": {"kind": Container}}
+            )
+
+        with pytest.raises(UpstageError, match="Missing values for states"):
+            MSActor(
+                name="Example3",
+                mstate={"Other": {}}
+            )
+        
+        actor = MSActor(name="exam", mstate={"E":UP.SelfMonitoringStore(env=env)}, cstate=["New"])
+        assert actor.mstate["E"].items == []
+
+        with pytest.raises(UpstageError, match="Bad argument input"):
+            MSActor(name="example", mstate={"other": {"badinput":10}})
+
+
 def test_extra_recording() -> None:
     """Test that the extra recording works."""
 
@@ -702,4 +759,4 @@ def test_extra_recording_docs() -> None:
 
 
 if __name__ == "__main__":
-    test_dataclass_state()
+    test_multistore_state()

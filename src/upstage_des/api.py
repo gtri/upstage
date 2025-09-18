@@ -79,6 +79,7 @@ from upstage_des.states import (
     DictionaryState,
     GeodeticLocationChangingState,
     LinearChangingState,
+    MultiStoreState,
     ResourceState,
     State,
 )
@@ -138,6 +139,7 @@ __all__ = [
     "State",
     "GeodeticLocationChangingState",
     "DetectabilityState",
+    "MultiStoreState",
     "ResourceState",
     "CommunicationStore",
     "DecisionTask",
