@@ -569,6 +569,7 @@ def test_multistore_state() -> None:
         assert ms.mstate["One"].items == [1]
         assert ms.mstate["Two"].items == [2]
         assert ms.cstate["New"].level == 120
+        assert ms.cstate["New"]._quantities == [(0, 100), (1, 120)]
 
         with pytest.raises(UpstageError, match="is of type <class 'simpy.resources.container"):
             MSActor(
@@ -587,6 +588,30 @@ def test_multistore_state() -> None:
 
         with pytest.raises(UpstageError, match="Bad argument input"):
             MSActor(name="example", mstate={"other": {"badinput":10}})
+
+    # test the docstring
+    class Warehouse(Actor):
+        storage = UP.MultiStoreState[Store| Container](
+            default=Store,
+            valid_types=(Store, Container),
+            default_kwargs={"capacity": 100},
+        )
+    
+    with UP.EnvironmentContext():
+        wh = Warehouse(
+            name='Depot',
+            storage = {
+                "shelf":{"capacity":10},
+                "bucket":{"kind": UP.SelfMonitoringContainer, "init": 30},
+                "charger":{},
+            }
+        )
+        assert wh.storage["shelf"].capacity == 10
+        assert wh.storage["bucket"].level == 30
+        assert wh.storage["charger"].capacity == 100
+        assert wh.storage["charger"].items == []
+
+
 
 
 def test_extra_recording() -> None:
