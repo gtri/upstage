@@ -55,5 +55,6 @@ Specific state descriptions and other state features can be found on these pages
 1. :doc:`Active States <active_states>`
 2. :doc:`Resource States <resource_states>`
 3. :doc:`Dictionary and Dataclass States <keyvalue_states>`
-4. :doc:`State Sharing <state_sharing>`
-5. :doc:`Mimic States <mimic_states>`
+4. :doc:`Dictionary Resource State <multistore_states>`
+5. :doc:`State Sharing <state_sharing>`
+6. :doc:`Mimic States <mimic_states>`

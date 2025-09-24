@@ -1381,6 +1381,48 @@ class MultiStoreState(DictionaryState[T]):
     """A state for holding stores or containers keyed by a string.
 
     Works best when all values are the same kind of container.
+
+    This state follows rules similar to ResourceState, but for a dictionary
+    of container/store objects.
+
+    The input an Actor needs to receive for a MultiStoreState is a dictionary of:
+    * 'kind': <class> (optional if you provided a default)
+    * 'capacity': <numeric> (optional, works on stores and containers)
+    * 'init': <numeric> (optional, works on containers)
+    * key:value for any other input expected as a keyword argument by the resource class
+
+    Types are enforced via `valid_types`, and if no `kind` is specified, the
+    `default` input is used.
+
+    The default kwargs will be applied to any input, so make sure they are
+    compatible with different containers, or be more speficific with your typing.
+    Arguments that don't apply will raise an error.
+
+    Example:
+
+    .. code-block:: python
+
+        class Warehouse(Actor):
+            storage = MultiStoreState[Store| Container](
+                default=Store,
+                valid_types=(Store, Container),
+                default_kwargs={"capacity": 100},
+            )
+        
+        wh = Warehouse(
+            name='Depot',
+            storage = {
+                "shelf":{"capacity":10},
+                "bucket":{"kind": SelfMonitoringContainer, "init": 30},
+                "charger":{},
+            }
+        )
+        wh.storage["shelf"].capacity == 10
+        wh.storage["bucket"].level == 30
+        wh.storage["charger"].capacity == 100
+        wh.storage["charger"].items == []
+
+
     """
 
     def __init__(
