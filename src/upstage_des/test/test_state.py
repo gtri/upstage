@@ -597,7 +597,7 @@ def test_multistore_state() -> None:
             default_kwargs={"capacity": 100},
         )
     
-    with UP.EnvironmentContext():
+    with UP.EnvironmentContext() as env:
         wh = Warehouse(
             name='Depot',
             storage = {
@@ -610,8 +610,13 @@ def test_multistore_state() -> None:
         assert wh.storage["bucket"].level == 30
         assert wh.storage["charger"].capacity == 100
         assert wh.storage["charger"].items == []
-
-
+        env.run(until=2)
+        def _proc() -> SIMPY_GEN:
+            yield UP.Put(wh.storage["bucket"], 20).as_event()
+        env.process(_proc())
+        env.run()
+        assert wh.storage["bucket"].level == 50
+        assert wh.storage["bucket"]._quantities == [(0.0, 30), (2.0, 50)]
 
 
 def test_extra_recording() -> None:
