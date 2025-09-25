@@ -6,7 +6,7 @@ import upstage_des.api as UP
 from upstage_des.type_help import ROUTINE_GEN, SIMPY_GEN, TASK_GEN
 
 
-class TestActor(UP.Actor):
+class ExampleActor(UP.Actor):
     value = UP.State[int](default=3)
 
 
@@ -19,7 +19,7 @@ class SimpleRoutine(UP.Routine):
 
 
 class SomeTask(UP.Task):
-    def task(self, *, actor: TestActor) -> TASK_GEN:
+    def task(self, *, actor: ExampleActor) -> TASK_GEN:
         self.set_marker("Routine")
         yield SimpleRoutine(actor.value)
         self.set_marker("Wait")
@@ -37,7 +37,7 @@ def test_simple_routine() -> None:
 
     # Regular running
     with UP.EnvironmentContext() as env:
-        act = TestActor(name="Example", value=3)
+        act = ExampleActor(name="Example", value=3)
         task = SomeTask()
         task.run(actor=act)
         env.run()
@@ -46,7 +46,7 @@ def test_simple_routine() -> None:
 
     # Rehearsing should take twice as long (and a 2 unit wait)
     with UP.EnvironmentContext() as env:
-        act = TestActor(name="Example", value=3)
+        act = ExampleActor(name="Example", value=3)
         task = SomeTask()
         new = task.rehearse(actor=act)
         assert new.env.now == 8
@@ -72,19 +72,19 @@ class CancelRoutine(UP.Routine):
             yield UP.Put(self.store, self.result.pop())
 
 
-class TestActor2(UP.Actor):
+class ExampleActor2(UP.Actor):
     value = UP.State[list[str]](default_factory=list)
     store = UP.ResourceState[SIM.Store](default=SIM.Store)
 
 
 class CancelTask(UP.Task):
-    def task(self, *, actor: TestActor2) -> TASK_GEN:
+    def task(self, *, actor: ExampleActor2) -> TASK_GEN:
         routine = CancelRoutine(actor.store)
         yield routine
         assert routine.result is not None
         actor.value = routine.result
 
-    def on_interrupt(self, *, actor: TestActor2, cause: Any) -> UP.InterruptStates:
+    def on_interrupt(self, *, actor: ExampleActor2, cause: Any) -> UP.InterruptStates:
         return UP.InterruptStates.END
 
 
@@ -98,7 +98,7 @@ def test_routine_cancel() -> None:
 
     # First check, does the routine do what we think?
     with UP.EnvironmentContext() as env:
-        actor = TestActor2(name="example")
+        actor = ExampleActor2(name="example")
 
         task = CancelTask()
         proc = task.run(actor=actor)
@@ -113,7 +113,7 @@ def test_routine_cancel() -> None:
 
     # Check cancelling partway
     with UP.EnvironmentContext() as env:
-        actor = TestActor2(name="example")
+        actor = ExampleActor2(name="example")
 
         task = CancelTask()
         proc = task.run(actor=actor)
@@ -128,7 +128,7 @@ def test_routine_cancel() -> None:
 
     # Check cancelling before anything
     with UP.EnvironmentContext() as env:
-        actor = TestActor2(name="example")
+        actor = ExampleActor2(name="example")
 
         task = CancelTask()
         proc = task.run(actor=actor)
@@ -140,21 +140,21 @@ def test_routine_cancel() -> None:
 
     # For fun and enrichment, see what rehearsal does
     with UP.EnvironmentContext() as env:
-        actor = TestActor2(name="example")
+        actor = ExampleActor2(name="example")
 
         task = CancelTask()
         actor_clone = task.rehearse(actor=actor)
         assert actor_clone.value == [UP.PLANNING_FACTOR_OBJECT] * 2
 
 
-class TestActor3(UP.Actor):
+class ExampleActor3(UP.Actor):
     reset = UP.State[bool](default=True)
     timeout = UP.State[float]()
     store = UP.ResourceState[SIM.Store](default=SIM.Store)
 
 
 class WindowedTask(UP.Task):
-    def task(self, *, actor: TestActor3) -> TASK_GEN:
+    def task(self, *, actor: ExampleActor3) -> TASK_GEN:
         routine = UP.WindowedGet(
             store=actor.store,
             timeout=actor.timeout,
@@ -164,7 +164,7 @@ class WindowedTask(UP.Task):
         answer = yield routine
         self.set_actor_knowledge(actor, "result", answer)
 
-    def on_interrupt(self, *, actor: TestActor3, cause: str) -> UP.InterruptStates:
+    def on_interrupt(self, *, actor: ExampleActor3, cause: str) -> UP.InterruptStates:
         if cause == "end":
             return UP.InterruptStates.END
         elif cause == "ignore":
@@ -175,7 +175,7 @@ class WindowedTask(UP.Task):
             raise UP.SimulationError("Bad cause")
 
 
-def _placer(env: SIM.Environment, act: TestActor3) -> SIMPY_GEN:
+def _placer(env: SIM.Environment, act: ExampleActor3) -> SIMPY_GEN:
     yield env.timeout(1.0)
     yield act.store.put("1")
     yield env.timeout(3.0)
@@ -187,7 +187,7 @@ def _placer(env: SIM.Environment, act: TestActor3) -> SIMPY_GEN:
 def test_windowed_get() -> None:
     # Test the windowed get w/ window reset on
     with UP.EnvironmentContext() as env:
-        act = TestActor3(
+        act = ExampleActor3(
             name="example",
             reset=True,
             timeout=5.0,
@@ -203,7 +203,7 @@ def test_windowed_get() -> None:
 
     # Same test, but no reset. We shouldn't get the 3rd item.
     with UP.EnvironmentContext() as env:
-        act = TestActor3(
+        act = ExampleActor3(
             name="example",
             reset=False,
             timeout=5.0,
@@ -220,7 +220,7 @@ def test_windowed_get() -> None:
     # An interrupt in the task process will cancel the routine
     # and everything will be back in the store.
     with UP.EnvironmentContext() as env:
-        act = TestActor3(
+        act = ExampleActor3(
             name="example",
             reset=True,
             timeout=5.0,
@@ -239,7 +239,7 @@ def test_windowed_get() -> None:
 
     # Interrupt with IGNORE and see the result as before.
     with UP.EnvironmentContext() as env:
-        act = TestActor3(
+        act = ExampleActor3(
             name="example",
             reset=True,
             timeout=5.0,
@@ -258,7 +258,7 @@ def test_windowed_get() -> None:
     # Interrupt with RESTART and modify the timeout. The request will be redone
     # but won't last long enough to get the 3rd item.
     with UP.EnvironmentContext() as env:
-        act = TestActor3(
+        act = ExampleActor3(
             name="example",
             reset=False,
             timeout=5.0,
@@ -278,7 +278,7 @@ def test_windowed_get() -> None:
 
     # Rehearsal
     with UP.EnvironmentContext() as env:
-        act = TestActor3(
+        act = ExampleActor3(
             name="example",
             reset=False,
             timeout=5.0,
