@@ -10,11 +10,16 @@ and off on a point to point basis.
 
 The :py:class:`~upstage_des.communications.comms.Message` class is used to
 describe a message, although strings and dictionaries can also be passed as
-messages, and UPSTAGE will convert them into the ``Message`` class.
+messages, and UPSTAGE will convert them into the ``Message`` class. The 
+message will include information about the sender, mode, and other data.
 
 The communications manager needs to be instantiated and run, and any number
-of them can be run, to represent different modes of communication. The
-following code shows how create an actor class that has two communication
+of them can be run to represent different modes of communication. For 
+simplicity, communications stores on an actor can have multiple modes
+to receive communications on. Each mode needs its own manager which can
+then determine the right store to send the message to. 
+
+The following code shows how create an actor class that has two communication
 interfaces, and then start the necessary comms managers.
 
 .. code-block:: python
