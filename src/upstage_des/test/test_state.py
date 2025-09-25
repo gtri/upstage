@@ -358,19 +358,20 @@ def test_matching_states() -> None:
 
     class Worker(UP.Actor):
         sleepiness = UP.State[float](default=0.0, valid_types=(float,))
-        walkie = UP.CommunicationStore(mode="UHF")
-        intercom = UP.CommunicationStore(mode="loudspeaker")
+        walkie = UP.CommunicationStore(modes="UHF")
+        intercom = UP.CommunicationStore(modes="loudspeaker")
 
     with EnvironmentContext():
         worker = Worker(name="Billy")
         store_name = worker._get_matching_state(
             UP.CommunicationStore,
-            {"_mode": "loudspeaker"},
+            {"_modes": "loudspeaker"},
         )
         assert store_name is not None
         store = getattr(worker, store_name, "")
         assert store is worker.intercom, "Wrong state retrieved"
         assert store is not worker.walkie, "Wrong state retrieved"
+        assert getattr(worker, "_intercom__mode_names_") == set(["loudspeaker"])
 
         # Show the FCFS behavior
         state_name = worker._get_matching_state(

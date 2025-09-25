@@ -40,6 +40,8 @@ class Message:
     time_sent: float | None = None
     time_received: float | None = None
 
+    mode: str | None = None
+
     def __post_init__(self) -> None:
         self.uid = uuid4()
         self.time_created = ENV_CONTEXT_VAR.get().now
@@ -159,6 +161,17 @@ class CommsManager(UpstageBase):
         """
         self.connected[entity] = comms_store_name
 
+    def _get_state(self, actor: Actor) -> str | None:
+        """Get the comms store for the right mode."""
+        for name, state in actor._state_defs.items():
+            if not isinstance(state, CommunicationStore):
+                continue
+            mode_key = state._modename
+            modes: set[str] = actor.__dict__.get(mode_key, set())
+            if self.mode in modes:
+                return name
+        return None
+
     def store_from_actor(self, actor: Actor) -> Store:
         """Retrieve a communications store from an actor.
 
@@ -170,7 +183,7 @@ class CommsManager(UpstageBase):
         """
         if actor not in self.connected:
             try:
-                msg_store_name = actor._get_matching_state(CommunicationStore, {"_mode": self.mode})
+                msg_store_name = self._get_state(actor)
             except SimulationError as e:
                 e.add_note(f"No comms destination on actor {actor}")
                 raise e
@@ -213,14 +226,14 @@ class CommsManager(UpstageBase):
         if isinstance(message, Message):
             use = message
         elif isinstance(message, MessageContent):
-            use = Message(sender=source, content=message, destination=destination)
+            use = Message(sender=source, content=message, destination=destination, mode=self.mode)
         else:
             content = (
                 MessageContent(data=message)
                 if isinstance(message, dict)
                 else MessageContent(data={}, message=message)
             )
-            use = Message(sender=source, content=content, destination=destination)
+            use = Message(sender=source, content=content, destination=destination, mode=self.mode)
 
         return Put(
             self.incoming,

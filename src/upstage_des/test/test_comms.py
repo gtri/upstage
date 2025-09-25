@@ -186,8 +186,8 @@ def test_comms_wait() -> None:
 
 
 class Worker(UP.Actor):
-    walkie = UP.CommunicationStore(mode="UHF")
-    intercom = UP.CommunicationStore(mode="loudspeaker")
+    walkie = UP.CommunicationStore(modes="UHF")
+    intercom = UP.CommunicationStore(modes="loudspeaker")
 
 
 def test_worker_talking() -> None:

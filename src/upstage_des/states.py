@@ -1116,14 +1116,14 @@ class CommunicationStore(ResourceState[Store]):
     def __init__(
         self,
         *,
-        mode: str,
+        modes: str | list[str] | None,
         default: type | None = None,
         valid_types: type | tuple[type, ...] | None = None,
     ):
         """Create a comms store.
 
         Args:
-            mode (str): A mode to describe the comms channel.
+            modes (str, list[str], optional): Modes to describe the comms channel.
             default (type | None, optional): Store class by default.
                 Defaults to None.
             valid_types (type | tuple[type, ...] | None, optional): Valid store classes.
@@ -1139,7 +1139,28 @@ class CommunicationStore(ResourceState[Store]):
             if not issubclass(v, Store):
                 raise SimulationError("CommunicationStore must use a Store subclass")
         super().__init__(default=default, valid_types=valid_types)
-        self._mode = mode
+        self._modes = modes
+
+    @property
+    def _modename(self) -> str:
+        return "_" + self.name + "__mode_names_"
+
+    def __set__(self, instance: "Actor", value: dict | Any) -> None:
+        # See if the instance has any specific mode data to find.
+        modes: str | list[str] | None = self._modes
+        if isinstance(value, dict) and "modes" in value:
+            modes = value.pop("modes")
+        super().__set__(instance, value)
+        if modes is None:
+            raise SimulationError(
+                f"CommunicationsStore {self.name} needs a mode defined"
+                " by default or through the initialization."
+            )
+        if isinstance(modes, str):
+            modes = [modes]
+        if not isinstance(modes, list) and not all(isinstance(x, str) for x in modes):
+            raise SimulationError("CommunicationsStore modes should be a list of strings.")
+        instance.__dict__[self._modename] = set(modes)
 
 
 class _KeyValueBase(State):
