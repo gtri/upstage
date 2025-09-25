@@ -1408,7 +1408,7 @@ class MultiStoreState(DictionaryState[T]):
                 valid_types=(Store, Container),
                 default_kwargs={"capacity": 100},
             )
-        
+
         wh = Warehouse(
             name='Depot',
             storage = {
@@ -1429,16 +1429,12 @@ class MultiStoreState(DictionaryState[T]):
         self,
         *,
         valid_types: type | tuple[type, ...] | None = None,
-        default: Store | Container | None = None,
+        default: type[Store] | type[Container] | None = None,
         default_kwargs: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(valid_types=valid_types)
         self._default = default
         self._default_kwargs = {} if default_kwargs is None else default_kwargs.copy()
-
-    def has_default(self) -> bool:
-        # Force the state to be defined.
-        return False
 
     def _type_checker(self, resource_type: Any) -> None:
         any_type = False
@@ -1492,8 +1488,12 @@ class MultiStoreState(DictionaryState[T]):
         use: dict[str, T] = {}
         if not isinstance(value, dict):
             value = {name: {} for name in value}
-        attrs: dict[str, Any]
+        attrs: dict[str, Any] | T
         for name, attrs in value.items():
             use[name] = self._make_resource(env, attrs)
 
         super().__set__(instance, use)
+
+    def has_default(self) -> bool:
+        # Force the state to be defined.
+        return False

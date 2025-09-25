@@ -557,65 +557,65 @@ def test_multistore_state() -> None:
         assert ms.mstate["One"].capacity == 3
         assert ms.mstate["Two"].capacity == 3
         assert ms.cstate["New"].level == 100
-        
+
         def _proc() -> SIMPY_GEN:
             yield ms.mstate["One"].put(1)
             yield ms.mstate["Two"].put(2)
             yield env.timeout(1.0)
             yield ms.cstate["New"].put(20)
-        
+
         env.process(_proc())
         env.run()
         assert ms.mstate["One"].items == [1]
         assert ms.mstate["Two"].items == [2]
         assert ms.cstate["New"].level == 120
+        assert hasattr(ms.cstate["New"], "_quantities")
         assert ms.cstate["New"]._quantities == [(0, 100), (1, 120)]
 
         with pytest.raises(UpstageError, match="is of type <class 'simpy.resources.container"):
-            MSActor(
-                name="Example2",
-                mstate={"Other": {}, "AContainer": {"kind": Container}}
-            )
+            MSActor(name="Example2", mstate={"Other": {}, "AContainer": {"kind": Container}})
 
         with pytest.raises(UpstageError, match="Missing values for states"):
-            MSActor(
-                name="Example3",
-                mstate={"Other": {}}
-            )
-        
-        actor = MSActor(name="exam", mstate={"E":UP.SelfMonitoringStore(env=env)}, cstate=["New"])
+            MSActor(name="Example3", mstate={"Other": {}})
+
+        actor = MSActor(name="exam", mstate={"E": UP.SelfMonitoringStore(env=env)}, cstate=["New"])
         assert actor.mstate["E"].items == []
 
         with pytest.raises(UpstageError, match="Bad argument input"):
-            MSActor(name="example", mstate={"other": {"badinput":10}})
+            MSActor(name="example", mstate={"other": {"badinput": 10}})
 
     # test the docstring
     class Warehouse(Actor):
-        storage = UP.MultiStoreState[Store| Container](
+        storage = UP.MultiStoreState[Store | Container](
             default=Store,
             valid_types=(Store, Container),
             default_kwargs={"capacity": 100},
         )
-    
+
     with UP.EnvironmentContext() as env:
         wh = Warehouse(
-            name='Depot',
-            storage = {
-                "shelf":{"capacity":10},
-                "bucket":{"kind": UP.SelfMonitoringContainer, "init": 30},
-                "charger":{},
-            }
+            name="Depot",
+            storage={
+                "shelf": {"capacity": 10},
+                "bucket": {"kind": UP.SelfMonitoringContainer, "init": 30},
+                "charger": {},
+            },
         )
         assert wh.storage["shelf"].capacity == 10
+        assert hasattr(wh.storage["bucket"], "level")
         assert wh.storage["bucket"].level == 30
         assert wh.storage["charger"].capacity == 100
+        assert hasattr(wh.storage["charger"], "items")
         assert wh.storage["charger"].items == []
         env.run(until=2)
+
         def _proc() -> SIMPY_GEN:
             yield UP.Put(wh.storage["bucket"], 20).as_event()
+
         env.process(_proc())
         env.run()
         assert wh.storage["bucket"].level == 50
+        assert hasattr(wh.storage["bucket"], "_quantities")
         assert wh.storage["bucket"]._quantities == [(0.0, 30), (2.0, 50)]
 
 
