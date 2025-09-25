@@ -212,4 +212,6 @@ def test_worker_talking() -> None:
 
         env.run()
         assert len(w2.walkie.items) == 1
+        assert w2.walkie.items[0].mode == "UHF"
         assert len(w1.intercom.items) == 1
+        assert w1.intercom.items[0].mode == "loudspeaker"
