@@ -81,13 +81,13 @@ class _DictionaryProxy(Generic[VTD]):
     def __contains__(self, key: str) -> bool:
         return key in self._wrapped
 
+    def __len__(self) -> int:
+        return len(self._wrapped)
+
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, dict):
             return False
         return other == self._wrapped
-    
-    def __len__(self) -> int:
-        return len(self._wrapped)
 
     def __repr__(self) -> str:
         return repr(self._wrapped)
