@@ -149,6 +149,7 @@ pytest-json-report = "*"
 myst-parser = "*"
 pydata-sphinx-theme = "*"
 sphinx = ">=7"
+pip-tools = "*"
 
 [feature.deps-jlite.dependencies]
 jupyterlite-core = "==0.6.1"
