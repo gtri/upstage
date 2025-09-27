@@ -23,7 +23,8 @@ from upstage_des.base import (
 )
 
 # Comms
-from upstage_des.communications.comms import CommsManager, Message, MessageContent
+from upstage_des.communications.comms import Message, MessageContent, PointToPointCommsManager
+from upstage_des.communications.routing import StaticNetworkCommsManager
 
 # Constants
 from upstage_des.constants import PLANNING_FACTOR_OBJECT
@@ -153,7 +154,8 @@ __all__ = [
     "TaskNetworkNucleus",
     "NucleusInterrupt",
     "SharedLinearChangingState",
-    "CommsManager",
+    "PointToPointCommsManager",
+    "StaticNetworkCommsManager",
     "Message",
     "MessageContent",
     "SensorMotionManager",

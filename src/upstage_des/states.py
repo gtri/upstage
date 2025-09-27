@@ -1098,17 +1098,18 @@ class CommunicationStore(ResourceState[Store]):
     The input an Actor needs to receive for a CommunicationStore is a dictionary of:
         >>> {
         >>>     'kind': <class> (optional)
-        >>>     'mode': <string> (required)
+        >>>     'modes': <string> (optional)
         >>> }
 
     Example:
         >>> class Worker(Actor):
-        >>>     walkie = CommunicationStore(mode="UHF")
-        >>>     intercom = CommunicationStore(mode="loudspeaker")
+        >>>     walkie = CommunicationStore(modes="UHF")
+        >>>     intercom = CommunicationStore(modes=None)
         >>>
         >>> worker = Worker(
         >>>     name='Billy',
         >>>     walkie={'kind': SelfMonitoringStore},
+        >>>     intercom={"modes": "loudspeaker"},
         >>> )
 
     """
