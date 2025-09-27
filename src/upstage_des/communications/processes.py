@@ -9,7 +9,7 @@ from typing import Any
 
 from simpy import Event, Process, Store
 
-from upstage_des.communications.comms import CommsManager, Message, MessageContent
+from upstage_des.communications.comms import Message, MessageContent, PointToPointCommsManager
 from upstage_des.task import process
 
 
@@ -38,7 +38,7 @@ def generate_comms_wait(
     def comms_wait_proc() -> Generator[Event, str | Message, None]:
         while True:
             message = yield incoming_store.get()
-            message = CommsManager.clean_message(message)
+            message = PointToPointCommsManager.clean_message(message)
             callback(message)
 
     return comms_wait_proc
