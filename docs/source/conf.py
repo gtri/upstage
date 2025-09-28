@@ -56,8 +56,8 @@ myst_substitutions = {
     "SelfMonitoringStore": "{py:class}`~upstage_des.stores.SelfMonitoringStore`",
     "DecisionTask": "{py:class}`~upstage_des.task.DecisionTask`",
     "Routine": "{py:class}`~upstage_des.routines.Routine`",
-    "PointToPoint": "{py:class}`~upstage_des.communications.comms.PointToPointCommsManager",
-    "RoutingTable": "{py:class}`~upstage_des.communications.routing.RoutingTableCommsManager",
+    "PointToPoint": "{py:class}`~upstage_des.communications.comms.PointToPointCommsManager`",
+    "RoutingTable": "{py:class}`~upstage_des.communications.routing.RoutingTableCommsManager`",
 }
 
 
