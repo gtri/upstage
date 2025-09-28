@@ -23,8 +23,9 @@ Additional features include:
 7. Rehearsal: Write planning and simulation code in one place only, and "rehearse" an actor through a task network using planning factors to discover task feasibility.
 8. All States are recordable, and some record dataclass and dictionary values.
 9. A {{ Routine }} class for building reusable event behaviors to simplify {{ Task }} coding.
-10. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.
-11. And more!
+10. {{ PointToPoint }}  and {{ RoutingTable }} communications handlers
+11. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.
+12. And more!
 
 ```{note}
 This project is under active development.

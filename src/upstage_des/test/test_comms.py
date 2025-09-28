@@ -222,11 +222,11 @@ class CommNode(Actor):
     messages = UP.CommunicationStore(modes=None)
 
 
-def _build_net(two_way: bool = False) -> tuple[dict[str, CommNode], UP.StaticNetworkCommsManager]:
+def _build_net(two_way: bool = False) -> tuple[dict[str, CommNode], UP.RoutingTableCommsManager]:
     nodes = {
         name: CommNode(name=name, messages={"modes": ["cup-and-string"]}) for name in "ABCDEFGH"
     }
-    mgr = UP.StaticNetworkCommsManager(
+    mgr = UP.RoutingTableCommsManager(
         name="StaticManager",
         mode="cup-and-string",
         send_time=1 / 3600.0,
@@ -252,7 +252,7 @@ def _build_net(two_way: bool = False) -> tuple[dict[str, CommNode], UP.StaticNet
 
 
 def _start(
-    msg: str, mgr: UP.StaticNetworkCommsManager, nodes: dict[str, CommNode], source: str, dest: str
+    msg: str, mgr: UP.RoutingTableCommsManager, nodes: dict[str, CommNode], source: str, dest: str
 ) -> SIMPY_GEN:
     put = mgr.make_put(msg, nodes[source], nodes[dest])
     yield put.as_event()

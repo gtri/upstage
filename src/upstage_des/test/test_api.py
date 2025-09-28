@@ -65,7 +65,7 @@ def test_api() -> None:
         "TaskNetworkFactory",
         "TaskLinks",
         "PointToPointCommsManager",
-        "StaticNetworkCommsManager",
+        "RoutingTableCommsManager",
         "Message",
         "MessageContent",
         "MotionAndDetectionError",
