@@ -90,16 +90,21 @@ event to yield on to send the message.
 Stopping Communications
 ***********************
 
-Communications can be halted for all transmissions of a single manager by setting ``comms_degraded`` to be ``True`` at any time.
-Setting it back to False will allow comms to pass again, and any retries that are waiting (and didn't exceed a timeout) will go through.
+Communications can be halted for all transmissions of a single manager by setting
+``comms_degraded`` to be ``True`` at any time. Setting it back to False will allow
+comms to pass again, and any retries that are waiting (and didn't exceed a timeout)
+will go through.
 
-Additionally, specific links can be stopped by adding/removing from ``blocked_links`` with a tuple of ``(sender_actor, destination_actor)``
-links to shut down. The same timeout rules will apply.
+Additionally, specific links can be stopped by adding/removing from ``blocked_links``
+with a tuple of ``(sender_actor, destination_actor)`` links to shut down. The same
+timeout rules will apply. There is a ``blocked_nodes`` list that can have single
+``Actors`` added to it if you want to block all paths to and from that actor rather
+than just one link.
 
 Routing Table Communications
 ============================
 
-UPSTAGE has a :py:class:`~upstage_des.communications.routing.StaticNetworkCommsManager` that
+UPSTAGE has a :py:class:`~upstage_des.communications.routing.RoutingTableCommsManager` that
 routes comms according to a pre-defined network. Nodes (which are ``Actors``) must be
 explicitly connected, and this manager will route through shortest number of hops.
 
@@ -115,7 +120,7 @@ An example creation of the manager is given below:
             name: CommNode(name=name, messages={"modes":["cup-and-string"]})
             for name in "ABCDEFGH"
         }
-        mgr = StaticNetworkCommsManager(
+        mgr = RoutingTableCommsManager(
             name="StaticManager",
             mode="cup-and-string",
             send_time=1/3600.,
@@ -126,7 +131,7 @@ An example creation of the manager is given below:
         for u, v in ["AB", "BC", "AD", "DE", "EF", "FG", "GH", "HC", "EB"]:
             mgr.connect_nodes(nodes[u], nodes[v], two_way=False)
 
-Note how this manager uses ``connect_nodes()``, to define explicit edges in the
+Note how this manager uses ``connect_nodes()`` to define explicit edges in the
 routing graph. You can optionally set ``two_way`` to ``True`` if you want the
 edge to go back and forth.
 
@@ -136,10 +141,10 @@ network.
 
 The reason this is called a routing table method, even though it uses a graph,
 is because the underlying ``select_hop`` method only tells the current node
-where to send the message to. Once the message is passed along, it'll re-check
+where to send the message once. Once the message is passed along, it'll re-check
 what node to go to next.
 
-This manager allows for degraded comms and comms retry like the point-to-point one.
+This manager allows for degraded comms and comms retry like the point-to-point manager.
 If a link is degraded, after the retry fails the network will re-plan a
 route assuming the intermediate destination node is no longer available.
 
@@ -180,14 +185,32 @@ since that is shorter. If B is still down, it will take longer due to the
 retry. Set the input ``global_ignore`` to ``True`` to ignore a bad node
 for the entire routing and avoid this behavior.
 
+Stopping Communications
+***********************
+
+The same two options for stopping a message link exist for this manager. The
+``blocked_links`` list and the ``blocked_nodes`` list on the manager can be
+updated to prevent comms along a link or to/from a specific node. Note that
+if ``global_ignore`` is ``True`` that a blocked link will result in effectively
+blocking any comms to the destination node even if you intended only one link
+to go down.
+
+Routing With Multiple Modes
+***************************
+
+The routing table manager does not allow for hops across different nodes, even
+if in practice you could radio someone and that person makes an announcement on
+an intercom. This may become a future feature of UPSTAGE. For now, see the section
+below for how to make your own router.
+
 Make Your Own
 =============
 
-The intent of the :py:class:`~upstage_des.communications.routing.StaticNetworkCommsManager` class
+The intent of the :py:class:`~upstage_des.communications.routing.RoutingTableCommsManager` class
 is to provide an example of a more dynamic comms routing feature. It is based on the
 :py:class:`~upstage_des.communications.routing.RoutingCommsManagerBase` class, which holds most
 of the work the manager does. This includes managing retries and the behavior steps described
-above. The ``StaticNetworkCommsManager`` only implements enough features to build, store, and
+above. The ``RoutingTableCommsManager`` only implements enough features to build, store, and
 call the network to determine the next hop.
 
 To make your own, you only have to implement the ``select_hop`` method, which returns the next

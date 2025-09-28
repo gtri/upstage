@@ -125,7 +125,7 @@ class RoutingCommsManagerBase(CommsManagerBase):
         yield store.put(message)
 
 
-class StaticNetworkCommsManager(RoutingCommsManagerBase):
+class RoutingTableCommsManager(RoutingCommsManagerBase):
     """Route comms according to a pre-defined network.
 
     Nodes (Actors) must be explicitly connected, and this manager will
@@ -174,7 +174,7 @@ class StaticNetworkCommsManager(RoutingCommsManagerBase):
                 name: CommNode(name=name, messages={"modes":["cup-and-string"]})
                 for name in "ABCDEFGH"
             }
-            mgr = StaticNetworkCommsManager(
+            mgr = RoutingTableCommsManager(
                 name="StaticManager",
                 mode="cup-and-string",
                 send_time=1/3600.,
