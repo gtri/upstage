@@ -160,3 +160,16 @@ def test_env_reset_tracking() -> None:
         sensors = env.get_entity_group("Sensor")
         assert simple_sensor not in sensors
         assert len(env.get_all_entity_groups()) == 0
+
+
+def test_multi_inheritence_tracking() -> None:
+    class Thing(UP.Actor, entity_groups=["Here"]): ...
+    class Other(UP.Actor, entity_groups=["Missing"]): ...
+    class Mixed(Thing, Other): ...
+
+    with UP.EnvironmentContext():
+        m = Mixed(name="A")
+        grps = m.get_all_entity_groups()
+        for key in ["Mixed", "Thing", "Other", "Here", "Missing"]:
+            assert key in grps
+            assert grps[key] == [m]
