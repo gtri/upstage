@@ -67,4 +67,5 @@ Once you are in an environment context you can get the actual instances.
 
 Note that entity groups are inheritable and that you can inherit from ``NamedUpstageEntity``
 and retrieve the instance without needing an Actor. You may also create an instance of
-``UpstageBase`` to get access to the required methods.
+``UpstageBase`` to get access to the required methods. Actors and Tasks can access
+that method already.
