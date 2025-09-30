@@ -85,6 +85,7 @@ def test_actor_multi_tracking() -> None:
 
 class Sensor(UP.NamedUpstageEntity):
     def __init__(self, name: str, radius: float) -> None:
+        super().__init__()
         self.name = name
         self.radius = radius
 
@@ -163,9 +164,23 @@ def test_env_reset_tracking() -> None:
 
 
 def test_multi_inheritence_tracking() -> None:
+    """Test a bug found in entity group tracking.
+
+    The bug was that multiple inheritance wasn't moving all the entity group
+    names to the final instance.
+
+    This also tests that mixin classes
+    """
+
     class Thing(UP.Actor, entity_groups=["Here"]): ...
+
     class Other(UP.Actor, entity_groups=["Missing"]): ...
-    class Mixed(Thing, Other): ...
+
+    class MethodMixin:
+        def a_method(self) -> int:
+            return 3
+
+    class Mixed(Thing, Other, MethodMixin): ...
 
     with UP.EnvironmentContext():
         m = Mixed(name="A")
@@ -173,3 +188,8 @@ def test_multi_inheritence_tracking() -> None:
         for key in ["Mixed", "Thing", "Other", "Here", "Missing"]:
             assert key in grps
             assert grps[key] == [m]
+        assert m.a_method() == 3
+
+
+if __name__ == "__main__":
+    test_multi_inheritence_tracking()
