@@ -79,7 +79,7 @@ and retrieve the instance without needing an Actor. You may also create an insta
 that method already.
 
 If you are going to create a non-Actor version of a named entity, ensure your init
-calls ```super()``. The following example shows a use case where a simulation may
+calls ``super()``. The following example shows a use case where a simulation may
 want to look up entities in the simulation universe that don't need to be actors.
 
 .. code-block:: python
@@ -99,6 +99,7 @@ want to look up entities in the simulation universe that don't need to be actors
             super().__init__(name, kwh)
             self.num_towers = num_towers
 
+
     class Planner(UP.DecisionTask):
         def make_decision(self, *, actor: UP.Actor) -> None:
             # Decide on which power plant to upgrade next
@@ -106,6 +107,7 @@ want to look up entities in the simulation universe that don't need to be actors
             nuclear = self.get_entity_group("Nuclear")
             print(plants)
             print(nuclear)
+
 
     with UP.EnvironmentContext(random_seed=321456) as env:
         rng = UP.get_stage().random
