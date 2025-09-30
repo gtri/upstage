@@ -1,0 +1,53 @@
+upstage\_des.geography package
+==============================
+
+Submodules
+----------
+
+upstage\_des.geography.conversions module
+-----------------------------------------
+
+.. automodule:: upstage_des.geography.conversions
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.geography.geo\_types module
+----------------------------------------
+
+.. automodule:: upstage_des.geography.geo_types
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.geography.intersections module
+-------------------------------------------
+
+.. automodule:: upstage_des.geography.intersections
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.geography.spherical module
+---------------------------------------
+
+.. automodule:: upstage_des.geography.spherical
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.geography.wgs84 module
+-----------------------------------
+
+.. automodule:: upstage_des.geography.wgs84
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: upstage_des.geography
+   :members:
+   :show-inheritance:
+   :undoc-members:

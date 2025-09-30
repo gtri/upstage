@@ -1,0 +1,891 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>upstage_des &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'auto/modules';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upstage_des package" href="upstage_des.html" />
+    <link rel="prev" title="Routines" href="../user_guide/how_tos/routines.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="upstage_des.html">upstage_des package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.communications.html">upstage_des.communications package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.data_utils.html">upstage_des.data_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.geography.html">upstage_des.geography package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.motion.html">upstage_des.motion package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.resources.html">upstage_des.resources package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.units.html">upstage_des.units package</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">upstage_des</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="upstage-des">
+<h1>upstage_des<a class="headerlink" href="#upstage-des" title="Link to this heading">#</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="upstage_des.html">upstage_des package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.communications.html">upstage_des.communications package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.communications.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.communications.html#module-upstage_des.communications.comms">upstage_des.communications.comms module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.communications.html#module-upstage_des.communications.processes">upstage_des.communications.processes module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.communications.html#module-upstage_des.communications.routing">upstage_des.communications.routing module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.communications.html#module-upstage_des.communications">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.data_utils.html">upstage_des.data_utils package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.data_utils.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.data_utils.html#module-upstage_des.data_utils.data_recorder">upstage_des.data_utils.data_recorder module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.data_utils.html#module-upstage_des.data_utils.data_utils">upstage_des.data_utils.data_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.data_utils.html#module-upstage_des.data_utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.geography.html">upstage_des.geography package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.geography.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.geography.html#module-upstage_des.geography.conversions">upstage_des.geography.conversions module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.geography.html#module-upstage_des.geography.geo_types">upstage_des.geography.geo_types module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.geography.html#module-upstage_des.geography.intersections">upstage_des.geography.intersections module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.geography.html#module-upstage_des.geography.spherical">upstage_des.geography.spherical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.geography.html#module-upstage_des.geography.wgs84">upstage_des.geography.wgs84 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.geography.html#module-upstage_des.geography">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.motion.html">upstage_des.motion package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.motion.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.motion.html#module-upstage_des.motion.cartesian_model">upstage_des.motion.cartesian_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.motion.html#module-upstage_des.motion.geodetic_model">upstage_des.motion.geodetic_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.motion.html#module-upstage_des.motion.great_circle_calcs">upstage_des.motion.great_circle_calcs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.motion.html#module-upstage_des.motion.motion">upstage_des.motion.motion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.motion.html#module-upstage_des.motion.stepped_motion">upstage_des.motion.stepped_motion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.motion.html#module-upstage_des.motion">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.resources.html">upstage_des.resources package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.resources.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.resources.html#module-upstage_des.resources.container">upstage_des.resources.container module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.resources.html#module-upstage_des.resources.monitoring">upstage_des.resources.monitoring module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.resources.html#module-upstage_des.resources.reserve">upstage_des.resources.reserve module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.resources.html#module-upstage_des.resources.sorted">upstage_des.resources.sorted module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.resources.html#module-upstage_des.resources">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.units.html">upstage_des.units package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.units.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.units.html#module-upstage_des.units.convert">upstage_des.units.convert module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.units.html#module-upstage_des.units">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.actor">upstage_des.actor module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor"><code class="docutils literal notranslate"><span class="pre">Actor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.activate_linear_state"><code class="docutils literal notranslate"><span class="pre">Actor.activate_linear_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.activate_location_state"><code class="docutils literal notranslate"><span class="pre">Actor.activate_location_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.activate_mimic_state"><code class="docutils literal notranslate"><span class="pre">Actor.activate_mimic_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.activate_state"><code class="docutils literal notranslate"><span class="pre">Actor.activate_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.add_task_network"><code class="docutils literal notranslate"><span class="pre">Actor.add_task_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.clear_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.clear_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.clear_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.clear_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.clear_task_queue"><code class="docutils literal notranslate"><span class="pre">Actor.clear_task_queue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.clone"><code class="docutils literal notranslate"><span class="pre">Actor.clone()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.create_knowledge_event"><code class="docutils literal notranslate"><span class="pre">Actor.create_knowledge_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.deactivate_all_mimic_states"><code class="docutils literal notranslate"><span class="pre">Actor.deactivate_all_mimic_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.deactivate_all_states"><code class="docutils literal notranslate"><span class="pre">Actor.deactivate_all_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.deactivate_mimic_state"><code class="docutils literal notranslate"><span class="pre">Actor.deactivate_mimic_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.deactivate_state"><code class="docutils literal notranslate"><span class="pre">Actor.deactivate_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.deactivate_states"><code class="docutils literal notranslate"><span class="pre">Actor.deactivate_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.delete_task_network"><code class="docutils literal notranslate"><span class="pre">Actor.delete_task_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_active_state_data"><code class="docutils literal notranslate"><span class="pre">Actor.get_active_state_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_all_task_queues"><code class="docutils literal notranslate"><span class="pre">Actor.get_all_task_queues()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_and_clear_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.get_and_clear_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_and_clear_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.get_and_clear_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.get_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.get_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_log"><code class="docutils literal notranslate"><span class="pre">Actor.get_log()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_next_task"><code class="docutils literal notranslate"><span class="pre">Actor.get_next_task()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_nucleus"><code class="docutils literal notranslate"><span class="pre">Actor.get_nucleus()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_remaining_waypoints"><code class="docutils literal notranslate"><span class="pre">Actor.get_remaining_waypoints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_running_task"><code class="docutils literal notranslate"><span class="pre">Actor.get_running_task()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_running_tasks"><code class="docutils literal notranslate"><span class="pre">Actor.get_running_tasks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.get_task_queue"><code class="docutils literal notranslate"><span class="pre">Actor.get_task_queue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.has_task_network"><code class="docutils literal notranslate"><span class="pre">Actor.has_task_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.interrupt_network"><code class="docutils literal notranslate"><span class="pre">Actor.interrupt_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.log"><code class="docutils literal notranslate"><span class="pre">Actor.log()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.record_state"><code class="docutils literal notranslate"><span class="pre">Actor.record_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.rehearse_network"><code class="docutils literal notranslate"><span class="pre">Actor.rehearse_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.set_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.set_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.set_knowledge"><code class="docutils literal notranslate"><span class="pre">Actor.set_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.set_task_queue"><code class="docutils literal notranslate"><span class="pre">Actor.set_task_queue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.start_network_loop"><code class="docutils literal notranslate"><span class="pre">Actor.start_network_loop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.state_values"><code class="docutils literal notranslate"><span class="pre">Actor.state_values</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.states"><code class="docutils literal notranslate"><span class="pre">Actor.states</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.succeed_knowledge_event"><code class="docutils literal notranslate"><span class="pre">Actor.succeed_knowledge_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor.suggest_network_name"><code class="docutils literal notranslate"><span class="pre">Actor.suggest_network_name()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.actor.TaskData"><code class="docutils literal notranslate"><span class="pre">TaskData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.TaskData.name"><code class="docutils literal notranslate"><span class="pre">TaskData.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.actor.TaskData.process"><code class="docutils literal notranslate"><span class="pre">TaskData.process</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.api">upstage_des.api module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.base">upstage_des.base module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.DotDict"><code class="docutils literal notranslate"><span class="pre">DotDict</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.EnvironmentContext"><code class="docutils literal notranslate"><span class="pre">EnvironmentContext</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.MockEnvironment"><code class="docutils literal notranslate"><span class="pre">MockEnvironment</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.MockEnvironment.mock"><code class="docutils literal notranslate"><span class="pre">MockEnvironment.mock()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.MockEnvironment.run"><code class="docutils literal notranslate"><span class="pre">MockEnvironment.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.MotionAndDetectionError"><code class="docutils literal notranslate"><span class="pre">MotionAndDetectionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.NamedUpstageEntity"><code class="docutils literal notranslate"><span class="pre">NamedUpstageEntity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.RulesError"><code class="docutils literal notranslate"><span class="pre">RulesError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.SettableEnv"><code class="docutils literal notranslate"><span class="pre">SettableEnv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.SettableEnv.env"><code class="docutils literal notranslate"><span class="pre">SettableEnv.env</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.SimulationError"><code class="docutils literal notranslate"><span class="pre">SimulationError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.SpecialContexts"><code class="docutils literal notranslate"><span class="pre">SpecialContexts</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.SpecialContexts.actors"><code class="docutils literal notranslate"><span class="pre">SpecialContexts.actors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.SpecialContexts.data_recorded"><code class="docutils literal notranslate"><span class="pre">SpecialContexts.data_recorded</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.SpecialContexts.monitored"><code class="docutils literal notranslate"><span class="pre">SpecialContexts.monitored</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol"><code class="docutils literal notranslate"><span class="pre">StageProtocol</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.altitude_units"><code class="docutils literal notranslate"><span class="pre">StageProtocol.altitude_units</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.daily_time_count"><code class="docutils literal notranslate"><span class="pre">StageProtocol.daily_time_count</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.debug_log_time"><code class="docutils literal notranslate"><span class="pre">StageProtocol.debug_log_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.distance_units"><code class="docutils literal notranslate"><span class="pre">StageProtocol.distance_units</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.intersection_model"><code class="docutils literal notranslate"><span class="pre">StageProtocol.intersection_model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.random"><code class="docutils literal notranslate"><span class="pre">StageProtocol.random</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.stage_model"><code class="docutils literal notranslate"><span class="pre">StageProtocol.stage_model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.StageProtocol.time_unit"><code class="docutils literal notranslate"><span class="pre">StageProtocol.time_unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase"><code class="docutils literal notranslate"><span class="pre">UpstageBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.env"><code class="docutils literal notranslate"><span class="pre">UpstageBase.env</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.get_actors"><code class="docutils literal notranslate"><span class="pre">UpstageBase.get_actors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.get_all_entity_groups"><code class="docutils literal notranslate"><span class="pre">UpstageBase.get_all_entity_groups()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.get_entity_group"><code class="docutils literal notranslate"><span class="pre">UpstageBase.get_entity_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.get_monitored"><code class="docutils literal notranslate"><span class="pre">UpstageBase.get_monitored()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.get_recorded"><code class="docutils literal notranslate"><span class="pre">UpstageBase.get_recorded()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.pretty_now"><code class="docutils literal notranslate"><span class="pre">UpstageBase.pretty_now</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase.stage"><code class="docutils literal notranslate"><span class="pre">UpstageBase.stage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageError"><code class="docutils literal notranslate"><span class="pre">UpstageError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.add_stage_variable"><code class="docutils literal notranslate"><span class="pre">add_stage_variable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.clear_top_context"><code class="docutils literal notranslate"><span class="pre">clear_top_context()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.create_top_context"><code class="docutils literal notranslate"><span class="pre">create_top_context()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.get_stage"><code class="docutils literal notranslate"><span class="pre">get_stage()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.base.get_stage_variable"><code class="docutils literal notranslate"><span class="pre">get_stage_variable()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.constants">upstage_des.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.data_types">upstage_des.data_types module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation"><code class="docutils literal notranslate"><span class="pre">CartesianLocation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation.copy"><code class="docutils literal notranslate"><span class="pre">CartesianLocation.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation.straight_line_distance"><code class="docutils literal notranslate"><span class="pre">CartesianLocation.straight_line_distance()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocationData"><code class="docutils literal notranslate"><span class="pre">CartesianLocationData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocationData.make_location"><code class="docutils literal notranslate"><span class="pre">CartesianLocationData.make_location()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation"><code class="docutils literal notranslate"><span class="pre">GeodeticLocation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation.copy"><code class="docutils literal notranslate"><span class="pre">GeodeticLocation.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation.dist_with_altitude"><code class="docutils literal notranslate"><span class="pre">GeodeticLocation.dist_with_altitude()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation.latlon"><code class="docutils literal notranslate"><span class="pre">GeodeticLocation.latlon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation.straight_line_distance"><code class="docutils literal notranslate"><span class="pre">GeodeticLocation.straight_line_distance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation.to_degrees"><code class="docutils literal notranslate"><span class="pre">GeodeticLocation.to_degrees()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation.to_radians"><code class="docutils literal notranslate"><span class="pre">GeodeticLocation.to_radians()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocationData"><code class="docutils literal notranslate"><span class="pre">GeodeticLocationData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocationData.latlon"><code class="docutils literal notranslate"><span class="pre">GeodeticLocationData.latlon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocationData.make_location"><code class="docutils literal notranslate"><span class="pre">GeodeticLocationData.make_location()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.Location"><code class="docutils literal notranslate"><span class="pre">Location</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.Location.copy"><code class="docutils literal notranslate"><span class="pre">Location.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.Location.straight_line_distance"><code class="docutils literal notranslate"><span class="pre">Location.straight_line_distance()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.events">upstage_des.events module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.All"><code class="docutils literal notranslate"><span class="pre">All</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.All.aggregation_function"><code class="docutils literal notranslate"><span class="pre">All.aggregation_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.All.simpy_equivalent"><code class="docutils literal notranslate"><span class="pre">All.simpy_equivalent()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.Any"><code class="docutils literal notranslate"><span class="pre">Any</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Any.aggregation_function"><code class="docutils literal notranslate"><span class="pre">Any.aggregation_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Any.simpy_equivalent"><code class="docutils literal notranslate"><span class="pre">Any.simpy_equivalent()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent"><code class="docutils literal notranslate"><span class="pre">BaseEvent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.as_event"><code class="docutils literal notranslate"><span class="pre">BaseEvent.as_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.calculate_time_to_complete"><code class="docutils literal notranslate"><span class="pre">BaseEvent.calculate_time_to_complete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.cancel"><code class="docutils literal notranslate"><span class="pre">BaseEvent.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.done_rehearsing"><code class="docutils literal notranslate"><span class="pre">BaseEvent.done_rehearsing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.is_complete"><code class="docutils literal notranslate"><span class="pre">BaseEvent.is_complete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.now"><code class="docutils literal notranslate"><span class="pre">BaseEvent.now</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.rehearse"><code class="docutils literal notranslate"><span class="pre">BaseEvent.rehearse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseEvent.rehearsing"><code class="docutils literal notranslate"><span class="pre">BaseEvent.rehearsing</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseRequestEvent"><code class="docutils literal notranslate"><span class="pre">BaseRequestEvent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseRequestEvent.cancel"><code class="docutils literal notranslate"><span class="pre">BaseRequestEvent.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.BaseRequestEvent.is_complete"><code class="docutils literal notranslate"><span class="pre">BaseRequestEvent.is_complete()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event"><code class="docutils literal notranslate"><span class="pre">Event</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.as_event"><code class="docutils literal notranslate"><span class="pre">Event.as_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.calculate_time_to_complete"><code class="docutils literal notranslate"><span class="pre">Event.calculate_time_to_complete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.cancel"><code class="docutils literal notranslate"><span class="pre">Event.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.get_payload"><code class="docutils literal notranslate"><span class="pre">Event.get_payload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.is_complete"><code class="docutils literal notranslate"><span class="pre">Event.is_complete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.rehearse"><code class="docutils literal notranslate"><span class="pre">Event.rehearse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.reset"><code class="docutils literal notranslate"><span class="pre">Event.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Event.succeed"><code class="docutils literal notranslate"><span class="pre">Event.succeed()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.FilterGet"><code class="docutils literal notranslate"><span class="pre">FilterGet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.Get"><code class="docutils literal notranslate"><span class="pre">Get</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Get.as_event"><code class="docutils literal notranslate"><span class="pre">Get.as_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Get.calculate_time_to_complete"><code class="docutils literal notranslate"><span class="pre">Get.calculate_time_to_complete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Get.get_value"><code class="docutils literal notranslate"><span class="pre">Get.get_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Get.rehearse"><code class="docutils literal notranslate"><span class="pre">Get.rehearse()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent"><code class="docutils literal notranslate"><span class="pre">MultiEvent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent.aggregation_function"><code class="docutils literal notranslate"><span class="pre">MultiEvent.aggregation_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent.as_event"><code class="docutils literal notranslate"><span class="pre">MultiEvent.as_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent.calc_time_to_complete_with_sub"><code class="docutils literal notranslate"><span class="pre">MultiEvent.calc_time_to_complete_with_sub()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent.calculate_time_to_complete"><code class="docutils literal notranslate"><span class="pre">MultiEvent.calculate_time_to_complete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent.cancel"><code class="docutils literal notranslate"><span class="pre">MultiEvent.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent.rehearse"><code class="docutils literal notranslate"><span class="pre">MultiEvent.rehearse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.MultiEvent.simpy_equivalent"><code class="docutils literal notranslate"><span class="pre">MultiEvent.simpy_equivalent()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.Put"><code class="docutils literal notranslate"><span class="pre">Put</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Put.as_event"><code class="docutils literal notranslate"><span class="pre">Put.as_event()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.ResourceHold"><code class="docutils literal notranslate"><span class="pre">ResourceHold</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.ResourceHold.as_event"><code class="docutils literal notranslate"><span class="pre">ResourceHold.as_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.ResourceHold.calculate_time_to_complete"><code class="docutils literal notranslate"><span class="pre">ResourceHold.calculate_time_to_complete()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.events.Wait"><code class="docutils literal notranslate"><span class="pre">Wait</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Wait.as_event"><code class="docutils literal notranslate"><span class="pre">Wait.as_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Wait.cancel"><code class="docutils literal notranslate"><span class="pre">Wait.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.events.Wait.from_random_uniform"><code class="docutils literal notranslate"><span class="pre">Wait.from_random_uniform()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.math_utils">upstage_des.math_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.nucleus">upstage_des.nucleus module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.nucleus.NucleusInterrupt"><code class="docutils literal notranslate"><span class="pre">NucleusInterrupt</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.nucleus.TaskNetworkNucleus"><code class="docutils literal notranslate"><span class="pre">TaskNetworkNucleus</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.nucleus.TaskNetworkNucleus.add_network"><code class="docutils literal notranslate"><span class="pre">TaskNetworkNucleus.add_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.nucleus.TaskNetworkNucleus.remove_network"><code class="docutils literal notranslate"><span class="pre">TaskNetworkNucleus.remove_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.nucleus.TaskNetworkNucleus.send_change"><code class="docutils literal notranslate"><span class="pre">TaskNetworkNucleus.send_change()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.routines">upstage_des.routines module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.routines.Routine"><code class="docutils literal notranslate"><span class="pre">Routine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.routines.Routine.cancel"><code class="docutils literal notranslate"><span class="pre">Routine.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.routines.Routine.rehearse"><code class="docutils literal notranslate"><span class="pre">Routine.rehearse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.routines.Routine.run"><code class="docutils literal notranslate"><span class="pre">Routine.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.routines.WindowedGet"><code class="docutils literal notranslate"><span class="pre">WindowedGet</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.routines.WindowedGet.cancel"><code class="docutils literal notranslate"><span class="pre">WindowedGet.cancel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.routines.WindowedGet.rehearse"><code class="docutils literal notranslate"><span class="pre">WindowedGet.rehearse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.routines.WindowedGet.run"><code class="docutils literal notranslate"><span class="pre">WindowedGet.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.state_proxies">upstage_des.state_proxies module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.state_sharing">upstage_des.state_sharing module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.state_sharing.SharedLinearChangingState"><code class="docutils literal notranslate"><span class="pre">SharedLinearChangingState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.state_sharing.SharedLinearChangingState.deactivate"><code class="docutils literal notranslate"><span class="pre">SharedLinearChangingState.deactivate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.states">upstage_des.states module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.ActiveState"><code class="docutils literal notranslate"><span class="pre">ActiveState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.ActiveState.activate"><code class="docutils literal notranslate"><span class="pre">ActiveState.activate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.ActiveState.deactivate"><code class="docutils literal notranslate"><span class="pre">ActiveState.deactivate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.ActiveState.get_activity_data"><code class="docutils literal notranslate"><span class="pre">ActiveState.get_activity_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.ActiveStatus"><code class="docutils literal notranslate"><span class="pre">ActiveStatus</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.ActiveStatus.activating"><code class="docutils literal notranslate"><span class="pre">ActiveStatus.activating</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.ActiveStatus.deactivating"><code class="docutils literal notranslate"><span class="pre">ActiveStatus.deactivating</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.CartesianLocationChangingState"><code class="docutils literal notranslate"><span class="pre">CartesianLocationChangingState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.CartesianLocationChangingState.deactivate"><code class="docutils literal notranslate"><span class="pre">CartesianLocationChangingState.deactivate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.CommunicationStore"><code class="docutils literal notranslate"><span class="pre">CommunicationStore</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.DataclassState"><code class="docutils literal notranslate"><span class="pre">DataclassState</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.DetectabilityState"><code class="docutils literal notranslate"><span class="pre">DetectabilityState</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.DictionaryState"><code class="docutils literal notranslate"><span class="pre">DictionaryState</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.GeodeticLocationChangingState"><code class="docutils literal notranslate"><span class="pre">GeodeticLocationChangingState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.GeodeticLocationChangingState.deactivate"><code class="docutils literal notranslate"><span class="pre">GeodeticLocationChangingState.deactivate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.LinearChangingState"><code class="docutils literal notranslate"><span class="pre">LinearChangingState</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.MultiStoreState"><code class="docutils literal notranslate"><span class="pre">MultiStoreState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.MultiStoreState.has_default"><code class="docutils literal notranslate"><span class="pre">MultiStoreState.has_default()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.RecordClass"><code class="docutils literal notranslate"><span class="pre">RecordClass</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.ResourceState"><code class="docutils literal notranslate"><span class="pre">ResourceState</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.states.State"><code class="docutils literal notranslate"><span class="pre">State</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.State.has_default"><code class="docutils literal notranslate"><span class="pre">State.has_default()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.states.State.is_recording"><code class="docutils literal notranslate"><span class="pre">State.is_recording</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.task">upstage_des.task module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask"><code class="docutils literal notranslate"><span class="pre">DecisionTask</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask.DO_NOT_HOLD"><code class="docutils literal notranslate"><span class="pre">DecisionTask.DO_NOT_HOLD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask.make_decision"><code class="docutils literal notranslate"><span class="pre">DecisionTask.make_decision()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask.rehearse"><code class="docutils literal notranslate"><span class="pre">DecisionTask.rehearse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask.rehearse_decision"><code class="docutils literal notranslate"><span class="pre">DecisionTask.rehearse_decision()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask.run"><code class="docutils literal notranslate"><span class="pre">DecisionTask.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask.run_skip"><code class="docutils literal notranslate"><span class="pre">DecisionTask.run_skip()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.DecisionTask.task"><code class="docutils literal notranslate"><span class="pre">DecisionTask.task()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task.InterruptStates"><code class="docutils literal notranslate"><span class="pre">InterruptStates</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.InterruptStates.END"><code class="docutils literal notranslate"><span class="pre">InterruptStates.END</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.InterruptStates.IGNORE"><code class="docutils literal notranslate"><span class="pre">InterruptStates.IGNORE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.InterruptStates.RESTART"><code class="docutils literal notranslate"><span class="pre">InterruptStates.RESTART</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task"><code class="docutils literal notranslate"><span class="pre">Task</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.INTERRUPT"><code class="docutils literal notranslate"><span class="pre">Task.INTERRUPT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.clear_actor_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.clear_actor_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.clear_actor_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.clear_actor_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.clear_actor_task_queue"><code class="docutils literal notranslate"><span class="pre">Task.clear_actor_task_queue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.clear_marker"><code class="docutils literal notranslate"><span class="pre">Task.clear_marker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_actor_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.get_actor_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_actor_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.get_actor_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_actor_next_task"><code class="docutils literal notranslate"><span class="pre">Task.get_actor_next_task()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_actor_task_queue"><code class="docutils literal notranslate"><span class="pre">Task.get_actor_task_queue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_and_clear_actor_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.get_and_clear_actor_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_and_clear_actor_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.get_and_clear_actor_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_marker"><code class="docutils literal notranslate"><span class="pre">Task.get_marker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.get_marker_time"><code class="docutils literal notranslate"><span class="pre">Task.get_marker_time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.on_interrupt"><code class="docutils literal notranslate"><span class="pre">Task.on_interrupt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.rehearse"><code class="docutils literal notranslate"><span class="pre">Task.rehearse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.run"><code class="docutils literal notranslate"><span class="pre">Task.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.set_actor_bulk_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.set_actor_bulk_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.set_actor_knowledge"><code class="docutils literal notranslate"><span class="pre">Task.set_actor_knowledge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.set_actor_task_queue"><code class="docutils literal notranslate"><span class="pre">Task.set_actor_task_queue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.set_marker"><code class="docutils literal notranslate"><span class="pre">Task.set_marker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.Task.task"><code class="docutils literal notranslate"><span class="pre">Task.task()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task.TerminalTask"><code class="docutils literal notranslate"><span class="pre">TerminalTask</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.TerminalTask.log_message"><code class="docutils literal notranslate"><span class="pre">TerminalTask.log_message()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.TerminalTask.on_interrupt"><code class="docutils literal notranslate"><span class="pre">TerminalTask.on_interrupt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task.TerminalTask.task"><code class="docutils literal notranslate"><span class="pre">TerminalTask.task()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.task_network">upstage_des.task_network module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskLinks"><code class="docutils literal notranslate"><span class="pre">TaskLinks</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskLinks.allowed"><code class="docutils literal notranslate"><span class="pre">TaskLinks.allowed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskLinks.default"><code class="docutils literal notranslate"><span class="pre">TaskLinks.default</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetwork"><code class="docutils literal notranslate"><span class="pre">TaskNetwork</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetwork.is_feasible"><code class="docutils literal notranslate"><span class="pre">TaskNetwork.is_feasible()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetwork.loop"><code class="docutils literal notranslate"><span class="pre">TaskNetwork.loop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetwork.rehearse_network"><code class="docutils literal notranslate"><span class="pre">TaskNetwork.rehearse_network()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetworkFactory"><code class="docutils literal notranslate"><span class="pre">TaskNetworkFactory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetworkFactory.from_ordered_loop"><code class="docutils literal notranslate"><span class="pre">TaskNetworkFactory.from_ordered_loop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetworkFactory.from_ordered_terminating"><code class="docutils literal notranslate"><span class="pre">TaskNetworkFactory.from_ordered_terminating()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetworkFactory.from_single_looping"><code class="docutils literal notranslate"><span class="pre">TaskNetworkFactory.from_single_looping()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetworkFactory.from_single_terminating"><code class="docutils literal notranslate"><span class="pre">TaskNetworkFactory.from_single_terminating()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="upstage_des.html#upstage_des.task_network.TaskNetworkFactory.make_network"><code class="docutils literal notranslate"><span class="pre">TaskNetworkFactory.make_network()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.type_help">upstage_des.type_help module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des.utils">upstage_des.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.utils.debug_assert"><code class="docutils literal notranslate"><span class="pre">debug_assert()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.utils.debug_pause"><code class="docutils literal notranslate"><span class="pre">debug_pause()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.utils.get_caller_info"><code class="docutils literal notranslate"><span class="pre">get_caller_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.utils.get_caller_object"><code class="docutils literal notranslate"><span class="pre">get_caller_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.utils.iterable_convert"><code class="docutils literal notranslate"><span class="pre">iterable_convert()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="upstage_des.html#upstage_des.utils.waypoint_time_and_dist"><code class="docutils literal notranslate"><span class="pre">waypoint_time_and_dist()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.html#module-upstage_des">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../user_guide/how_tos/routines.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Routines</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="upstage_des.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">upstage_des package</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

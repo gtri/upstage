@@ -1,0 +1,37 @@
+upstage\_des.communications package
+===================================
+
+Submodules
+----------
+
+upstage\_des.communications.comms module
+----------------------------------------
+
+.. automodule:: upstage_des.communications.comms
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.communications.processes module
+--------------------------------------------
+
+.. automodule:: upstage_des.communications.processes
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.communications.routing module
+------------------------------------------
+
+.. automodule:: upstage_des.communications.routing
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: upstage_des.communications
+   :members:
+   :show-inheritance:
+   :undoc-members:

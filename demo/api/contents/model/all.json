@@ -1,0 +1,57 @@
+{
+  "content": [
+    {
+      "content": null,
+      "created": "2025-09-30T02:07:31.470292Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2025-09-30T02:07:13.013796Z",
+      "mimetype": "text/x-python",
+      "name": "cashier_model.py",
+      "path": "model/cashier_model.py",
+      "size": 10176,
+      "type": "file",
+      "writable": true
+    },
+    {
+      "content": null,
+      "created": "2025-09-30T02:07:31.470292Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2025-09-30T02:07:13.013796Z",
+      "mimetype": "text/x-python",
+      "name": "helpers.py",
+      "path": "model/helpers.py",
+      "size": 1667,
+      "type": "file",
+      "writable": true
+    },
+    {
+      "content": null,
+      "created": "2025-09-30T02:07:31.469292Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2025-09-30T02:07:13.013796Z",
+      "mimetype": "text/x-python",
+      "name": "__init__.py",
+      "path": "model/__init__.py",
+      "size": 0,
+      "type": "file",
+      "writable": true
+    }
+  ],
+  "created": "2025-09-30T02:07:31.470292Z",
+  "format": "json",
+  "hash": null,
+  "hash_algorithm": null,
+  "last_modified": "2025-09-30T02:07:31.470292Z",
+  "mimetype": null,
+  "name": "model",
+  "path": "model",
+  "size": null,
+  "type": "directory",
+  "writable": true
+}

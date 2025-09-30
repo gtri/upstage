@@ -1,0 +1,879 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>upstage_des.motion package &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'auto/upstage_des.motion';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upstage_des.resources package" href="upstage_des.resources.html" />
+    <link rel="prev" title="upstage_des.geography package" href="upstage_des.geography.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="upstage_des.html">upstage_des package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.communications.html">upstage_des.communications package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.data_utils.html">upstage_des.data_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.geography.html">upstage_des.geography package</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">upstage_des.motion package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.resources.html">upstage_des.resources package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.units.html">upstage_des.units package</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="modules.html" class="nav-link">upstage_des</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="upstage_des.html" class="nav-link">upstage_des package</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">upstage_des.motion package</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="upstage-des-motion-package">
+<h1>upstage_des.motion package<a class="headerlink" href="#upstage-des-motion-package" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-upstage_des.motion.cartesian_model">
+<span id="upstage-des-motion-cartesian-model-module"></span><h2>upstage_des.motion.cartesian_model module<a class="headerlink" href="#module-upstage_des.motion.cartesian_model" title="Link to this heading">#</a></h2>
+<p>0A 3-D intersection model for cartesian motion in UPSTAGE along straight-line paths.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.cartesian_model.cartesian_linear_intersection">
+<span class="sig-name descname"><span class="pre">cartesian_linear_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation"><span class="pre">CartesianLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation"><span class="pre">CartesianLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation"><span class="pre">CartesianLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation"><span class="pre">CartesianLocation</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.motion.cartesian_model.cartesian_linear_intersection" title="Link to this definition">#</a></dt>
+<dd><p>Get the intersection of straight line motion and a sphere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation"><em>CartesianLocation</em></a>) – the start location of the mover</p></li>
+<li><p><strong>finish</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation"><em>CartesianLocation</em></a>) – the finish location of the mover</p></li>
+<li><p><strong>speed</strong> (<em>float</em>) – the speed of the mover (in STAGE units)</p></li>
+<li><p><strong>sensor_location</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation"><em>CartesianLocation</em></a>) – the location of the sensor</p></li>
+<li><p><strong>sensor_radius</strong> (<em>float</em>) – the radius of the sensor (in STAGE units)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>_description_</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list[<a class="reference internal" href="upstage_des.html#upstage_des.data_types.CartesianLocation" title="upstage_des.data_types.CartesianLocation">CartesianLocation</a>], list[float], list[str], float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.cartesian_model.ray_intersection">
+<span class="sig-name descname"><span class="pre">ray_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radii</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">L</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.motion.cartesian_model.ray_intersection" title="Link to this definition">#</a></dt>
+<dd><p>Ray intersection with ellispoid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<em>XY</em><em> | </em><em>XYZ</em>) – Start position</p></li>
+<li><p><strong>toward</strong> (<em>XY</em><em> | </em><em>XYZ</em>) – Point being looked at</p></li>
+<li><p><strong>center</strong> (<em>XY</em><em> | </em><em>XYZ</em>) – Center of the ellipsoid</p></li>
+<li><p><strong>radii</strong> (<em>float</em><em> | </em><em>XY</em><em> | </em><em>XYZ</em>) – Radii of each dimension of ellipsoid</p></li>
+<li><p><strong>speed</strong> (<em>float</em>) – Speed of the particle moving from start to toward</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Intersecting positions and times.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list[XY] | list[XYZ], list[float]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.motion.geodetic_model">
+<span id="upstage-des-motion-geodetic-model-module"></span><h2>upstage_des.motion.geodetic_model module<a class="headerlink" href="#module-upstage_des.motion.geodetic_model" title="Link to this heading">#</a></h2>
+<p>A model of the geodetic earth and intersecting paths/spheres.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.geodetic_model.analytical_intersection">
+<span class="sig-name descname"><span class="pre">analytical_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.motion.geodetic_model.analytical_intersection" title="Link to this definition">#</a></dt>
+<dd><p>Calculate the intersection of a great circle.</p>
+<p>The circle is defined by start &amp; finish and the sphere defined by
+sensor_location and sensor_radius.</p>
+<p>This function mimics the above <cite>subdivide_intersection</cite>, but uses analytical
+equations that run much faster.</p>
+<dl class="simple">
+<dt>Requires:</dt><dd><p>UP.add_stage_variable(“distance_units”, …)
+UP.add_stage_variable(“altitude_units”, …)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><em>GeodeticLocation</em></a>) – the start location of the mover</p></li>
+<li><p><strong>finish</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><em>GeodeticLocation</em></a>) – the finish location of the mover</p></li>
+<li><p><strong>speed</strong> (<em>float</em>) – the speed of the mover (in STAGE units)</p></li>
+<li><p><strong>sensor_location</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><em>GeodeticLocation</em></a>) – the location of the sensor</p></li>
+<li><p><strong>sensor_radius</strong> (<em>float</em>) – the radius of the sensor (in STAGE units)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>intersections, times, types, path_time</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list[<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation">GeodeticLocation</a>], list[float], list[str], float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.geodetic_model.subdivide_intersection">
+<span class="sig-name descname"><span class="pre">subdivide_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">finish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.motion.geodetic_model.subdivide_intersection" title="Link to this definition">#</a></dt>
+<dd><p>Numerical intersection calculation.</p>
+<dl class="simple">
+<dt>Requires:</dt><dd><p>UP.add_stage_variable(“intersection_model”, INTERSECTION_LOCATION_CALLABLE)
+UP.add_stage_variable(“distance_units”, …)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><em>GeodeticLocation</em></a>) – Path start</p></li>
+<li><p><strong>finish</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><em>GeodeticLocation</em></a>) – Path end</p></li>
+<li><p><strong>speed</strong> (<em>float</em>) – Speed on path</p></li>
+<li><p><strong>sensor_location</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><em>GeodeticLocation</em></a>) – Location of a sensor</p></li>
+<li><p><strong>sensor_radius</strong> (<em>float</em>) – Radius of sensor line of sight.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>intersections,
+times, types, path_time</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list[<a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation">GeodeticLocation</a>], list[float], list[str], float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.motion.great_circle_calcs">
+<span id="upstage-des-motion-great-circle-calcs-module"></span><h2>upstage_des.motion.great_circle_calcs module<a class="headerlink" href="#module-upstage_des.motion.great_circle_calcs" title="Link to this heading">#</a></h2>
+<p>Great circle calculations.</p>
+<p>These equations were largely adapted from <a class="reference external" href="https://edwilliams.org/avform147.htm">https://edwilliams.org/avform147.htm</a>,
+although most of them can be verified from a number of open resources around
+the web. The overall algorithms have been slightly modified to support UPSTAGE.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.great_circle_calcs.get_course_rad">
+<span class="sig-name descname"><span class="pre">get_course_rad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">point2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#upstage_des.motion.great_circle_calcs.get_course_rad" title="Link to this definition">#</a></dt>
+<dd><p>Get the course (in radians) between point1 and point2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point1</strong> – the starting point</p></li>
+<li><p><strong>point2</strong> – the ending point</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.great_circle_calcs.get_dist_rad">
+<span class="sig-name descname"><span class="pre">get_dist_rad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">point2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#upstage_des.motion.great_circle_calcs.get_dist_rad" title="Link to this definition">#</a></dt>
+<dd><p>Get the distance (in radians) between point1 and point2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point1</strong> – the starting point</p></li>
+<li><p><strong>point2</strong> – the ending point</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.great_circle_calcs.get_great_circle_points">
+<span class="sig-name descname"><span class="pre">get_great_circle_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.motion.great_circle_calcs.get_great_circle_points" title="Link to this definition">#</a></dt>
+<dd><p>Let points A and B define a great circle route and D be a third point.</p>
+<p>Find the points on the great circle through A and B that lie a distance d from D, if they exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point_a</strong> – GeodeticLocation of start of great circle</p></li>
+<li><p><strong>point_b</strong> – GeodeticLocation of end of great circle</p></li>
+<li><p><strong>point_d</strong> – GeodeticLocation, third point of interest (the center of sphere)</p></li>
+<li><p><strong>dist</strong> – (float) distance from third to point to find intersection on great circle (radians)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.motion.great_circle_calcs.get_pos_from_points_and_distance">
+<span class="sig-name descname"><span class="pre">get_pos_from_points_and_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">point2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.data_types.GeodeticLocation" title="upstage_des.data_types.GeodeticLocation"><span class="pre">GeodeticLocation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.motion.great_circle_calcs.get_pos_from_points_and_distance" title="Link to this definition">#</a></dt>
+<dd><p>Get a position (lat, lon) given a starting position, ending position, and distance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point1</strong> – GeodeticLocation of start of great circle</p></li>
+<li><p><strong>point2</strong> – GeodeticLocation of end of great circle</p></li>
+<li><p><strong>dist</strong> – (float) distance along great circle to find third point</p></li>
+</ul>
+</dd>
+</dl>
+<p>returns [lat, lon]</p>
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.motion.motion">
+<span id="upstage-des-motion-motion-module"></span><h2>upstage_des.motion.motion module<a class="headerlink" href="#module-upstage_des.motion.motion" title="Link to this heading">#</a></h2>
+<p>This file contains a queueing motion manager for sensor/mover intersections.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.motion.motion.SensorMotionManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SensorMotionManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intersection_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">LOC_INPUT</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LOC_INPUT</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">LOC_INPUT</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">LOC_INPUT</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.motion.motion.SensorMotionManager" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase" title="upstage_des.base.UpstageBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpstageBase</span></code></a></p>
+<p>Schedules the interaction of moving and detectable entities against non-moving ‘sensors’.</p>
+<p>Movable objects must be Actors with:
+1. GeodeticLocationChangingState OR CartesianLocationChangingState
+2. DetectabilityState</p>
+<p>Sensor objects MUST implement these two methods:
+1. <cite>entity_entered_range(mover)</cite>
+2. <cite>entity_exited_range(mover)</cite></p>
+<p>The first is called when a mover enters the sensor’s visiblity.
+The second is called when a mover leaves the visibility or becomes undetectable.</p>
+<p>The motion manager will learn about sensor objects with:</p>
+<p>sensor_motion_manager.add_sensor(sensor_object, location, radius)</p>
+<p>Where location is a location object found in upstage.data_types and radius
+is a distance in the units defined in upstage.STAGE.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.motion.motion.SensorMotionManager.add_sensor">
+<span class="sig-name descname"><span class="pre">add_sensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#upstage_des.motion.motion.SensorType" title="upstage_des.motion.motion.SensorType"><span class="pre">SensorType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'location'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'radius'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.motion.motion.SensorMotionManager.add_sensor" title="Link to this definition">#</a></dt>
+<dd><p>Add a sensor to the motion manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sensor</strong> (<a class="reference internal" href="#upstage_des.motion.motion.SensorType" title="upstage_des.motion.motion.SensorType"><em>SensorType</em></a>) – The sensor object</p></li>
+<li><p><strong>location_attr_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the location attribute.
+Defaults to “location”.</p></li>
+<li><p><strong>radius_attr_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the radius attribute. Defaults to “radius”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.motion.motion.SensorType">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SensorType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.motion.motion.SensorType" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Protocol class for sensor typing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.motion.motion.SensorType.entity_entered_range">
+<span class="sig-name descname"><span class="pre">entity_entered_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.motion.motion.SensorType.entity_entered_range" title="Link to this definition">#</a></dt>
+<dd><p>Entity enters range and does something.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.motion.motion.SensorType.entity_exited_range">
+<span class="sig-name descname"><span class="pre">entity_exited_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.motion.motion.SensorType.entity_exited_range" title="Link to this definition">#</a></dt>
+<dd><p>Entity exit range and does something.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.motion.stepped_motion">
+<span id="upstage-des-motion-stepped-motion-module"></span><h2>upstage_des.motion.stepped_motion module<a class="headerlink" href="#module-upstage_des.motion.stepped_motion" title="Link to this heading">#</a></h2>
+<p>This file contains a motion manager that does time-stepping.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.motion.stepped_motion.SteppedMotionManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">SteppedMotionManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_empty_events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.motion.stepped_motion.SteppedMotionManager" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase" title="upstage_des.base.UpstageBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpstageBase</span></code></a></p>
+<p>Tests relative distances of objects with a location property.</p>
+<p>Reports to “sensor” objects when something enters or exits a range.</p>
+<p>Use this manager when the sensing entities are not static. If they are
+static, use <cite>SensorMotionManager</cite>.</p>
+<p>Detectable objects and sensor objects must have an attribute that is a GeodeticLocationState
+OR CartesianLocationState</p>
+<p>Detectable objects, if they aren’t Actors, could implement _get_detection_state() -&gt; bool:`
+to allow this class to ignore them sometimes. The default way is to use a <cite>DetectabilityState</cite>
+on the actor.</p>
+<p>Sensor objects MUST implement these two methods:
+1. <cite>entity_entered_range(object)</cite>
+2. <cite>entity_exited_range(object)</cite></p>
+<p>The first is called when an entity enters the sensor’s visiblity.
+The second is called when an entity leaves the visibility or becomes undetectable.</p>
+<p>The sensor object CAN implement a method called <cite>detection_checker</cite>.
+That method takes the location of an object to detect and returns True/False.</p>
+<p>The motion manager will learn about sensor objects with:</p>
+<p>sensor_motion_manager.add_sensor(sensor_object, radius)</p>
+<p>Where radius is a distance in the units defined in upstage.STAGE.</p>
+<p>Simple usage:
+&gt;&gt;&gt; manager = SteppedMotionManager(timestep=0.1)
+&gt;&gt;&gt; UP.STAGE.motion_manager = manager
+&gt;&gt;&gt;  …
+&gt;&gt;&gt; manager.add_sensor(binoculars, ‘vision_radius’)
+&gt;&gt;&gt; manager.add_detectable(bird, ‘location’)</p>
+<p># TODO: Unify sensor and movable
+# TODO: Having only moving things be detectable/using <cite>_start_mover</cite>
+is easy, but this class lets us do static detection easier, so we may
+have to go about it differently.
+# TODO: Data structures for efficient distances</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.motion.stepped_motion.SteppedMotionManager.add_detectable">
+<span class="sig-name descname"><span class="pre">add_detectable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detectable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'location'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.add_detectable" title="Link to this definition">#</a></dt>
+<dd><p>Add an object that is detectable to the manager.</p>
+<p>The object must have an attribute that performs distance calculations.
+See the class docstring for more.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detectable</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – An object that has a location attribute</p></li>
+<li><p><strong>location_attr_name</strong> (<em>str</em>) – Name of the location attribute. Defaults to “location”.</p></li>
+<li><p><strong>new_rate</strong> (<em>float</em><em> | </em><em>None</em>) – Optional new rate for a detectable</p></li>
+<li><p><strong>faster</strong> (<em>(</em><em>if it needs</em>)</p></li>
+<li><p><strong>likely</strong><strong>)</strong> (<em>most</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.motion.stepped_motion.SteppedMotionManager.add_sensor">
+<span class="sig-name descname"><span class="pre">add_sensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#upstage_des.motion.motion.SensorType" title="upstage_des.motion.motion.SensorType"><span class="pre">SensorType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'radius'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_attr_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'location'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.add_sensor" title="Link to this definition">#</a></dt>
+<dd><p>Add a sensor the motion manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sensor</strong> (<a class="reference internal" href="#upstage_des.motion.motion.SensorType" title="upstage_des.motion.motion.SensorType"><em>SensorType</em></a>) – The sensing object</p></li>
+<li><p><strong>radius_attr_name</strong> (<em>str</em>) – Radius attribute name. Defaults to “radius”.</p></li>
+<li><p><strong>location_attr_name</strong> (<em>str</em>) – Location attribute name. Defaults to “location”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.motion.stepped_motion.SteppedMotionManager.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Event</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.run" title="Link to this definition">#</a></dt>
+<dd><p>Run the main stepped motion loop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Generator[SimpyEvent, None, None]</em> – _description_</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.motion.stepped_motion.SteppedMotionManager.run_particular">
+<span class="sig-name descname"><span class="pre">run_particular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detectable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Event</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.run_particular" title="Link to this definition">#</a></dt>
+<dd><p>Run detections against a single target at a faster rate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rate</strong> (<em>float</em>) – Time rate to do detection checks.</p></li>
+<li><p><strong>detectable</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – The actor to be detected by the known sensors.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.motion">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-upstage_des.motion" title="Link to this heading">#</a></h2>
+<p>Motion features for UPSTAGE.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="upstage_des.geography.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">upstage_des.geography package</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="upstage_des.resources.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">upstage_des.resources package</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.motion.cartesian_model">upstage_des.motion.cartesian_model module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.cartesian_model.cartesian_linear_intersection"><code class="docutils literal notranslate"><span class="pre">cartesian_linear_intersection()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.cartesian_model.ray_intersection"><code class="docutils literal notranslate"><span class="pre">ray_intersection()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.motion.geodetic_model">upstage_des.motion.geodetic_model module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.geodetic_model.analytical_intersection"><code class="docutils literal notranslate"><span class="pre">analytical_intersection()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.geodetic_model.subdivide_intersection"><code class="docutils literal notranslate"><span class="pre">subdivide_intersection()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.motion.great_circle_calcs">upstage_des.motion.great_circle_calcs module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.great_circle_calcs.get_course_rad"><code class="docutils literal notranslate"><span class="pre">get_course_rad()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.great_circle_calcs.get_dist_rad"><code class="docutils literal notranslate"><span class="pre">get_dist_rad()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.great_circle_calcs.get_great_circle_points"><code class="docutils literal notranslate"><span class="pre">get_great_circle_points()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.great_circle_calcs.get_pos_from_points_and_distance"><code class="docutils literal notranslate"><span class="pre">get_pos_from_points_and_distance()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.motion.motion">upstage_des.motion.motion module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.motion.SensorMotionManager"><code class="docutils literal notranslate"><span class="pre">SensorMotionManager</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.motion.SensorMotionManager.add_sensor"><code class="docutils literal notranslate"><span class="pre">SensorMotionManager.add_sensor()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.motion.SensorType"><code class="docutils literal notranslate"><span class="pre">SensorType</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.motion.SensorType.entity_entered_range"><code class="docutils literal notranslate"><span class="pre">SensorType.entity_entered_range()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.motion.SensorType.entity_exited_range"><code class="docutils literal notranslate"><span class="pre">SensorType.entity_exited_range()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.motion.stepped_motion">upstage_des.motion.stepped_motion module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.stepped_motion.SteppedMotionManager"><code class="docutils literal notranslate"><span class="pre">SteppedMotionManager</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.add_detectable"><code class="docutils literal notranslate"><span class="pre">SteppedMotionManager.add_detectable()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.add_sensor"><code class="docutils literal notranslate"><span class="pre">SteppedMotionManager.add_sensor()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.run"><code class="docutils literal notranslate"><span class="pre">SteppedMotionManager.run()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.motion.stepped_motion.SteppedMotionManager.run_particular"><code class="docutils literal notranslate"><span class="pre">SteppedMotionManager.run_particular()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.motion">Module contents</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

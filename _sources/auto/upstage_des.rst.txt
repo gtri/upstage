@@ -1,0 +1,154 @@
+upstage\_des package
+====================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   upstage_des.communications
+   upstage_des.data_utils
+   upstage_des.geography
+   upstage_des.motion
+   upstage_des.resources
+   upstage_des.units
+
+Submodules
+----------
+
+upstage\_des.actor module
+-------------------------
+
+.. automodule:: upstage_des.actor
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.api module
+-----------------------
+
+.. automodule:: upstage_des.api
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.base module
+------------------------
+
+.. automodule:: upstage_des.base
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.constants module
+-----------------------------
+
+.. automodule:: upstage_des.constants
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.data\_types module
+-------------------------------
+
+.. automodule:: upstage_des.data_types
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.events module
+--------------------------
+
+.. automodule:: upstage_des.events
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.math\_utils module
+-------------------------------
+
+.. automodule:: upstage_des.math_utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.nucleus module
+---------------------------
+
+.. automodule:: upstage_des.nucleus
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.routines module
+----------------------------
+
+.. automodule:: upstage_des.routines
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.state\_proxies module
+----------------------------------
+
+.. automodule:: upstage_des.state_proxies
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.state\_sharing module
+----------------------------------
+
+.. automodule:: upstage_des.state_sharing
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.states module
+--------------------------
+
+.. automodule:: upstage_des.states
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.task module
+------------------------
+
+.. automodule:: upstage_des.task
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.task\_network module
+---------------------------------
+
+.. automodule:: upstage_des.task_network
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.type\_help module
+------------------------------
+
+.. automodule:: upstage_des.type_help
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+upstage\_des.utils module
+-------------------------
+
+.. automodule:: upstage_des.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: upstage_des
+   :members:
+   :show-inheritance:
+   :undoc-members:

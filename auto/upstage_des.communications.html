@@ -1,0 +1,919 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>upstage_des.communications package &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'auto/upstage_des.communications';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="upstage_des.data_utils package" href="upstage_des.data_utils.html" />
+    <link rel="prev" title="upstage_des package" href="upstage_des.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="upstage_des.html">upstage_des package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">upstage_des.communications package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.data_utils.html">upstage_des.data_utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.geography.html">upstage_des.geography package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.motion.html">upstage_des.motion package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.resources.html">upstage_des.resources package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upstage_des.units.html">upstage_des.units package</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="modules.html" class="nav-link">upstage_des</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="upstage_des.html" class="nav-link">upstage_des package</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">upstage_des.communications package</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="upstage-des-communications-package">
+<h1>upstage_des.communications package<a class="headerlink" href="#upstage-des-communications-package" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-upstage_des.communications.comms">
+<span id="upstage-des-communications-comms-module"></span><h2>upstage_des.communications.comms module<a class="headerlink" href="#module-upstage_des.communications.comms" title="Link to this heading">#</a></h2>
+<p>Comms message and commander classes.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.CommsManagerBase">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CommsManagerBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_entities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.166667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_logging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.communications.comms.CommsManagerBase" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upstage_des.html#upstage_des.base.UpstageBase" title="upstage_des.base.UpstageBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpstageBase</span></code></a></p>
+<p>A class to manage point to point transfer of communications.</p>
+<p>Works through simpy.Store or similar interfaces. Allows for degraded comms and comms retry.</p>
+<p>If an Actor contains a <cite>CommunicationStore</cite>, this object will detect that
+and use it as a destination. In that case, you also do not need to connect
+the actor to this object.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Talker</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">comms</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">ResourceState</span><span class="p">[</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">](</span><span class="n">default</span><span class="o">=</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">talker1</span> <span class="o">=</span> <span class="n">Talker</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;MacReady&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">talker2</span> <span class="o">=</span> <span class="n">Talker</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Childs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">CommsManager</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Outpost 31&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;voice&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">talker1</span><span class="p">,</span> <span class="n">talker1</span><span class="o">.</span><span class="n">comms</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">talker2</span><span class="p">,</span> <span class="n">talker2</span><span class="o">.</span><span class="n">comms</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Typically, do this inside a task or somewhere else</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">putter</span> <span class="o">=</span> <span class="n">comm_station</span><span class="o">.</span><span class="n">make_put</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Grab your flamethrower!&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">source</span><span class="o">=</span><span class="n">talker1</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">destination</span><span class="o">=</span><span class="n">talker2</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">rehearsal_time_to_complete</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">yield</span> <span class="n">putter</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">talker2</span><span class="o">.</span><span class="n">comms</span><span class="o">.</span><span class="n">items</span>
+<span class="go">    [Message(sender=Talker: MacReady, message=&#39;Grab your flamethrower!&#39;,</span>
+<span class="go">    destination=Talker: Childs)]</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.CommsManagerBase.clean_message">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clean_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#upstage_des.communications.comms.Message" title="upstage_des.communications.comms.Message"><span class="pre">Message</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#upstage_des.communications.comms.MessageContent" title="upstage_des.communications.comms.MessageContent"><span class="pre">MessageContent</span></a></span></span><a class="headerlink" href="#upstage_des.communications.comms.CommsManagerBase.clean_message" title="Link to this definition">#</a></dt>
+<dd><p>Test to see if an object is a message.</p>
+<p>If it is, return the message contents only. Otherwise return the message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> (<em>str</em><em> | </em><a class="reference internal" href="#upstage_des.communications.comms.Message" title="upstage_des.communications.comms.Message"><em>Message</em></a>) – The message to clean</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The message as a message content object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#upstage_des.communications.comms.MessageContent" title="upstage_des.communications.comms.MessageContent">MessageContent</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.CommsManagerBase.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">comms_store_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.communications.comms.CommsManagerBase.connect" title="Link to this definition">#</a></dt>
+<dd><p>Connect an actor and its comms store to this comms manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – The actor that will send/receive.</p></li>
+<li><p><strong>comms_store_name</strong> (<em>str</em>) – The store state name for receiving</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.CommsManagerBase.make_put">
+<span class="sig-name descname"><span class="pre">make_put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#upstage_des.communications.comms.Message" title="upstage_des.communications.comms.Message"><span class="pre">Message</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#upstage_des.communications.comms.MessageContent" title="upstage_des.communications.comms.MessageContent"><span class="pre">MessageContent</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rehearsal_time_to_complete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="upstage_des.html#upstage_des.events.Put" title="upstage_des.events.Put"><span class="pre">Put</span></a></span></span><a class="headerlink" href="#upstage_des.communications.comms.CommsManagerBase.make_put" title="Link to this definition">#</a></dt>
+<dd><p>Create a Put request for a message into the CommsManager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> – The message sender</p></li>
+<li><p><strong>destination</strong> – The message receiver, who must be connected to the CommsManager</p></li>
+<li><p><strong>message</strong> – Arbitrary data to send</p></li>
+<li><p><strong>rehearsal_time_to_complete</strong> (<em>float</em><em>, </em><em>optional</em>) – Planning time to complete the event (see Put), by default 0.0</p></li>
+<li><p><strong>Returns</strong></p></li>
+<li><p><strong>-------</strong></p></li>
+<li><p><strong>Put</strong> – UPSTAGE Put event object to yield from a task</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.CommsManagerBase.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Event</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.communications.comms.CommsManagerBase.run" title="Link to this definition">#</a></dt>
+<dd><p>Run the communications message passing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Generator[SimpyEvent, Any, None]</em> – Simpy Process</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.CommsManagerBase.store_from_actor">
+<span class="sig-name descname"><span class="pre">store_from_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Store</span></span></span><a class="headerlink" href="#upstage_des.communications.comms.CommsManagerBase.store_from_actor" title="Link to this definition">#</a></dt>
+<dd><p>Retrieve a communications store from an actor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>actor</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – The actor</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Comms store.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Store</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#upstage_des.communications.comms.MessageContent" title="upstage_des.communications.comms.MessageContent"><span class="pre">MessageContent</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_sent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_received</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.communications.comms.Message" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A message data object.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message.content">
+<span class="sig-name descname"><span class="pre">content</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#upstage_des.communications.comms.MessageContent" title="upstage_des.communications.comms.MessageContent"><span class="pre">MessageContent</span></a></em><a class="headerlink" href="#upstage_des.communications.comms.Message.content" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message.destination">
+<span class="sig-name descname"><span class="pre">destination</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></em><a class="headerlink" href="#upstage_des.communications.comms.Message.destination" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message.header">
+<span class="sig-name descname"><span class="pre">header</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#upstage_des.communications.comms.Message.header" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#upstage_des.communications.comms.Message.mode" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message.sender">
+<span class="sig-name descname"><span class="pre">sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></em><a class="headerlink" href="#upstage_des.communications.comms.Message.sender" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message.time_received">
+<span class="sig-name descname"><span class="pre">time_received</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#upstage_des.communications.comms.Message.time_received" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.Message.time_sent">
+<span class="sig-name descname"><span class="pre">time_sent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#upstage_des.communications.comms.Message.time_sent" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.MessageContent">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MessageContent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.communications.comms.MessageContent" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Message content data object.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.MessageContent.data">
+<span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#upstage_des.communications.comms.MessageContent.data" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.MessageContent.message">
+<span class="sig-name descname"><span class="pre">message</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#upstage_des.communications.comms.MessageContent.message" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.communications.comms.PointToPointCommsManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PointToPointCommsManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_entities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.166667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_logging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.communications.comms.PointToPointCommsManager" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#upstage_des.communications.comms.CommsManagerBase" title="upstage_des.communications.comms.CommsManagerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommsManagerBase</span></code></a></p>
+<p>A class to manage point to point transfer of communications.</p>
+<p>Works through simpy.Store or similar interfaces. Allows for degraded comms and comms retry.</p>
+<p>If an Actor contains a <cite>CommunicationStore</cite>, this object will detect that
+and use it as a destination. In that case, you also do not need to connect
+the actor to this object.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Talker</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">comms</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">ResourceState</span><span class="p">[</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">](</span><span class="n">default</span><span class="o">=</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">talker1</span> <span class="o">=</span> <span class="n">Talker</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;MacReady&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">talker2</span> <span class="o">=</span> <span class="n">Talker</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Childs&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">CommsManager</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Outpost 31&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;voice&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">talker1</span><span class="p">,</span> <span class="n">talker1</span><span class="o">.</span><span class="n">comms</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">talker2</span><span class="p">,</span> <span class="n">talker2</span><span class="o">.</span><span class="n">comms</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm_station</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Typically, do this inside a task or somewhere else</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">putter</span> <span class="o">=</span> <span class="n">comm_station</span><span class="o">.</span><span class="n">make_put</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Grab your flamethrower!&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">source</span><span class="o">=</span><span class="n">talker1</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">destination</span><span class="o">=</span><span class="n">talker2</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">rehearsal_time_to_complete</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">yield</span> <span class="n">putter</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">talker2</span><span class="o">.</span><span class="n">comms</span><span class="o">.</span><span class="n">items</span>
+<span class="go">    [Message(sender=Talker: MacReady, message=&#39;Grab your flamethrower!&#39;,</span>
+<span class="go">    destination=Talker: Childs)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.communications.processes">
+<span id="upstage-des-communications-processes-module"></span><h2>upstage_des.communications.processes module<a class="headerlink" href="#module-upstage_des.communications.processes" title="Link to this heading">#</a></h2>
+<p>Communications process helper.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="upstage_des.communications.processes.generate_comms_wait">
+<span class="sig-name descname"><span class="pre">generate_comms_wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incoming_store</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#upstage_des.communications.comms.MessageContent" title="upstage_des.communications.comms.MessageContent"><span class="pre">MessageContent</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Process</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#upstage_des.communications.processes.generate_comms_wait" title="Link to this definition">#</a></dt>
+<dd><p>Create a process function to transfer communications to a callback.</p>
+<p>This hides cleanup and other stability functions from the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>incoming_store</strong> (<em>A simpy</em><em> or </em><em>upstage store</em>) – The store that is linked to a CommsManager instance.</p></li>
+<li><p><strong>callback</strong> (<em>function</em>) – The function to call with a received message</p></li>
+<li><p><strong>Returns</strong></p></li>
+<li><p><strong>-------</strong></p></li>
+<li><p><strong>function</strong> – An UPSTAGE process function that passes messages</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.communications.routing">
+<span id="upstage-des-communications-routing-module"></span><h2>upstage_des.communications.routing module<a class="headerlink" href="#module-upstage_des.communications.routing" title="Link to this heading">#</a></h2>
+<p>Comms routing from a routing table lookup.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.communications.routing.RoutingCommsManagerBase">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">RoutingCommsManagerBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.166667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_ignore</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_logging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.communications.routing.RoutingCommsManagerBase" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#upstage_des.communications.comms.CommsManagerBase" title="upstage_des.communications.comms.CommsManagerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommsManagerBase</span></code></a></p>
+<p>A comms manager that routes messages according to a network.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.routing.RoutingCommsManagerBase.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">comms_store_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.communications.routing.RoutingCommsManagerBase.connect" title="Link to this definition">#</a></dt>
+<dd><p>RoutingManagerBase doesn’t allow this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.routing.RoutingCommsManagerBase.select_hop">
+<span class="sig-name descname"><span class="pre">select_hop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.communications.routing.RoutingCommsManagerBase.select_hop" title="Link to this definition">#</a></dt>
+<dd><p>Subclassable method for selecting the next hop in a route.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – Current point</p></li>
+<li><p><strong>dest</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – Message Destination</p></li>
+<li><p><strong>ignore_nodes</strong> (<em>list</em><em>[</em><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a><em>]</em><em>, </em><em>optional</em>) – Nodes to exclude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Next hop to make. None if blocked path</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor">Actor</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="upstage_des.communications.routing.RoutingTableCommsManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">RoutingTableCommsManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">send_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.166667</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_ignore</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug_logging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#upstage_des.communications.routing.RoutingTableCommsManager" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#upstage_des.communications.routing.RoutingCommsManagerBase" title="upstage_des.communications.routing.RoutingCommsManagerBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingCommsManagerBase</span></code></a></p>
+<p>Route comms according to a pre-defined network.</p>
+<p>Nodes (Actors) must be explicitly connected, and this manager will
+route through shortest number of hops.</p>
+<p>Allows for degraded comms and comms retry. If a link is not degraded,
+after the retry fails the network will re-plan a route assuming the intermediate
+destination node is no longer available.</p>
+<p>The behavior is:</p>
+<ol class="arabic simple">
+<li><p>Ask for transmit from SOURCE to DEST</p></li>
+<li><p>Set CURRENT to SOURCE</p></li>
+<li><p>Find the NEXT in the shortest path from CURRENT to DEST</p></li>
+<li><p>If there is no path, stop trying to send and end.</p></li>
+<li><p>Attempt to send to NEXT (this is the degraded comms/retry step)</p></li>
+<li><p>If it can send, do so. Set CURRENT = NEXT. If NEXT is DEST, Goto 8. Otherwise, Goto 3.</p></li>
+<li><p>If it can’t send, drop NEXT from the route options. Goto 3</p></li>
+<li><p>Place message in DEST and end.</p></li>
+</ol>
+<p>Since this is time-based, a link can re-open during transmission. If the
+network has paths:</p>
+<blockquote>
+<div><p>A -&gt; B -&gt; C
+A -&gt; D -&gt; E -&gt; F -&gt; G -&gt; H -&gt; C
+E -&gt; B -&gt; C</p>
+</div></blockquote>
+<p>and we want to send from A to C, but B is blocked, a retry will have the
+network attempt to take the long way through DEFGHC. If B comes back online
+after the message gets to E, the routing will choose EBC instead.</p>
+<p>If B does not come back online, the router will still try to go to B from E
+since that is shorter. If B is still down, it will take longer due to the
+retry. Set the input <code class="docutils literal notranslate"><span class="pre">global_ignore</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> to ignore a bad node
+for the entire routing and avoid this behavior.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CommNode</span><span class="p">(</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="n">CommunicationStore</span><span class="p">(</span><span class="n">modes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="n">CommNode</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;modes&quot;</span><span class="p">:[</span><span class="s2">&quot;cup-and-string&quot;</span><span class="p">]})</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="s2">&quot;ABCDEFGH&quot;</span>
+    <span class="p">}</span>
+    <span class="n">mgr</span> <span class="o">=</span> <span class="n">RoutingTableCommsManager</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;StaticManager&quot;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;cup-and-string&quot;</span><span class="p">,</span>
+        <span class="n">send_time</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mf">3600.</span><span class="p">,</span>
+        <span class="n">retry_max_time</span><span class="o">=</span><span class="mi">20</span><span class="o">/</span><span class="mf">3600.</span><span class="p">,</span>
+        <span class="n">retry_rate</span><span class="o">=</span><span class="mi">4</span><span class="o">/</span><span class="mf">3600.</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;AB&quot;</span><span class="p">,</span> <span class="s2">&quot;BC&quot;</span><span class="p">,</span> <span class="s2">&quot;AD&quot;</span><span class="p">,</span> <span class="s2">&quot;DE&quot;</span><span class="p">,</span> <span class="s2">&quot;EF&quot;</span><span class="p">,</span> <span class="s2">&quot;FG&quot;</span><span class="p">,</span> <span class="s2">&quot;GH&quot;</span><span class="p">,</span> <span class="s2">&quot;HC&quot;</span><span class="p">,</span> <span class="s2">&quot;EB&quot;</span><span class="p">]:</span>
+        <span class="n">mgr</span><span class="o">.</span><span class="n">connect_nodes</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">nodes</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.routing.RoutingTableCommsManager.connect_nodes">
+<span class="sig-name descname"><span class="pre">connect_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">two_way</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.communications.routing.RoutingTableCommsManager.connect_nodes" title="Link to this definition">#</a></dt>
+<dd><p>Connect node u to v (one-way).</p>
+<p>Make the connection two-way with the last argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – The source actor</p></li>
+<li><p><strong>v</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – Destination actor</p></li>
+<li><p><strong>two_way</strong> (<em>bool</em><em>, </em><em>optional</em>) – If the connection is two way. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="upstage_des.communications.routing.RoutingTableCommsManager.select_hop">
+<span class="sig-name descname"><span class="pre">select_hop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><span class="pre">Actor</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#upstage_des.communications.routing.RoutingTableCommsManager.select_hop" title="Link to this definition">#</a></dt>
+<dd><p>Method for selecting the next hop to make.</p>
+<p>This selects the shortest number of hops.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – Starting or current point</p></li>
+<li><p><strong>dest</strong> (<a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a>) – Destination</p></li>
+<li><p><strong>ignore_nodes</strong> (<em>list</em><em>[</em><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><em>Actor</em></a><em>]</em><em>, </em><em>optional</em>) – Nodes to exclude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The next place to go or None if no route.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor">Actor</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-upstage_des.communications">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-upstage_des.communications" title="Link to this heading">#</a></h2>
+<p>Module for communications processes and data objects.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="upstage_des.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">upstage_des package</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="upstage_des.data_utils.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">upstage_des.data_utils package</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.communications.comms">upstage_des.communications.comms module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.CommsManagerBase"><code class="docutils literal notranslate"><span class="pre">CommsManagerBase</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.CommsManagerBase.clean_message"><code class="docutils literal notranslate"><span class="pre">CommsManagerBase.clean_message()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.CommsManagerBase.connect"><code class="docutils literal notranslate"><span class="pre">CommsManagerBase.connect()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.CommsManagerBase.make_put"><code class="docutils literal notranslate"><span class="pre">CommsManagerBase.make_put()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.CommsManagerBase.run"><code class="docutils literal notranslate"><span class="pre">CommsManagerBase.run()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.CommsManagerBase.store_from_actor"><code class="docutils literal notranslate"><span class="pre">CommsManagerBase.store_from_actor()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message"><code class="docutils literal notranslate"><span class="pre">Message</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message.content"><code class="docutils literal notranslate"><span class="pre">Message.content</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message.destination"><code class="docutils literal notranslate"><span class="pre">Message.destination</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message.header"><code class="docutils literal notranslate"><span class="pre">Message.header</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message.mode"><code class="docutils literal notranslate"><span class="pre">Message.mode</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message.sender"><code class="docutils literal notranslate"><span class="pre">Message.sender</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message.time_received"><code class="docutils literal notranslate"><span class="pre">Message.time_received</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.Message.time_sent"><code class="docutils literal notranslate"><span class="pre">Message.time_sent</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.MessageContent"><code class="docutils literal notranslate"><span class="pre">MessageContent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.MessageContent.data"><code class="docutils literal notranslate"><span class="pre">MessageContent.data</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.MessageContent.message"><code class="docutils literal notranslate"><span class="pre">MessageContent.message</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.comms.PointToPointCommsManager"><code class="docutils literal notranslate"><span class="pre">PointToPointCommsManager</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.communications.processes">upstage_des.communications.processes module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.processes.generate_comms_wait"><code class="docutils literal notranslate"><span class="pre">generate_comms_wait()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.communications.routing">upstage_des.communications.routing module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.routing.RoutingCommsManagerBase"><code class="docutils literal notranslate"><span class="pre">RoutingCommsManagerBase</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.routing.RoutingCommsManagerBase.connect"><code class="docutils literal notranslate"><span class="pre">RoutingCommsManagerBase.connect()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.routing.RoutingCommsManagerBase.select_hop"><code class="docutils literal notranslate"><span class="pre">RoutingCommsManagerBase.select_hop()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.routing.RoutingTableCommsManager"><code class="docutils literal notranslate"><span class="pre">RoutingTableCommsManager</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.routing.RoutingTableCommsManager.connect_nodes"><code class="docutils literal notranslate"><span class="pre">RoutingTableCommsManager.connect_nodes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage_des.communications.routing.RoutingTableCommsManager.select_hop"><code class="docutils literal notranslate"><span class="pre">RoutingTableCommsManager.select_hop()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-upstage_des.communications">Module contents</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

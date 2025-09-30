@@ -1,0 +1,43 @@
+{
+  "content": [
+    {
+      "content": null,
+      "created": "2025-09-30T02:07:31.470292Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2025-09-30T02:07:31.470292Z",
+      "mimetype": null,
+      "name": "model",
+      "path": "model",
+      "size": null,
+      "type": "directory",
+      "writable": true
+    },
+    {
+      "content": null,
+      "created": "2025-09-30T02:07:31.469292Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2025-09-30T02:07:13.012796Z",
+      "mimetype": null,
+      "name": "RunCashier.ipynb",
+      "path": "RunCashier.ipynb",
+      "size": 7240,
+      "type": "notebook",
+      "writable": true
+    }
+  ],
+  "created": "2025-09-30T02:07:31.469292Z",
+  "format": "json",
+  "hash": null,
+  "hash_algorithm": null,
+  "last_modified": "2025-09-30T02:07:31.469292Z",
+  "mimetype": null,
+  "name": "",
+  "path": "",
+  "size": null,
+  "type": "directory",
+  "writable": true
+}

@@ -1,0 +1,704 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Motion Manager &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/how_tos/motion_manager';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Communications" href="communications.html" />
+    <link rel="prev" title="Named Entities" href="entity_naming.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/first_simulation.html">First UPSTAGE Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/interrupts.html">Task Interrupts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/rehearsal.html">Task Rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/best_practices.html">Best Practices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/data.html">Simulation Data Gathering and Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/simpy_compare.html">UPSTAGE vs SimPy</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Full Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/first_sim_full.html">First Simulation Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/rehearsal_sim.html">Rehearsal Simulation Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/complex_cashier.html">Complex Cashier Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/data_creation_example.html">Data Gathering Example Full Source</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-Tos</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyvalue_states.html">Key/Value States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multistore_states.html">Key/Value Resource State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge.html">Knowledge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resource Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resource_states.html">Resource States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_states.html">Active States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mimic_states.html">Mimic States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nucleus.html">Task Nucleus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stage_variables.html">Stage Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="times.html">Time Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geography.html">Geography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decision_tasks.html">Decision Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task_networks.html">Task Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_sharing.html">State Sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="entity_naming.html">Named Entities</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Motion Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communications.html">Communications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typing.html">Typing and UPSTAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="random_numbers.html">Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="routines.html">Routines</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Motion Manager</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="motion-manager">
+<h1>Motion Manager<a class="headerlink" href="#motion-manager" title="Link to this heading">#</a></h1>
+<p>The Motion Manager is an UPSTAGE feature that coordinates Actors that are moving and regions of space that may want to be aware when an Actor enters that region (such as a sensor, or region of a forest fire, etc.).</p>
+<p>There are two motion managers. One uses intersection calculations to maintain a discrete-event style of movement, while the other operates at defined time steps. The latter is required to have
+motion detection for when the “sensor” and the viewed entities are both moving.</p>
+<p>The built-in <code class="docutils literal notranslate"><span class="pre">&lt;&gt;LocationChangingState</span></code> states work with any of the motion managers in the background, by alerting them when those states are made activate. If you want to control which Actors are visible to the
+motion manager, there is the <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.states.DetectabilityState" title="upstage_des.states.DetectabilityState"><code class="xref py py-class docutils literal notranslate"><span class="pre">DetectabilityState</span></code></a> that can be given to an actor and set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<section id="define-the-motion-manager">
+<h2>Define the Motion Manager<a class="headerlink" href="#define-the-motion-manager" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.motion.geodetic_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">subdivide_intersection</span>
+<span class="linenos"> 2</span><span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.geography.intersections</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_intersection_locations</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">():</span>
+<span class="linenos"> 5</span>    <span class="n">motion</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">SensorMotionManager</span><span class="p">(</span>
+<span class="linenos"> 6</span>        <span class="n">intersection_model</span> <span class="o">=</span> <span class="n">subdivide_intersection</span><span class="p">,</span>
+<span class="linenos"> 7</span>        <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos"> 8</span>    <span class="p">)</span>
+<span class="linenos"> 9</span>    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;motion_manager&quot;</span><span class="p">,</span> <span class="n">motion</span><span class="p">)</span>
+<span class="linenos">10</span>    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;intersection_model&quot;</span><span class="p">,</span> <span class="n">get_intersection_locations</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Line 1-2: Import one of the intersection models and a support function (more on this below)</p></li>
+<li><p>Line 5: Create the <code class="xref py py-class docutils literal notranslate"><span class="pre">SensorMotionManager</span></code> and give it the intersection model
+* The other option is the <code class="xref py py-class docutils literal notranslate"><span class="pre">SteppedMotionManager</span></code> class. (Does not need an intersection)</p></li>
+<li><p>Line 9: Add the motion manager to the stage so that the <code class="docutils literal notranslate"><span class="pre">&lt;&gt;LocationChangingState</span></code> s can find it.</p></li>
+<li><p>Line 10: Add the intersection helper function to the stage so the SensorMotionManager class can find it.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">SensorMotionManager</span></code> does not need to be started or “run”, because it only calculates intersection locations and times when something calls its <code class="docutils literal notranslate"><span class="pre">_start_mover</span></code> method - which the LocationChangingStates do
+in the background.</p>
+</section>
+<section id="intersection-models">
+<h2>Intersection Models<a class="headerlink" href="#intersection-models" title="Link to this heading">#</a></h2>
+<p>There are two intersection models for <code class="docutils literal notranslate"><span class="pre">Geodetic</span></code> locations, and one model for <code class="docutils literal notranslate"><span class="pre">Cartesian</span></code>. The Stepped motion manager does not require one, it uses <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.data_types.GeodeticLocation.straight_line_distance" title="upstage_des.data_types.GeodeticLocation.straight_line_distance"><code class="xref py py-func docutils literal notranslate"><span class="pre">straight_line_distance()</span></code></a> at a given rate.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../auto/upstage_des.motion.html#upstage_des.motion.geodetic_model.subdivide_intersection" title="upstage_des.motion.geodetic_model.subdivide_intersection"><code class="xref py py-func docutils literal notranslate"><span class="pre">subdivide_intersection()</span></code></a>: The approximate intersection method with subdivided search, good for WGS84 coordinates.</p>
+<ul>
+<li><p>This requires the stage variable <code class="docutils literal notranslate"><span class="pre">intersection_model</span></code> to be set.</p></li>
+<li><p>The only available intersection model is <a class="reference internal" href="../../auto/upstage_des.geography.html#upstage_des.geography.intersections.get_intersection_locations" title="upstage_des.geography.intersections.get_intersection_locations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_intersection_locations()</span></code></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.motion.html#upstage_des.motion.geodetic_model.analytical_intersection" title="upstage_des.motion.geodetic_model.analytical_intersection"><code class="xref py py-func docutils literal notranslate"><span class="pre">analytical_intersection()</span></code></a>: An exact intersection using a Spherical earth model. Incompatible with the WGS84 stage model.</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.motion.html#upstage_des.motion.cartesian_model.cartesian_linear_intersection" title="upstage_des.motion.cartesian_model.cartesian_linear_intersection"><code class="xref py py-func docutils literal notranslate"><span class="pre">cartesian_linear_intersection()</span></code></a>: An exact intersection using for XYZ cartesian space.</p></li>
+</ul>
+<p>The <a class="reference internal" href="../../auto/upstage_des.geography.html#upstage_des.geography.intersections.get_intersection_locations" title="upstage_des.geography.intersections.get_intersection_locations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_intersection_locations()</span></code></a> function, required by the subdividing intersection, is what actually finds the intersections. The <code class="docutils literal notranslate"><span class="pre">subdivide_intersection</span></code> is
+a passthrough function that handles the different earth models, stage variables, and conversion to the format UPSTAGE requires in the <code class="docutils literal notranslate"><span class="pre">SensorMotionManager</span></code>. The intersection model itself does not have
+to know about upstage_des. If you created a <code class="docutils literal notranslate"><span class="pre">partial</span></code> of a version of the <code class="docutils literal notranslate"><span class="pre">subdivide_intersection</span></code> that took the intersection model as an argument, you would get the same result without needing the stage variable.</p>
+</section>
+<section id="sensor-requirements-and-example">
+<h2>Sensor Requirements and Example<a class="headerlink" href="#sensor-requirements-and-example" title="Link to this heading">#</a></h2>
+<p>To add a sensor to the motion manager’s awareness you must pass it an object that has an attribute for it’s location and sensor range. It must also implement <code class="docutils literal notranslate"><span class="pre">entity_entered_range</span></code> and
+<code class="docutils literal notranslate"><span class="pre">entity_exited_range</span></code> that accept the entity that is entering/exiting, respectively.</p>
+<p>It is up to the user to decide what to do with that information. They could store it in a queue (such as Store) and process that information later, for example.</p>
+<p>All UPSTAGE does is call one of those methods according to the schedule.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">waypoint_time_and_dist</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.motion.cartesian_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">cartesian_linear_intersection</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Bird</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocationChangingState</span><span class="p">()</span>
+    <span class="n">detectable</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">DetectabilityState</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">speed</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Fly</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Bird</span><span class="p">):</span>
+        <span class="n">waypoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;waypoints&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="p">,</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">waypoint_time_and_dist</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">location</span><span class="p">,</span> <span class="n">waypoints</span><span class="p">,</span> <span class="n">actor</span><span class="o">.</span><span class="n">speed</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">activate_location_state</span><span class="p">(</span>
+            <span class="n">state</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+            <span class="n">speed</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
+            <span class="n">waypoints</span> <span class="o">=</span> <span class="n">waypoints</span><span class="p">,</span>
+            <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">deactivate_all_states</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Sensor</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">spot</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">valid_types</span><span class="o">=</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">GeodeticLocation</span><span class="p">,</span> <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">))</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">valid_types</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">entity_entered_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="n">xy</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">x</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">y</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Oh look, A &#39;</span><span class="si">{</span><span class="n">entity</span><span class="si">}</span><span class="s2">&#39; - time: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> - pos: </span><span class="si">{</span><span class="n">xy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">entity_exited_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="n">xy</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">x</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">y</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">entity</span><span class="si">}</span><span class="s2"> left :( - time: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> - pos: </span><span class="si">{</span><span class="n">xy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">motion</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">SensorMotionManager</span><span class="p">(</span>
+        <span class="n">intersection_model</span><span class="o">=</span><span class="n">cartesian_linear_intersection</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;motion_manager&quot;</span><span class="p">,</span> <span class="n">motion</span><span class="p">)</span>
+
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">Sensor</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Birdwatcher&quot;</span><span class="p">,</span>
+        <span class="n">spot</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">dist</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">motion</span><span class="o">.</span><span class="n">add_sensor</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">location_attr_name</span><span class="o">=</span><span class="s2">&quot;spot&quot;</span><span class="p">,</span> <span class="n">radius_attr_name</span><span class="o">=</span><span class="s2">&quot;dist&quot;</span><span class="p">)</span>
+
+    <span class="n">eagle</span> <span class="o">=</span> <span class="n">Bird</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Eagle&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span> <span class="n">speed</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">eagle</span><span class="o">.</span><span class="n">set_knowledge</span><span class="p">(</span><span class="s2">&quot;waypoints&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">Fly</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">eagle</span><span class="p">)</span>
+    <span class="c1"># Note that we can run without an end time since the sim is very simple</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="n">Oh</span> <span class="n">look</span><span class="p">,</span> <span class="n">A</span> <span class="s1">&#39;Bird: Eagle&#39;</span> <span class="o">-</span> <span class="n">time</span><span class="p">:</span> <span class="mf">8.16</span> <span class="o">-</span> <span class="n">pos</span><span class="p">:</span> <span class="p">(</span><span class="mf">22.01</span><span class="p">,</span> <span class="mf">23.39</span><span class="p">)</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="n">The</span> <span class="n">Bird</span><span class="p">:</span> <span class="n">Eagle</span> <span class="n">left</span> <span class="p">:(</span> <span class="o">-</span> <span class="n">time</span><span class="p">:</span> <span class="mf">27.36</span> <span class="o">-</span> <span class="n">pos</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.19</span><span class="p">,</span> <span class="mf">33.00</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="mover-requirements">
+<h2>Mover Requirements<a class="headerlink" href="#mover-requirements" title="Link to this heading">#</a></h2>
+<p>There are no special requirements for the mover other than they must implement motion by activating a LocationChangingState of some kind. That calls into the motion managers <code class="docutils literal notranslate"><span class="pre">_start_mover</span></code>
+method that does all the work.</p>
+</section>
+<section id="stepped-motion">
+<h2>Stepped Motion<a class="headerlink" href="#stepped-motion" title="Link to this heading">#</a></h2>
+<p>The time-stepping motion manager works by holding a list of sensing entities and detectable entities, and at each time step, it calculates the <code class="docutils literal notranslate"><span class="pre">straight_line_distance</span></code> between each pair.</p>
+<p>If the distance is in range, it fires off the <code class="docutils literal notranslate"><span class="pre">entity_entered_range</span></code> and marks the entity as in view. If it’s out of range and was in view, it calls <code class="docutils literal notranslate"><span class="pre">entity_exited_range</span></code>. As long as the
+location attribute implements <code class="docutils literal notranslate"><span class="pre">straight_line_distance</span></code>, this manager will work.</p>
+<p>The stepped motion manager might need to start a process to do the time stepping:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">():</span>
+    <span class="n">motion</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">SteppedMotionManager</span><span class="p">(</span>
+        <span class="n">timestep</span><span class="o">=</span><span class="mi">3</span><span class="o">/</span><span class="mf">60.</span><span class="p">,</span>
+        <span class="n">max_empty_events</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;motion_manager&quot;</span><span class="p">,</span> <span class="n">motion</span><span class="p">)</span>
+    <span class="n">motion</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In this case, we do need to <code class="docutils literal notranslate"><span class="pre">run</span></code> the motion manager. We also give it a timestep to operate at (here in 3 minute steps, if the sim clock runs on “hours”).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">max_empty_events</span></code> is a special parameter to use if you’re going to do <code class="docutils literal notranslate"><span class="pre">env.run()</span></code> with no <code class="docutils literal notranslate"><span class="pre">until</span></code>. The stepped motion will run an event every timestep, so your sim will run forever. This
+parameter controls how many timesteps with no events queued in the entire sim to consider the simulation to be over and to stop. In general you should always run your sim until a known end point unless
+you can be certain it has a guaranteed terminal state.</p>
+<p>The run is optional <em>only</em> if the things that will be detected are moving using a LocationChangingState. The stepped manager allows anything with a location attribute to be detectable, and in that
+case you need to run the motion manager (and add the entity as a detectable, see below).</p>
+<p>You can try the same bird example with a SteppedMotionManger:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">motion</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">SteppedMotionManager</span><span class="p">(</span>
+        <span class="n">timestep</span><span class="o">=</span> <span class="mi">3</span> <span class="o">/</span> <span class="mf">60.</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;motion_manager&quot;</span><span class="p">,</span> <span class="n">motion</span><span class="p">)</span>
+    <span class="c1"># This part is optional if you&#39;re _only_ moving using a LocationChangingState</span>
+    <span class="n">motion</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="n">viewer</span> <span class="o">=</span> <span class="n">Sensor</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Birdwatcher&quot;</span><span class="p">,</span>
+        <span class="n">spot</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">dist</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">motion</span><span class="o">.</span><span class="n">add_sensor</span><span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="n">location_attr_name</span><span class="o">=</span><span class="s2">&quot;spot&quot;</span><span class="p">,</span> <span class="n">radius_attr_name</span><span class="o">=</span><span class="s2">&quot;dist&quot;</span><span class="p">)</span>
+
+    <span class="n">eagle</span> <span class="o">=</span> <span class="n">Bird</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Eagle&quot;</span><span class="p">,</span>
+        <span class="n">location</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span>
+        <span class="n">speed</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">40</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">eagle</span><span class="o">.</span><span class="n">set_knowledge</span><span class="p">(</span><span class="s2">&quot;waypoints&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">Fly</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">eagle</span><span class="p">)</span>
+    <span class="c1"># Note that we can run without an end time since the sim is very simple</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="n">Oh</span> <span class="n">look</span><span class="p">,</span> <span class="n">A</span> <span class="s1">&#39;Bird: Eagle&#39;</span> <span class="o">-</span> <span class="n">time</span><span class="p">:</span> <span class="mf">8.20</span> <span class="o">-</span> <span class="n">pos</span><span class="p">:</span> <span class="p">(</span><span class="mf">21.92</span><span class="p">,</span> <span class="mf">23.31</span><span class="p">)</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="n">The</span> <span class="n">Bird</span><span class="p">:</span> <span class="n">Eagle</span> <span class="n">left</span> <span class="p">:(</span> <span class="o">-</span> <span class="n">time</span><span class="p">:</span> <span class="mf">27.40</span> <span class="o">-</span> <span class="n">pos</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.19</span><span class="p">,</span> <span class="mf">33.11</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notice the slight inaccuracy in the position due to the time stepping.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The stepped manager is more flexible to the kinds of things that can be detected. You can use
+<a class="reference internal" href="../../auto/upstage_des.motion.html#upstage_des.motion.stepped_motion.SteppedMotionManager.add_detectable" title="upstage_des.motion.stepped_motion.SteppedMotionManager.add_detectable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_detectable()</span></code></a> to add anything with a
+position.</p>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="entity_naming.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Named Entities</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="communications.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Communications</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-motion-manager">Define the Motion Manager</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#intersection-models">Intersection Models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sensor-requirements-and-example">Sensor Requirements and Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mover-requirements">Mover Requirements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stepped-motion">Stepped Motion</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

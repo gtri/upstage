@@ -1,0 +1,937 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>UPSTAGE vs SimPy &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/tutorials/simpy_compare';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="First Simulation Full Source" href="first_sim_full.html" />
+    <link rel="prev" title="Simulation Data Gathering and Processing" href="data.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="first_simulation.html">First UPSTAGE Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interrupts.html">Task Interrupts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rehearsal.html">Task Rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="best_practices.html">Best Practices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Simulation Data Gathering and Processing</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">UPSTAGE vs SimPy</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Full Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="first_sim_full.html">First Simulation Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rehearsal_sim.html">Rehearsal Simulation Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="complex_cashier.html">Complex Cashier Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_creation_example.html">Data Gathering Example Full Source</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-Tos</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/environment.html">Environment Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/states.html">States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/keyvalue_states.html">Key/Value States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/multistore_states.html">Key/Value Resource State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/knowledge.html">Knowledge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resources.html">Resource Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resource_states.html">Resource States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/active_states.html">Active States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/mimic_states.html">Mimic States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/nucleus.html">Task Nucleus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/stage_variables.html">Stage Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/times.html">Time Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/geography.html">Geography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/decision_tasks.html">Decision Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task_networks.html">Task Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/state_sharing.html">State Sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/entity_naming.html">Named Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/motion_manager.html">Motion Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/communications.html">Communications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/typing.html">Typing and UPSTAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/random_numbers.html">Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/routines.html">Routines</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">UPSTAGE vs SimPy</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="upstage-vs-simpy">
+<h1>UPSTAGE vs SimPy<a class="headerlink" href="#upstage-vs-simpy" title="Link to this heading">#</a></h1>
+<p>Here we will motivate some of the reason for the existence of UPSTAGE by comparing how things might be done
+in both frameworks. SimPy is both simple and powerful, but creating complicated behaviors in agents can result in bulky,
+hard to read, and hard to maintain code. Once a simulation designer begins coding large simulations in SimPy, it is our
+belief that something like UPSTAGE would emerge to manage the more complexity.</p>
+<p>For this section, we’ll use the cashier example from the first tutorial.</p>
+<p>The full final example can be <a class="reference internal" href="complex_cashier.html"><span class="doc">found here</span></a>.</p>
+<section id="basic-simulation">
+<h2>Basic Simulation<a class="headerlink" href="#basic-simulation" title="Link to this heading">#</a></h2>
+<p>Let’s recall the steps of the simulation:</p>
+<ol class="arabic simple">
+<li><p>Show up to work</p></li>
+<li><p>Go to the checkout lane the “store manager” tells them.</p></li>
+<li><p>Wait for a customer OR break time</p></li>
+<li><p>If customer: Scan items and receive payment</p></li>
+<li><p>If break: take a break, then return to wait.</p></li>
+<li><p>On store closing, go home, then return in the morning.</p></li>
+</ol>
+<p>We’ll start by importing and making classes for the entities. Then the cashier’s process is defined.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">SIM</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">()</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">scan_speed</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">time_until_break</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">120.0</span><span class="p">)</span>
+    <span class="n">breaks_until_done</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">breaks_taken</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">items_scanned</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">time_scanning</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CheckoutLane</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">customer_queue</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Store</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">StoreBoss</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lanes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CheckoutLane</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lanes</span> <span class="o">=</span> <span class="n">lanes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lane_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Cashier</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_lane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cashier</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CheckoutLane</span><span class="p">:</span>
+        <span class="n">possible</span> <span class="o">=</span> <span class="p">[</span><span class="n">lane</span> <span class="k">for</span> <span class="n">lane</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lanes</span> <span class="k">if</span> <span class="n">lane</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lane_map</span><span class="p">]</span>
+        <span class="n">lane</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">possible</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lane_map</span><span class="p">[</span><span class="n">lane</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cashier</span>
+        <span class="k">return</span> <span class="n">lane</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">checkout_customer</span><span class="p">(</span><span class="n">cashier</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Environment</span><span class="p">):</span>
+    <span class="n">per_item_time</span> <span class="o">=</span> <span class="n">cashier</span><span class="o">.</span><span class="n">scan_speed</span> <span class="o">/</span> <span class="n">items</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">per_item_time</span><span class="p">)</span>
+        <span class="n">cashier</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># taking payment</span>
+    <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_cashier</span><span class="p">(</span><span class="n">cashier</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">,</span> <span class="n">store_boss</span><span class="p">:</span> <span class="n">StoreBoss</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Environment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># go to work</span>
+        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">15.0</span><span class="p">)</span>
+
+        <span class="c1"># talk to the boss</span>
+        <span class="n">lane</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Store</span> <span class="o">=</span> <span class="n">store_boss</span><span class="o">.</span><span class="n">get_lane</span><span class="p">(</span><span class="n">cashier</span><span class="p">)</span>
+
+        <span class="c1"># reset for the day</span>
+        <span class="n">cashier</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># start the waiting in lane loop</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">break_start</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">+</span> <span class="n">cashier</span><span class="o">.</span><span class="n">time_until_break</span>
+            <span class="n">wait_until_break</span> <span class="o">=</span> <span class="n">break_start</span> <span class="o">-</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span>
+            <span class="n">need_break</span> <span class="o">=</span> <span class="n">wait_until_break</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">need_break</span><span class="p">:</span>
+                <span class="n">break_wait</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">wait_until_break</span><span class="p">)</span>
+                <span class="n">cust_get</span> <span class="o">=</span> <span class="n">lane</span><span class="o">.</span><span class="n">customer_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">break_wait</span> <span class="o">|</span> <span class="n">cust_get</span>
+                <span class="k">if</span> <span class="n">break_wait</span><span class="o">.</span><span class="n">processed</span><span class="p">:</span>
+                    <span class="n">need_break</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">if</span> <span class="n">cust_get</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">lane</span><span class="o">.</span><span class="n">customer_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">ret</span><span class="p">[</span><span class="n">cust_get</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cust_get</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">yield from</span> <span class="n">checkout_customer</span><span class="p">(</span><span class="n">cashier</span><span class="p">,</span> <span class="n">ret</span><span class="p">[</span><span class="n">cust_get</span><span class="p">],</span> <span class="n">env</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">need_break</span><span class="p">:</span>
+                <span class="c1"># take a break</span>
+                <span class="n">cashier</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">cashier</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">==</span> <span class="n">cashier</span><span class="o">.</span><span class="n">breaks_until_done</span><span class="p">:</span>
+                    <span class="c1"># go to a night rest</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">15.0</span><span class="p">)</span>
+
+        <span class="c1"># night break</span>
+        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mf">12.0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">customer_spawner</span><span class="p">(</span>
+    <span class="n">env</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Environment</span><span class="p">,</span>
+    <span class="n">lanes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CheckoutLane</span><span class="p">],</span>
+<span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">hrs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">/</span> <span class="mi">60</span>
+        <span class="n">time_of_day</span> <span class="o">=</span> <span class="n">hrs</span> <span class="o">//</span> <span class="mi">24</span>
+        <span class="k">if</span> <span class="n">time_of_day</span> <span class="o">&lt;=</span> <span class="mi">8</span> <span class="ow">or</span> <span class="n">time_of_day</span> <span class="o">&gt;=</span> <span class="mf">15.5</span><span class="p">:</span>
+            <span class="n">time_until_open</span> <span class="o">=</span> <span class="p">(</span><span class="mi">24</span> <span class="o">-</span> <span class="n">time_of_day</span><span class="p">)</span> <span class="o">+</span> <span class="mi">8</span>
+            <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">time_until_open</span><span class="p">)</span>
+
+        <span class="n">lane_pick</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">lanes</span><span class="p">)</span>
+        <span class="n">number_pick</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">17</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">lane_pick</span><span class="o">.</span><span class="n">customer_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">number_pick</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mf">25.0</span> <span class="o">+</span> <span class="mi">5</span>
+        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then we can run the sim with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+<span class="n">cashier</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
+    <span class="n">scan_speed</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">time_until_break</span><span class="o">=</span><span class="mf">120.0</span><span class="p">,</span>
+    <span class="n">breaks_until_done</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">lane_1</span> <span class="o">=</span> <span class="n">CheckoutLane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lane 1&quot;</span><span class="p">,</span> <span class="n">customer_queue</span><span class="o">=</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="n">env</span><span class="p">))</span>
+<span class="n">lane_2</span> <span class="o">=</span> <span class="n">CheckoutLane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lane 2&quot;</span><span class="p">,</span> <span class="n">customer_queue</span><span class="o">=</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="n">env</span><span class="p">))</span>
+<span class="n">boss</span> <span class="o">=</span> <span class="n">StoreBoss</span><span class="p">(</span><span class="n">lanes</span><span class="o">=</span><span class="p">[</span><span class="n">lane_1</span><span class="p">,</span> <span class="n">lane_2</span><span class="p">])</span>
+
+<span class="n">customer_proc</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">customer_spawner</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="p">[</span><span class="n">lane_1</span><span class="p">,</span> <span class="n">lane_2</span><span class="p">]))</span>
+<span class="n">cashier_proc</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">run_cashier</span><span class="p">(</span><span class="n">cashier</span><span class="p">,</span> <span class="n">boss</span><span class="p">,</span> <span class="n">env</span><span class="p">))</span>
+<span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">20</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+<span class="n">cashier</span><span class="o">.</span><span class="n">items_scanned</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="mi">83</span>
+</pre></div>
+</div>
+</section>
+<section id="first-impressions">
+<h2>First Impressions<a class="headerlink" href="#first-impressions" title="Link to this heading">#</a></h2>
+<p>Much of the simulation feels the same, and it feels somewhat more streamlined (it is half as many lines of code).</p>
+<p>However, the sim is not currently instrumented to record any data, so we don’t know when items are scanned, when the customer queue is how full when, etc. We could add that with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">items_scanned_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+    <span class="o">...</span>
+
+<span class="o">...</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">checkout_customer</span><span class="p">(</span><span class="n">cashier</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Environment</span><span class="p">):</span>
+    <span class="n">per_item_time</span> <span class="o">=</span> <span class="n">cashier</span><span class="o">.</span><span class="n">scan_speed</span> <span class="o">/</span> <span class="n">items</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">per_item_time</span><span class="p">)</span>
+        <span class="n">prev</span> <span class="o">=</span> <span class="n">cashier</span><span class="o">.</span><span class="n">items_scanned_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">cashier</span><span class="o">.</span><span class="n">items_scanned_data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">prev</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="c1"># taking payment</span>
+    <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>This gets bulky in any reasonably sized simulation. If you want to turn on or off the recording of certain values, that would have to be controlled within the business logic, adding to
+code bloat and hurting readability.</p>
+<p>If you want to record something new, you have to find all the points where it changes and add in the data recording code. Additionally, there is no built-in way to record information
+about store events.</p>
+<p>Finally, the second <cite>while</cite> loop has a bulky control flow that will break down if more complicated actions are needed. The sim is simple for now because the cashier only follows a simple
+linear story (with one IF/OR for the break).</p>
+<p>The other factor keeping the code simple is that no methods or entities are interacting.</p>
+</section>
+<section id="interrupts-and-complex-flow">
+<h2>Interrupts and Complex Flow<a class="headerlink" href="#interrupts-and-complex-flow" title="Link to this heading">#</a></h2>
+<p>Once your research into cashier logistics is going well with the existing code base, the grocery store chain (who is paying for the research) asks what happens to items scanned per minute
+if the store manager needs to ask a cashier to go restock a shelf. Now we need to have the cashier know about a request, finish the checkout, then go do the restock. This should also
+respect the break time rules.</p>
+<p>We would start by doing this (assume any unseen methods are appropriate):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">requests</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Store</span>
+
+<span class="o">...</span>
+<span class="c1"># inside run_cashier</span>
+<span class="n">break_wait</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">wait_until_break</span><span class="p">)</span>
+<span class="n">cust_get</span> <span class="o">=</span> <span class="n">lane</span><span class="o">.</span><span class="n">customer_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<span class="n">restock</span> <span class="o">=</span> <span class="n">cashier</span><span class="o">.</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<span class="n">ret</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">break_wait</span> <span class="o">|</span> <span class="n">cust_get</span> <span class="o">|</span> <span class="n">restock</span>
+<span class="c1"># figure out which one happened, then do that task</span>
+<span class="k">if</span> <span class="n">break_wait</span><span class="o">.</span><span class="n">processed</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">restock</span><span class="o">.</span><span class="n">processed</span><span class="p">:</span>
+        <span class="c1"># tell the manager we can&#39;t restock yet</span>
+        <span class="k">yield</span> <span class="n">store_boss</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">cashier</span><span class="p">,</span> <span class="s2">&quot;I&#39;ll do it later&quot;</span><span class="p">)</span>
+        <span class="c1"># TODO: How would we take a break THEN go restock?</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># break-taking code</span>
+        <span class="o">...</span>
+<span class="k">elif</span> <span class="n">restock</span><span class="o">.</span><span class="n">processed</span><span class="p">:</span>
+    <span class="c1"># some code to restock</span>
+<span class="k">elif</span> <span class="n">cust_get</span><span class="o">.</span><span class="n">processed</span><span class="p">:</span>
+    <span class="c1"># process the customer</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>The code paths become more complicated the more things the cashier can do. Especially if you want to handle the case where a manager asks for a restock when the cashier is about to go
+on break. And the more behaviors and jobs that the simulation needs the cashier or employee to do, the more complicated this code section becomes.</p>
+</section>
+<section id="upstage-version">
+<h2>UPSTAGE Version<a class="headerlink" href="#upstage-version" title="Link to this heading">#</a></h2>
+<p>In UPSTAGE, we can use the <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task.Task" title="upstage_des.task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> and <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task_network.TaskNetwork" title="upstage_des.task_network.TaskNetwork"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskNetworks</span></code></a> to manage the behaviors in a more forward-compatible manner that preserves the readability of the business logic.</p>
+<p>Now that we know we need to simulate tasking from the manager that alters our process flow, let’s create a new task for that purpose. Here we are building off of  <a class="reference internal" href="first_sim_full.html"><span class="doc">the original sim</span></a>.</p>
+<p>Also note that we aren’t setting up the comms receive task yet. That’s later.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="c1"># Messages store for when we do comms</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">ResourceState</span><span class="p">[</span><span class="n">UP</span><span class="o">.</span><span class="n">SelfMonitoringStore</span><span class="p">](</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">SelfMonitoringStore</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_left_to_break</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_knowledge</span><span class="p">(</span><span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_until_break</span> <span class="o">-</span> <span class="n">elapsed</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">InterruptibleTask</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_interrupt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">,</span> <span class="n">cause</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InterruptStates</span><span class="p">:</span>
+        <span class="c1"># We will only interrupt with a dictionary of data</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cause</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+        <span class="n">job_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">cause</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;BREAK TIME&quot;</span><span class="p">:</span>
+            <span class="n">job_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Break&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">cause</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NEW JOB&quot;</span><span class="p">:</span>
+            <span class="n">job_list</span> <span class="o">=</span> <span class="n">cause</span><span class="p">[</span><span class="s2">&quot;job_list&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UP</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;Unexpected interrupt cause&quot;</span><span class="p">)</span>
+
+        <span class="c1"># determine time until break</span>
+        <span class="n">time_left</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">time_left_to_break</span><span class="p">()</span>
+        <span class="c1"># if there are only five minutes left, take the break and queue the task.</span>
+        <span class="k">if</span> <span class="n">time_left</span> <span class="o">&lt;=</span> <span class="mf">5.0</span> <span class="ow">and</span> <span class="s2">&quot;Break&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">job_list</span><span class="p">:</span>
+            <span class="n">job_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Break&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">job_list</span>
+
+        <span class="c1"># Ignore the interrupt, unless we&#39;ve marked it to know otherwise</span>
+        <span class="n">marker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_marker</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;none&quot;</span>
+        <span class="k">if</span> <span class="n">marker</span> <span class="o">==</span> <span class="s2">&quot;on break&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;Break&quot;</span> <span class="ow">in</span> <span class="n">job_list</span><span class="p">:</span>
+                <span class="n">job_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Break&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">job_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">marker</span> <span class="o">==</span> <span class="s2">&quot;cancellable&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">INTERRUPT</span><span class="o">.</span><span class="n">END</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">INTERRUPT</span><span class="o">.</span><span class="n">IGNORE</span>
+</pre></div>
+</div>
+<p>That <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task.Task" title="upstage_des.task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> class can be inherited to expect interrupts, modify the task network, and move forward.</p>
+<p>With that framework, we can modify the customer wait task:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">WaitInLane</span><span class="p">(</span><span class="n">InterruptibleTask</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASK_GEN</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wait until break time, or a customer.&quot;&quot;&quot;</span>
+        <span class="n">lane</span><span class="p">:</span> <span class="n">CheckoutLane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span>
+            <span class="n">actor</span><span class="p">,</span>
+            <span class="s2">&quot;checkout_lane&quot;</span><span class="p">,</span>
+            <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">customer_arrival</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">lane</span><span class="o">.</span><span class="n">customer_queue</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_marker</span><span class="p">(</span><span class="n">marker</span><span class="o">=</span><span class="s2">&quot;cancellable&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">customer_arrival</span>
+
+        <span class="n">customer</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">customer_arrival</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;customer&quot;</span><span class="p">,</span> <span class="n">customer</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notice that it is much simpler since we aren’t doing the <cite>Any</cite> wait now. The marker is set to tell the interruption to
+end the task, rather than the default of attempting to finish it.</p>
+<p>We make the <cite>InterruptibleTask</cite> as the base class for all the non-decision tasks.</p>
+<p>We also modify the short break task to allow for interrupts. We could use the <cite>InterruptibleTask</cite></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ShortBreak</span><span class="p">(</span><span class="n">InterruptibleTask</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASK_GEN</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Take a short break.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_marker</span><span class="p">(</span><span class="s2">&quot;on break&quot;</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="mf">15.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># The break timing will go here</span>
+</pre></div>
+</div>
+</section>
+<section id="break-timing-task">
+<h2>Break Timing Task<a class="headerlink" href="#break-timing-task" title="Link to this heading">#</a></h2>
+<p>The break timing and interrupting can be handled separately by this task:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CashierBreakTimer</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">time_until_break</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">interrupt_network</span><span class="p">(</span><span class="s2">&quot;CashierJob&quot;</span><span class="p">,</span> <span class="n">cause</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s2">&quot;BREAK TIME&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>And the break timer is run inside the <cite>TalkToBoss</cite> and <cite>ShortBreak</cite> tasks when the start time is set. This is somewhat poor practice,
+but for the sake of keeping the example relatively simple, we’ll take this direct route.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">TalkToBoss</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">DecisionTask</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Zero-time task to get information.&quot;&quot;&quot;</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+        <span class="c1"># Convenient spot to run the timer.</span>
+        <span class="n">CashierBreakTimer</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">actor</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ShortBreak</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Take a short break.&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="mf">15.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">CashierBreakTimer</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">actor</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Running the example as is works the same as before, but now the task flow is interrupted safely by a timing task, removing code within
+each task that was checking for that time. This increases the overall amount of code, but reduces the per-task code, leading to
+more readable and direct reasoning about the tasks. This also builds the foundation for extensiblity of behaviors and tasks, because
+we have mostly separated the logic of task flow, and task behavior.</p>
+<p>We must also change the decision task for breaks to account for us now adding to the task queue after break.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Break</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">DecisionTask</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decide what kind of break we are taking.&quot;&quot;&quot;</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># we might have jobs queued</span>
+        <span class="n">queue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="s2">&quot;Break&quot;</span> <span class="ow">in</span> <span class="n">queue</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UP</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;Odd task network state&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">==</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_until_done</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NightBreak&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">&gt;</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_until_done</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UP</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;Too many breaks taken&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ShortBreak&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">queue</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="adding-messages">
+<h2>Adding Messages<a class="headerlink" href="#adding-messages" title="Link to this heading">#</a></h2>
+<p>Message handling is added with this code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CashierMessages</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">):</span>
+        <span class="n">getter</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">messages</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">getter</span>
+        <span class="n">tasks_needed</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">getter</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
+        <span class="n">tasks_needed</span> <span class="o">=</span> <span class="p">[</span><span class="n">tasks_needed</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tasks_needed</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">tasks_needed</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">interrupt_network</span><span class="p">(</span>
+            <span class="s2">&quot;CashierJob&quot;</span><span class="p">,</span>
+            <span class="n">cause</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">reason</span><span class="o">=</span><span class="s2">&quot;NEW JOB&quot;</span><span class="p">,</span> <span class="n">job_list</span><span class="o">=</span><span class="n">tasks_needed</span><span class="p">),</span>
+        <span class="p">)</span>
+
+<span class="n">cashier_message_net</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkFactory</span><span class="o">.</span><span class="n">from_single_looping</span><span class="p">(</span><span class="s2">&quot;Messages&quot;</span><span class="p">,</span> <span class="n">CashierMessages</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="c1"># def run_cashier()...</span>
+<span class="o">...</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">cashier_task_network</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;GoToWork&quot;</span><span class="p">)</span>
+<span class="n">cnet</span> <span class="o">=</span> <span class="n">cashier_message_net</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">cnet</span><span class="p">)</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="n">cnet</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;CashierMessages&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here the task will loop forever, coming back to wait for a message and pass along the interrupt after formatting the message data.</p>
+<p>Now it’s up to the simulation creator to add a task for restock that goes back to the checkout lane when it’s done. Hint: use the default paths in the task network to do that! The
+cashier remembers the assigned checkout lane in its knowledge. The only other thing to do is create a task (or a simpy process if we are being simple) to get the store manager to farm
+out tasks:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">manager_process</span><span class="p">(</span><span class="n">boss</span><span class="p">:</span> <span class="n">StoreBoss</span><span class="p">,</span> <span class="n">cashiers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Cashier</span><span class="p">]):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># Use the random uniform feature, but convert the UPSTAGE event to simpy</span>
+        <span class="c1"># because this is a simpy only process</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="o">.</span><span class="n">from_random_uniform</span><span class="p">(</span><span class="mf">15.</span><span class="p">,</span> <span class="mf">30.</span><span class="p">)</span><span class="o">.</span><span class="n">as_event</span><span class="p">()</span>
+        <span class="n">cash</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">cashiers</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">cash</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="s2">&quot;Restock&quot;</span><span class="p">])</span>
+
+<span class="o">...</span>
+<span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">manager_process</span><span class="p">(</span><span class="n">boss</span><span class="p">,</span> <span class="p">[</span><span class="n">cashier</span><span class="p">]))</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="upstage-perspective">
+<h2>UPSTAGE Perspective<a class="headerlink" href="#upstage-perspective" title="Link to this heading">#</a></h2>
+<p>What this example has hopefully shown is that UPSTAGE provides (besides the benefit of built-in data recording for all objects)
+a foundation for future-friendly simulations.</p>
+<p>There is a cost to that friendliness, which is the verbosity of some of the overhead code in creating tasks, the networks, etc.
+It is our belief that this verbosity is a benefit rather than a true cost. It is very easy to make task flow mistakes if there
+aren’t lots of rules and checks, especially as simulations find emergent results and values of states that a simulation designer
+may not have anticipated. Similarly, simulations are generally never finished, as new features and behaviors are often added.
+UPSTAGE provides a way to add those behaviors with minimal effort or changes to the existing code.</p>
+<p>There is also no one way to make an UPSTAGE simulation. An alternative way to handle break timing and messages would have been
+through setting knowledge. A decision task could be run after the <cite>ShortBreak</cite> to choose what to do next, or have been run as part
+of a loop where every cashier action ends with a decision task that looks at the requested jobs and plans. Either way would work,
+and both would take advantage of UPSTAGE’s features for task, event, and state cleanup and tracking.</p>
+<p>The key perspective of UPSTAGE is to put in the effort up front to make modular, atomic tasks that handle interrupts
+gracefully. Then use task networks to control their flow. Use “parallel” message passing and handling tasks or task networks
+to interrupt the primary task networks safely. By separating what an actor can do (and how it does it) from deciding what it should
+do, our simulations can grow larger without sacrificing stability or readability.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="data.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Simulation Data Gathering and Processing</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="first_sim_full.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">First Simulation Full Source</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-simulation">Basic Simulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#first-impressions">First Impressions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interrupts-and-complex-flow">Interrupts and Complex Flow</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage-version">UPSTAGE Version</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#break-timing-task">Break Timing Task</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-messages">Adding Messages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#upstage-perspective">UPSTAGE Perspective</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

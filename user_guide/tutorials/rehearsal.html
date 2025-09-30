@@ -1,0 +1,764 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Task Rehearsal &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/tutorials/rehearsal';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Best Practices" href="best_practices.html" />
+    <link rel="prev" title="Task Interrupts" href="interrupts.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="first_simulation.html">First UPSTAGE Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interrupts.html">Task Interrupts</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Task Rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="best_practices.html">Best Practices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Simulation Data Gathering and Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simpy_compare.html">UPSTAGE vs SimPy</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Full Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="first_sim_full.html">First Simulation Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rehearsal_sim.html">Rehearsal Simulation Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="complex_cashier.html">Complex Cashier Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_creation_example.html">Data Gathering Example Full Source</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-Tos</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/environment.html">Environment Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/states.html">States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/keyvalue_states.html">Key/Value States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/multistore_states.html">Key/Value Resource State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/knowledge.html">Knowledge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resources.html">Resource Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resource_states.html">Resource States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/active_states.html">Active States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/mimic_states.html">Mimic States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/nucleus.html">Task Nucleus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/stage_variables.html">Stage Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/times.html">Time Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/geography.html">Geography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/decision_tasks.html">Decision Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task_networks.html">Task Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/state_sharing.html">State Sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/entity_naming.html">Named Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/motion_manager.html">Motion Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/communications.html">Communications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/typing.html">Typing and UPSTAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/random_numbers.html">Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/routines.html">Routines</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Task Rehearsal</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="task-rehearsal">
+<h1>Task Rehearsal<a class="headerlink" href="#task-rehearsal" title="Link to this heading">#</a></h1>
+<p>Task Rehearsal is a powerful feature of UPSTAGE, but one that requires some care to implement. The problem that Rehearsal is trying to solve is
+to reduce the amount of excess code needed to plan the usage of Actors.</p>
+<p>For example, you may have an Actor that is an Airplane, and you’d like to estimate how long it can fly for. In UPSTAGE, it is possible to rehearse that actor through its
+flight path, using planning factors, and see if the final state is feasible.</p>
+<section id="rehearsing-a-single-task">
+<h2>Rehearsing a Single Task<a class="headerlink" href="#rehearsing-a-single-task" title="Link to this heading">#</a></h2>
+<p>Define an actor and a task where some states change:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">waypoint_time_and_dist</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Plane</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">speed</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">float</span><span class="p">]()</span>
+    <span class="n">location</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocationChangingState</span><span class="p">()</span>
+    <span class="n">fuel</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">LinearChangingState</span><span class="p">()</span>
+    <span class="n">fuel_burn</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">float</span><span class="p">]()</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Fly</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Plane</span><span class="p">):</span>
+        <span class="n">fly_to</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;destination&quot;</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">time</span><span class="p">,</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">waypoint_time_and_dist</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">location</span><span class="p">,</span> <span class="n">fly_to</span><span class="p">,</span> <span class="n">actor</span><span class="o">.</span><span class="n">speed</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rehearsing the task: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_rehearsing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Flying </span><span class="si">{</span><span class="n">dist</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> units over </span><span class="si">{</span><span class="n">time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> hrs&quot;</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">activate_linear_state</span><span class="p">(</span>
+            <span class="n">state</span><span class="o">=</span><span class="s2">&quot;fuel&quot;</span><span class="p">,</span>
+            <span class="n">rate</span><span class="o">=-</span><span class="n">actor</span><span class="o">.</span><span class="n">fuel_burn</span><span class="p">,</span>
+            <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">activate_location_state</span><span class="p">(</span>
+            <span class="n">state</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+            <span class="n">speed</span><span class="o">=</span><span class="n">actor</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
+            <span class="n">waypoints</span><span class="o">=</span><span class="n">fly_to</span><span class="p">,</span>
+            <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">deactivate_all_states</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then rehearse a version of it to get a “cloned” actor with new state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">plane</span> <span class="o">=</span> <span class="n">Plane</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plane&quot;</span><span class="p">,</span>
+        <span class="n">speed</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">location</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="n">fuel</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span>
+        <span class="n">fuel_burn</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">point_1</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="n">point_2_options</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
+        <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">75</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">point_2</span> <span class="ow">in</span> <span class="n">point_2_options</span><span class="p">:</span>
+        <span class="n">fake_plane</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">rehearse</span><span class="p">(</span>
+            <span class="n">actor</span><span class="o">=</span><span class="n">plane</span><span class="p">,</span>
+            <span class="n">knowledge</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;destination&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">point_1</span><span class="p">,</span> <span class="n">point_2</span><span class="p">]},</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final fuel: </span><span class="si">{</span><span class="n">fake_plane</span><span class="o">.</span><span class="n">fuel</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The original plane&#39;s fuel: </span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">fuel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span>  <span class="n">Rehearsing</span> <span class="n">the</span> <span class="n">task</span><span class="p">:</span> <span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span>      <span class="n">Flying</span> <span class="mf">161.80</span> <span class="n">units</span> <span class="n">over</span> <span class="mf">80.90</span> <span class="n">hrs</span>
+<span class="o">&gt;&gt;&gt;</span>  <span class="n">Final</span> <span class="n">fuel</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.35</span>
+<span class="o">&gt;&gt;&gt;</span>
+<span class="o">&gt;&gt;&gt;</span>  <span class="n">Rehearsing</span> <span class="n">the</span> <span class="n">task</span><span class="p">:</span> <span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span>      <span class="n">Flying</span> <span class="mf">136.80</span> <span class="n">units</span> <span class="n">over</span> <span class="mf">68.40</span> <span class="n">hrs</span>
+<span class="o">&gt;&gt;&gt;</span>  <span class="n">Final</span> <span class="n">fuel</span><span class="p">:</span> <span class="mf">17.40</span>
+<span class="o">&gt;&gt;&gt;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">The</span> <span class="n">original</span> <span class="n">plane</span><span class="s1">&#39;s fuel: 120</span>
+</pre></div>
+</div>
+<p>The key feature is that you call <code class="docutils literal notranslate"><span class="pre">rehearse</span></code> on an instance of the task, provide it the actor, and optionally provide any knowledge to give to the actor. Then UPSTAGE runs the task
+on a fake environment.</p>
+</section>
+<section id="limits-of-rehearsal">
+<h2>Limits of Rehearsal<a class="headerlink" href="#limits-of-rehearsal" title="Link to this heading">#</a></h2>
+<p>Rehearsal currently only works for one Actor at a time, and while the Actor is clone-able without affecting the rest of the sim, the <code class="docutils literal notranslate"><span class="pre">stage</span></code> is not cloned.
+If a task references <code class="docutils literal notranslate"><span class="pre">stage</span></code>, or looks to other actors, events, stores, etc. the rehearsal may cause side-effects in the actual sim.</p>
+<p>The actor states and knowledge are shallow copies during rehearsal, which is one part of the risk of side effects. Since UPSTAGE only knows what you tell it to do
+through the <code class="docutils literal notranslate"><span class="pre">yield</span></code>, any effects not going through the <code class="docutils literal notranslate"><span class="pre">yield</span></code> will likely cause problems for rehearsal.</p>
+<p>Rehearsing is best for helping planning code determine which actors are capable of doing a series of tasks that have easily separable side-effects.</p>
+</section>
+<section id="rehearsing-events-gets-and-puts">
+<h2>Rehearsing Events, Gets, and Puts<a class="headerlink" href="#rehearsing-events-gets-and-puts" title="Link to this heading">#</a></h2>
+<p>When rehearsing UPSTAGE events, we need to tell UPSTAGE how long to run the fake clock for all non-<code class="docutils literal notranslate"><span class="pre">Wait</span></code> events. We do this by setting <code class="docutils literal notranslate"><span class="pre">planning_time_to_complete</span></code> in the event initialization.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ExampleTask</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+        <span class="c1"># Wait for a timeout or an event to succeed</span>
+        <span class="c1"># Pretend &#39;event&#39; is saved and another process can succeed it</span>
+        <span class="c1"># This is what actor.create_knowledge_event() does (more later)</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">planning_time_to_complete</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+        <span class="n">wait</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="mf">3.5</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">wait</span><span class="p">)</span>
+        <span class="c1"># When planning, UP.Any will use the earliest planning time</span>
+</pre></div>
+</div>
+<p>If the planning time for the event were larger than 3.5, then 3.5 would be the time that passes during rehearsal of the <code class="docutils literal notranslate"><span class="pre">Any</span></code> event.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Get</span></code> events generally provide a value or object from the container or store. For rehearsal purposes, UPSTAGE sends a special object to the task:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">SIM</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="k">class</span><span class="w"> </span><span class="nc">OtherTask</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+<span class="linenos"> 4</span>    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+<span class="linenos"> 5</span>        <span class="n">shelf</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">FilterStore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">a_shelf</span>
+<span class="linenos"> 6</span>        <span class="c1"># Find an item, which is an object that has a `value` attribute</span>
+<span class="linenos"> 7</span>        <span class="n">item</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">FilterGet</span><span class="p">(</span>
+<span class="linenos"> 8</span>            <span class="n">get_location</span><span class="o">=</span><span class="n">shelf</span><span class="p">,</span>
+<span class="linenos"> 9</span>            <span class="nb">filter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">,</span>
+<span class="linenos">10</span>            <span class="n">rehearsal_time_to_complete</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="linenos">11</span>        <span class="p">)</span>
+<span class="linenos">12</span>        <span class="n">time_to_work</span><span class="p">:</span> <span class="nb">float</span>
+<span class="linenos">13</span>        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="n">UP</span><span class="o">.</span><span class="n">PLANNING_FACTOR_OBJECT</span><span class="p">:</span>
+<span class="linenos">14</span>            <span class="n">time_to_work</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="linenos">15</span>        <span class="k">else</span><span class="p">:</span>
+<span class="linenos">16</span>            <span class="n">time_to_work</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="mf">3.14</span>
+<span class="linenos">17</span>        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">time_to_work</span><span class="p">)</span>
+<span class="linenos">18</span>
+<span class="linenos">19</span><span class="k">class</span><span class="w"> </span><span class="nc">Item</span><span class="p">:</span>
+<span class="linenos">20</span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span><span class="nb">float</span><span class="p">):</span>
+<span class="linenos">21</span>        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span><span class="k">class</span><span class="w"> </span><span class="nc">Worker</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+<span class="linenos">24</span>    <span class="o">...</span>
+<span class="linenos">25</span>
+<span class="linenos">26</span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+<span class="linenos">27</span>    <span class="n">store</span> <span class="o">=</span> <span class="n">SIM</span><span class="o">.</span><span class="n">FilterStore</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+<span class="linenos">28</span>    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;a_shelf&quot;</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
+<span class="linenos">29</span>
+<span class="linenos">30</span>    <span class="n">actor</span> <span class="o">=</span> <span class="n">Worker</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;example&quot;</span><span class="p">)</span>
+<span class="linenos">31</span>
+<span class="linenos">32</span>    <span class="n">task</span> <span class="o">=</span> <span class="n">OtherTask</span><span class="p">()</span>
+<span class="linenos">33</span>    <span class="n">new_actor</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">rehearse</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">actor</span><span class="p">)</span>
+<span class="linenos">34</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time of completion: </span><span class="si">{</span><span class="n">new_actor</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">35</span>
+<span class="linenos">36</span>    <span class="k">def</span><span class="w"> </span><span class="nf">proc</span><span class="p">():</span>
+<span class="linenos">37</span>        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="linenos">38</span>        <span class="k">yield</span> <span class="n">store</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">Item</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
+<span class="linenos">39</span>        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="linenos">40</span>        <span class="k">yield</span> <span class="n">store</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">Item</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="mi">314</span><span class="p">))</span>
+<span class="linenos">41</span>
+<span class="linenos">42</span>    <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">proc</span><span class="p">())</span>
+<span class="linenos">43</span>    <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">actor</span><span class="p">)</span>
+<span class="linenos">44</span>    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="linenos">45</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Actual runtime: </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">46</span>
+<span class="linenos">47</span><span class="o">&gt;&gt;&gt;</span> <span class="n">Time</span> <span class="n">of</span> <span class="n">completion</span><span class="p">:</span> <span class="mf">4.0</span>
+<span class="linenos">48</span><span class="o">&gt;&gt;&gt;</span> <span class="n">Actual</span> <span class="n">runtime</span><span class="p">:</span> <span class="mf">102.0</span>
+</pre></div>
+</div>
+<p>Testing if a returned item is a <code class="docutils literal notranslate"><span class="pre">PLANNING_FACTOR_OBJECT</span></code> is the only approved way to know if the task is being rehearsed. If there are no
+<code class="docutils literal notranslate"><span class="pre">Get</span></code> events (everything is time-based)</p>
+<p><code class="docutils literal notranslate"><span class="pre">Put</span></code> events have a planning time to complete as well, and do not touch the actual stores/containers given to those events.</p>
+</section>
+<section id="rehearsing-a-task-network">
+<h2>Rehearsing a Task Network<a class="headerlink" href="#rehearsing-a-task-network" title="Link to this heading">#</a></h2>
+<p>You can rehearse paths through a task network as well, to allow more complicated decision making tests.</p>
+<p>In this example, the plane is part of a search and rescue team for natural disaster aid. The plane will fly to as many locations as it
+can, perform a search, and then fly somewhere else. At the end, it needs to contingency plan for a landing spot that is as far away as possible. Here
+we’ll use <a class="reference internal" href="../how_tos/decision_tasks.html"><span class="doc">Decision Tasks</span></a> as a way to do task network planning for both running and rehearsing.</p>
+<p>The full example can be found <a class="reference internal" href="rehearsal_sim.html"><span class="doc">here</span></a>.</p>
+<p>Here is the planning portion of the TaskNetwork that lets us plan a long route to rehearse on, using <code class="docutils literal notranslate"><span class="pre">rehearse_decision</span></code> from <code class="docutils literal notranslate"><span class="pre">DecisionTask</span></code>. The <code class="docutils literal notranslate"><span class="pre">some_preference_function</span></code> is
+just a stub for example purposes, showing how to separate the runtime decision logic from the planning logic.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Planner</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">DecisionTask</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span><span class="n">Plane</span><span class="p">):</span>
+        <span class="n">go_to_loc</span> <span class="o">=</span> <span class="n">some_preference_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stage</span><span class="o">.</span><span class="n">search_spots</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">go_to_loc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># implies we are done with searching</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Fly&quot;</span><span class="p">,</span> <span class="s2">&quot;Land&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;destination&quot;</span><span class="p">,</span> <span class="n">go_to_loc</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Fly&quot;</span><span class="p">,</span> <span class="s2">&quot;Search&quot;</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rehearse_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span><span class="n">Plane</span><span class="p">):</span>
+        <span class="c1"># Pop off a destination from the queue, or go &quot;home&quot;</span>
+        <span class="n">next_dests</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;destination_plan&quot;</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">dests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">]</span>
+        <span class="n">task_queue</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">next_dests</span><span class="p">:</span> <span class="c1"># fly home</span>
+            <span class="n">dests</span> <span class="o">=</span> <span class="p">[</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+            <span class="n">task_queue</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Fly&quot;</span><span class="p">,</span> <span class="s2">&quot;Land&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># pop a location from the plan</span>
+            <span class="n">dests</span> <span class="o">=</span> <span class="n">next_dests</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;destination_plan&quot;</span><span class="p">,</span> <span class="n">next_dests</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">task_queue</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Fly&quot;</span><span class="p">,</span> <span class="s2">&quot;Search&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;destination&quot;</span><span class="p">,</span> <span class="n">dests</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">task_queue</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When we run the rehearsal, we make sure to set <code class="docutils literal notranslate"><span class="pre">end_task</span></code> to be <code class="docutils literal notranslate"><span class="pre">Land</span></code>, so that the network looping takes over from the initial task queue we gave it. If
+we hadn’t given <code class="docutils literal notranslate"><span class="pre">end_task</span></code>, the rehearsal would have stopped after the 3 tasks in the <code class="docutils literal notranslate"><span class="pre">task_name_list</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">search_locs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">]</span>
+
+    <span class="n">plane</span> <span class="o">=</span> <span class="n">Plane</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;searcher&quot;</span><span class="p">,</span>
+        <span class="n">speed</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">fuel</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">fuel_burn</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+        <span class="n">location</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+        <span class="n">debug_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">net</span> <span class="o">=</span> <span class="n">search_network</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+    <span class="n">plane</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+
+    <span class="n">new_plane</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">rehearse_network</span><span class="p">(</span>
+        <span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">task_name_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Planner&quot;</span><span class="p">,</span> <span class="s2">&quot;Fly&quot;</span><span class="p">,</span> <span class="s2">&quot;Search&quot;</span><span class="p">],</span>
+        <span class="n">knowledge</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;destination_plan&quot;</span><span class="p">:</span> <span class="n">search_locs</span><span class="p">},</span>
+        <span class="n">end_task</span><span class="o">=</span><span class="s2">&quot;Land&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fuel left: </span><span class="si">{</span><span class="n">new_plane</span><span class="o">.</span><span class="n">fuel</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time passed: </span><span class="si">{</span><span class="n">new_plane</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Actual time passed: </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Rehearsing</span> <span class="n">the</span> <span class="n">task</span><span class="p">:</span> <span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span>         <span class="n">Flying</span> <span class="mf">14.14</span> <span class="n">units</span> <span class="n">over</span> <span class="mf">7.07</span> <span class="n">hrs</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Rehearsing</span> <span class="n">the</span> <span class="n">task</span><span class="p">:</span> <span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span>         <span class="n">Flying</span> <span class="mf">0.00</span> <span class="n">units</span> <span class="n">over</span> <span class="mf">0.00</span> <span class="n">hrs</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Rehearsing</span> <span class="n">the</span> <span class="n">task</span><span class="p">:</span> <span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span>         <span class="n">Flying</span> <span class="mf">22.36</span> <span class="n">units</span> <span class="n">over</span> <span class="mf">11.18</span> <span class="n">hrs</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Rehearsing</span> <span class="n">the</span> <span class="n">task</span><span class="p">:</span> <span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span>         <span class="n">Flying</span> <span class="mf">15.81</span> <span class="n">units</span> <span class="n">over</span> <span class="mf">7.91</span> <span class="n">hrs</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Rehearsing</span> <span class="n">the</span> <span class="n">task</span><span class="p">:</span> <span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span>         <span class="n">Flying</span> <span class="mf">21.21</span> <span class="n">units</span> <span class="n">over</span> <span class="mf">10.61</span> <span class="n">hrs</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Fuel</span> <span class="n">left</span><span class="p">:</span> <span class="mf">6.181482162082084</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Time</span> <span class="n">passed</span><span class="p">:</span> <span class="mf">38.76370356758358</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">Actual</span> <span class="n">time</span> <span class="n">passed</span><span class="p">:</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="interrupts.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Task Interrupts</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="best_practices.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Best Practices</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rehearsing-a-single-task">Rehearsing a Single Task</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#limits-of-rehearsal">Limits of Rehearsal</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rehearsing-events-gets-and-puts">Rehearsing Events, Gets, and Puts</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rehearsing-a-task-network">Rehearsing a Task Network</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

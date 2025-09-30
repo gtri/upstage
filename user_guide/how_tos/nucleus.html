@@ -1,0 +1,796 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Task Nucleus &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/how_tos/nucleus';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Stage Variables" href="stage_variables.html" />
+    <link rel="prev" title="Mimic States" href="mimic_states.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/first_simulation.html">First UPSTAGE Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/interrupts.html">Task Interrupts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/rehearsal.html">Task Rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/best_practices.html">Best Practices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/data.html">Simulation Data Gathering and Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/simpy_compare.html">UPSTAGE vs SimPy</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Full Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/first_sim_full.html">First Simulation Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/rehearsal_sim.html">Rehearsal Simulation Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/complex_cashier.html">Complex Cashier Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/data_creation_example.html">Data Gathering Example Full Source</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-Tos</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyvalue_states.html">Key/Value States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multistore_states.html">Key/Value Resource State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge.html">Knowledge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resource Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resource_states.html">Resource States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_states.html">Active States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mimic_states.html">Mimic States</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Task Nucleus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stage_variables.html">Stage Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="times.html">Time Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geography.html">Geography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decision_tasks.html">Decision Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task_networks.html">Task Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_sharing.html">State Sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="entity_naming.html">Named Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="motion_manager.html">Motion Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communications.html">Communications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typing.html">Typing and UPSTAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="random_numbers.html">Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="routines.html">Routines</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Task Nucleus</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="task-nucleus">
+<h1>Task Nucleus<a class="headerlink" href="#task-nucleus" title="Link to this heading">#</a></h1>
+<p>UPSTAGE provides a more advanced signal-passing interface between tasks and actors with the <code class="docutils literal notranslate"><span class="pre">Nucleus</span></code>.</p>
+<p>A Nucleus can be attached to an <code class="docutils literal notranslate"><span class="pre">Actor</span></code>, and <code class="docutils literal notranslate"><span class="pre">States</span></code> linked to the Nucleus. When one of those states changes,
+an interrupt will be sent to the relevant task networks.</p>
+<p>The basic syntax is this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the nucleus object, attached to an actor</span>
+<span class="n">nuc</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkNucleus</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">actor</span><span class="p">)</span>
+<span class="c1"># From some task network:</span>
+<span class="n">task_net</span> <span class="o">=</span> <span class="n">task_net_factory</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="c1"># Add it to the actor</span>
+<span class="n">actor</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">task_net</span><span class="p">)</span>
+<span class="c1"># Tell the nucleus object that this network changes if</span>
+<span class="c1"># the state names given change</span>
+<span class="n">nuc</span><span class="o">.</span><span class="n">add_network</span><span class="p">(</span><span class="n">task_net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;state name to watch&quot;</span><span class="p">,</span> <span class="s2">&quot;other state&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>When any state given to the nucleus changes, nucleus pushes an interrupt to the task network. That interrupt is passed down
+as a cause to <code class="docutils literal notranslate"><span class="pre">on_interrupt</span></code> as an instance of type <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.nucleus.NucleusInterrupt" title="upstage_des.nucleus.NucleusInterrupt"><code class="xref py py-class docutils literal notranslate"><span class="pre">NucleusInterrupt</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SomeTask</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="o">...</span><span class="p">):</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_interrupt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">,</span> <span class="n">cause</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cause</span><span class="p">,</span> <span class="n">UP</span><span class="o">.</span><span class="n">NucleusInterrupt</span><span class="p">):</span>
+            <span class="n">state_that_changed</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">cause</span><span class="o">.</span><span class="n">state_name</span>
+            <span class="n">state_value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">cause</span><span class="o">.</span><span class="n">state_value</span>
+</pre></div>
+</div>
+<p>From there, you can decide how to handle the interrupt in the usual manner.</p>
+<p>Here is a complete example showing the interaction. The actor has some number that defines the time it takes to
+change the number. Once the number changes, the nucleus interrupts the other task network, and the restarting
+task increments the results state.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">class</span><span class="w"> </span><span class="nc">NumberHolder</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+<span class="linenos"> 2</span>    <span class="n">number</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">()</span>
+<span class="linenos"> 3</span>    <span class="n">results</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="k">class</span><span class="w"> </span><span class="nc">NumberChanger</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+<span class="linenos"> 7</span>    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">):</span>
+<span class="linenos"> 8</span>        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+<span class="linenos"> 9</span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">: About to change number&quot;</span><span class="p">)</span>
+<span class="linenos">10</span>        <span class="n">actor</span><span class="o">.</span><span class="n">number</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="k">class</span><span class="w"> </span><span class="nc">InterruptedByNucleus</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+<span class="linenos">14</span>    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">):</span>
+<span class="linenos">15</span>        <span class="c1"># Yielding an event makes the task halt forever EXCEPT</span>
+<span class="linenos">16</span>        <span class="c1"># when interrupted.</span>
+<span class="linenos">17</span>        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+<span class="linenos">18</span>
+<span class="linenos">19</span>    <span class="k">def</span><span class="w"> </span><span class="nf">on_interrupt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">,</span> <span class="n">cause</span><span class="p">):</span>
+<span class="linenos">20</span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">: Interrupted with cause: </span><span class="si">{</span><span class="n">cause</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">21</span>        <span class="n">actor</span><span class="o">.</span><span class="n">results</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="linenos">22</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">INTERRUPT</span><span class="o">.</span><span class="n">RESTART</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span>
+<span class="linenos">25</span><span class="n">fact</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkFactory</span><span class="p">(</span>
+<span class="linenos">26</span>    <span class="s2">&quot;changer&quot;</span><span class="p">,</span>
+<span class="linenos">27</span>    <span class="p">{</span><span class="s2">&quot;Runner&quot;</span><span class="p">:</span> <span class="n">NumberChanger</span><span class="p">},</span>
+<span class="linenos">28</span>    <span class="p">{</span><span class="s2">&quot;Runner&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;Runner&quot;</span><span class="p">,</span> <span class="s2">&quot;allowed&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Runner&quot;</span><span class="p">]}},</span>
+<span class="linenos">29</span><span class="p">)</span>
+<span class="linenos">30</span>
+<span class="linenos">31</span><span class="n">fact2</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkFactory</span><span class="p">(</span>
+<span class="linenos">32</span>    <span class="s2">&quot;interrupted&quot;</span><span class="p">,</span>
+<span class="linenos">33</span>    <span class="p">{</span><span class="s2">&quot;Side&quot;</span><span class="p">:</span> <span class="n">InterruptedByNucleus</span><span class="p">},</span>
+<span class="linenos">34</span>    <span class="p">{</span><span class="s2">&quot;Side&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;Side&quot;</span><span class="p">,</span> <span class="s2">&quot;allowed&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Side&quot;</span><span class="p">]}},</span>
+<span class="linenos">35</span><span class="p">)</span>
+<span class="linenos">36</span>
+<span class="linenos">37</span>
+<span class="linenos">38</span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+<span class="linenos">39</span>    <span class="n">actor</span> <span class="o">=</span> <span class="n">NumberHolder</span><span class="p">(</span>
+<span class="linenos">40</span>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;example&quot;</span><span class="p">,</span>
+<span class="linenos">41</span>        <span class="n">number</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="linenos">42</span>        <span class="n">results</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="linenos">43</span>    <span class="p">)</span>
+<span class="linenos">44</span>    <span class="n">nuc</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkNucleus</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">actor</span><span class="p">)</span>
+<span class="linenos">45</span>
+<span class="linenos">46</span>    <span class="n">task_net</span> <span class="o">=</span> <span class="n">fact</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="linenos">47</span>    <span class="n">actor</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">task_net</span><span class="p">)</span>
+<span class="linenos">48</span>
+<span class="linenos">49</span>    <span class="n">task_net_2</span> <span class="o">=</span> <span class="n">fact2</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="linenos">50</span>    <span class="n">actor</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">task_net_2</span><span class="p">)</span>
+<span class="linenos">51</span>    <span class="n">nuc</span><span class="o">.</span><span class="n">add_network</span><span class="p">(</span><span class="n">task_net_2</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">])</span>
+<span class="linenos">52</span>
+<span class="linenos">53</span>    <span class="n">actor</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="s2">&quot;changer&quot;</span><span class="p">,</span> <span class="n">init_task_name</span><span class="o">=</span><span class="s2">&quot;Runner&quot;</span><span class="p">)</span>
+<span class="linenos">54</span>    <span class="n">actor</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="s2">&quot;interrupted&quot;</span><span class="p">,</span> <span class="n">init_task_name</span><span class="o">=</span><span class="s2">&quot;Side&quot;</span><span class="p">)</span>
+<span class="linenos">55</span>
+<span class="linenos">56</span>    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="linenos">57</span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of nucleus interrupts: </span><span class="si">{</span><span class="n">actor</span><span class="o">.</span><span class="n">results</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">58</span>
+<span class="linenos">59</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">3.00</span><span class="p">:</span> <span class="n">About</span> <span class="n">to</span> <span class="n">change</span> <span class="n">number</span>
+<span class="linenos">60</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">3.00</span><span class="p">:</span> <span class="n">Interrupted</span> <span class="k">with</span> <span class="n">cause</span><span class="p">:</span> <span class="n">NucleusInterrupt</span><span class="p">:</span> <span class="n">number</span> <span class="mi">4</span>
+<span class="linenos">61</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">7.00</span><span class="p">:</span> <span class="n">About</span> <span class="n">to</span> <span class="n">change</span> <span class="n">number</span>
+<span class="linenos">62</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">7.00</span><span class="p">:</span> <span class="n">Interrupted</span> <span class="k">with</span> <span class="n">cause</span><span class="p">:</span> <span class="n">NucleusInterrupt</span><span class="p">:</span> <span class="n">number</span> <span class="mi">5</span>
+<span class="linenos">63</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">12.00</span><span class="p">:</span> <span class="n">About</span> <span class="n">to</span> <span class="n">change</span> <span class="n">number</span>
+<span class="linenos">64</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">12.00</span><span class="p">:</span> <span class="n">Interrupted</span> <span class="k">with</span> <span class="n">cause</span><span class="p">:</span> <span class="n">NucleusInterrupt</span><span class="p">:</span> <span class="n">number</span> <span class="mi">6</span>
+<span class="linenos">65</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">18.00</span><span class="p">:</span> <span class="n">About</span> <span class="n">to</span> <span class="n">change</span> <span class="n">number</span>
+<span class="linenos">66</span><span class="o">&gt;&gt;&gt;</span> <span class="mf">18.00</span><span class="p">:</span> <span class="n">Interrupted</span> <span class="k">with</span> <span class="n">cause</span><span class="p">:</span> <span class="n">NucleusInterrupt</span><span class="p">:</span> <span class="n">number</span> <span class="mi">7</span>
+<span class="linenos">67</span><span class="o">&gt;&gt;&gt;</span> <span class="n">Number</span> <span class="n">of</span> <span class="n">nucleus</span> <span class="n">interrupts</span><span class="p">:</span> <span class="mi">4</span>
+</pre></div>
+</div>
+<p>To note:</p>
+<ul class="simple">
+<li><p>Line 51: The nucelus is watching for <code class="docutils literal notranslate"><span class="pre">number</span></code> to change the task network that has the <code class="docutils literal notranslate"><span class="pre">InterruptedByNucleus</span></code> task.</p></li>
+<li><p>Line 57: Results will increment every time the interrupt runs.</p></li>
+</ul>
+<section id="nucleus-and-rehearsal">
+<h2>Nucleus and Rehearsal<a class="headerlink" href="#nucleus-and-rehearsal" title="Link to this heading">#</a></h2>
+<p>Nucleus state watchers are not transferred when an Actor is cloned for rehearsal. When a rehearsing actor has a state change,
+it does not affect any other networks or the original Actor. Rehearsal only works on a single task network anyway, and so a nucleus
+rehearsal wouldn’t make sense at this point in UPSTAGE’s development.</p>
+</section>
+<section id="state-sharing-with-nucleus">
+<h2>State Sharing with Nucleus<a class="headerlink" href="#state-sharing-with-nucleus" title="Link to this heading">#</a></h2>
+<p>A use case for Nucleus is when multiple task networks are sharing a single state and modifying their processing based on that state. This has one key difficulty, which is that
+a task cannot interrept itself. If a TaskNetwork changes a state that it is watching, SimPy will fail. It</p>
+<p>What follows is an example that implements a nucleus allocation. This is not recommended, but is included to demonstrate how far you can stretch Nucleus and upstage_des. Ultimately,
+it is just running on SimPy and you can do what you like. Here are some issues/caveats with the following example:</p>
+<ul class="simple">
+<li><p>None of the tasks are rehearsal-safe (this is OK if you’re not going to rehearse)</p></li>
+<li><p>Adding nucleus variables/networks within the network that uses them buries the interaction and increases the risk of bugs.</p>
+<ul>
+<li><p>It’s preferable to define all Nucleus interactions near Actor instantiation for readability</p></li>
+<li><p>In the future, it’d be better to have deeper conditions/information in the nucleus.</p></li>
+</ul>
+</li>
+<li><p>Using a <code class="docutils literal notranslate"><span class="pre">DecisionTask</span></code> helps avoid an <code class="docutils literal notranslate"><span class="pre">if</span></code> statement in the <code class="docutils literal notranslate"><span class="pre">CPUProcess</span></code> task to add the network to the nucleus</p></li>
+<li><p>The business logic of the task is overpowered by assistance code, which UPSTAGE tries to avoid as much as possible.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)</span>
+
+<span class="c1"># Licensed under the BSD 3-Clause License.</span>
+<span class="c1"># See the LICENSE file in the project root for complete license terms and disclaimers.</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">SIM</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">upstage_des.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">UP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.type_help</span><span class="w"> </span><span class="kn">import</span> <span class="n">SIMPY_GEN</span><span class="p">,</span> <span class="n">TASK_GEN</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CPU</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">n_procs</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">valid_types</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">ResourceState</span><span class="p">[</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">](</span><span class="n">default</span><span class="o">=</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_from_data</span><span class="p">(</span><span class="n">process_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">best_time</span> <span class="o">=</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;best time&quot;</span><span class="p">]</span>
+        <span class="n">percent_complete</span> <span class="o">=</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;percent complete&quot;</span><span class="p">]</span>
+        <span class="n">alloc</span> <span class="o">=</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;allocated&quot;</span><span class="p">]</span>
+        <span class="n">work_left</span> <span class="o">=</span> <span class="n">best_time</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">percent_complete</span><span class="p">)</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">work_left</span> <span class="o">/</span> <span class="n">alloc</span>
+        <span class="k">return</span> <span class="n">time</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">left_from_partial</span><span class="p">(</span>
+        <span class="n">process_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">alloc</span> <span class="o">=</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;allocated&quot;</span><span class="p">]</span>
+        <span class="n">work_left</span> <span class="o">=</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;best time&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;percent complete&quot;</span><span class="p">])</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">curr_time</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="n">percent_of_left</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">elapsed</span> <span class="o">/</span> <span class="p">(</span><span class="n">work_left</span> <span class="o">/</span> <span class="n">alloc</span><span class="p">))</span>
+        <span class="n">percent_left</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;percent complete&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">percent_of_left</span>
+        <span class="k">return</span> <span class="n">percent_left</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CPUProcessStart</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">DecisionTask</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_network_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">CPU</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">knowledge_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+        <span class="n">process_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span>
+            <span class="n">actor</span><span class="p">,</span> <span class="n">knowledge_name</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="c1"># the task takes some amount of time to finish based on its cpu amount</span>
+        <span class="k">assert</span> <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;percent complete&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span>
+        <span class="c1"># Touch the nucleus variable before it affects this network</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">n_procs</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c1"># Now we can add ourselves to the nucleus</span>
+        <span class="n">nucleus</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">get_nucleus</span><span class="p">()</span>
+        <span class="n">nucleus</span><span class="o">.</span><span class="n">add_network</span><span class="p">(</span><span class="n">knowledge_name</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;n_procs&quot;</span><span class="p">])</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CPUProcess</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_network_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">CPU</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASK_GEN</span><span class="p">:</span>
+        <span class="n">knowledge_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+        <span class="n">process_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span>
+            <span class="n">actor</span><span class="p">,</span> <span class="n">knowledge_name</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="c1"># We know at this point we&#39;re part of the n_procs</span>
+        <span class="n">allocate_amount</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">n_procs</span><span class="p">)</span>
+        <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;allocated&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">allocate_amount</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">knowledge_name</span><span class="p">,</span> <span class="n">process_data</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_marker</span><span class="p">(</span><span class="s2">&quot;RUNNING&quot;</span><span class="p">)</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">time_from_data</span><span class="p">(</span><span class="n">process_data</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">: Starting: </span><span class="si">{</span><span class="n">knowledge_name</span><span class="si">}</span><span class="se">\n\t</span><span class="s2">Allocated: </span><span class="si">{</span><span class="n">allocate_amount</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time Left: </span><span class="si">{</span><span class="n">time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">knowledge_name</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">get_nucleus</span><span class="p">()</span><span class="o">.</span><span class="n">remove_network</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">n_procs</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">: Done with: </span><span class="si">{</span><span class="n">knowledge_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_interrupt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">cause</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">UP</span><span class="o">.</span><span class="n">NucleusInterrupt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UP</span><span class="o">.</span><span class="n">InterruptStates</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cause</span><span class="p">,</span> <span class="n">UP</span><span class="o">.</span><span class="n">NucleusInterrupt</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">cause</span><span class="o">.</span><span class="n">state_name</span> <span class="o">==</span> <span class="s2">&quot;n_procs&quot;</span>
+
+            <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_marker_time</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">start_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">knowledge_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+            <span class="n">process_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span>
+                <span class="n">actor</span><span class="p">,</span> <span class="n">knowledge_name</span><span class="p">,</span> <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">perc</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">left_from_partial</span><span class="p">(</span><span class="n">process_data</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+            <span class="n">process_data</span><span class="p">[</span><span class="s2">&quot;percent complete&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">perc</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">knowledge_name</span><span class="p">,</span> <span class="n">process_data</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">INTERRUPT</span><span class="o">.</span><span class="n">RESTART</span>
+        <span class="k">raise</span> <span class="n">UP</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;Unexpected interrupt state&quot;</span><span class="p">)</span>
+
+
+<span class="n">cpu_job_factory</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkFactory</span><span class="o">.</span><span class="n">from_ordered_terminating</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;SingleJob&quot;</span><span class="p">,</span> <span class="n">task_classes</span><span class="o">=</span><span class="p">[</span><span class="n">CPUProcessStart</span><span class="p">,</span> <span class="n">CPUProcess</span><span class="p">]</span>
+<span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CPUJobFarmer</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">CPU</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASK_GEN</span><span class="p">:</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">actor</span><span class="o">.</span><span class="n">jobs</span><span class="p">)</span>
+
+        <span class="n">suggest</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">suggest_network_name</span><span class="p">(</span><span class="n">cpu_job_factory</span><span class="p">)</span>
+        <span class="n">new_net</span> <span class="o">=</span> <span class="n">cpu_job_factory</span><span class="o">.</span><span class="n">make_network</span><span class="p">(</span><span class="n">other_name</span><span class="o">=</span><span class="n">suggest</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">new_net</span><span class="p">)</span>
+
+        <span class="n">proc_know</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;best time&quot;</span><span class="p">:</span> <span class="n">job</span><span class="p">,</span> <span class="s2">&quot;percent complete&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="n">suggest</span><span class="p">,</span> <span class="n">proc_know</span><span class="p">)</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="n">suggest</span><span class="p">,</span> <span class="n">init_task_name</span><span class="o">=</span><span class="s2">&quot;CPUProcessStart&quot;</span><span class="p">)</span>
+
+
+<span class="n">cpu_farmer_factory</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkFactory</span><span class="o">.</span><span class="n">from_single_looping</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Dispatch&quot;</span><span class="p">,</span> <span class="n">task_class</span><span class="o">=</span><span class="n">CPUJobFarmer</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_nucleus_sharing</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">job_time_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">13.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">]</span>
+    <span class="n">job_start_delay</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+        <span class="n">cpu</span> <span class="o">=</span> <span class="n">CPU</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Magic Computer&quot;</span><span class="p">,</span>
+            <span class="n">n_procs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkNucleus</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">cpu</span><span class="p">)</span>
+
+        <span class="n">net</span> <span class="o">=</span> <span class="n">cpu_farmer_factory</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+        <span class="n">cpu</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+        <span class="n">cpu</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;CPUJobFarmer&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">job_sender</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">SIMPY_GEN</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">time</span><span class="p">,</span> <span class="n">delay</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">job_time_list</span><span class="p">,</span> <span class="n">job_start_delay</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">cpu</span><span class="o">.</span><span class="n">jobs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+        <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">job_sender</span><span class="p">())</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="mimic_states.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Mimic States</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="stage_variables.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Stage Variables</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nucleus-and-rehearsal">Nucleus and Rehearsal</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-sharing-with-nucleus">State Sharing with Nucleus</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1110 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Simulation Data Gathering and Processing &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/tutorials/data';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="UPSTAGE vs SimPy" href="simpy_compare.html" />
+    <link rel="prev" title="Best Practices" href="best_practices.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="first_simulation.html">First UPSTAGE Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interrupts.html">Task Interrupts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rehearsal.html">Task Rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="best_practices.html">Best Practices</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Simulation Data Gathering and Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simpy_compare.html">UPSTAGE vs SimPy</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Full Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="first_sim_full.html">First Simulation Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rehearsal_sim.html">Rehearsal Simulation Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="complex_cashier.html">Complex Cashier Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_creation_example.html">Data Gathering Example Full Source</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-Tos</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/environment.html">Environment Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/states.html">States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/keyvalue_states.html">Key/Value States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/multistore_states.html">Key/Value Resource State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/knowledge.html">Knowledge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resources.html">Resource Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resource_states.html">Resource States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/active_states.html">Active States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/mimic_states.html">Mimic States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/nucleus.html">Task Nucleus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/stage_variables.html">Stage Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/times.html">Time Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/geography.html">Geography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/decision_tasks.html">Decision Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task_networks.html">Task Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/state_sharing.html">State Sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/entity_naming.html">Named Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/motion_manager.html">Motion Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/communications.html">Communications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/typing.html">Typing and UPSTAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/random_numbers.html">Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/routines.html">Routines</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Simulation Data Gathering and Processing</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="simulation-data-gathering-and-processing">
+<h1>Simulation Data Gathering and Processing<a class="headerlink" href="#simulation-data-gathering-and-processing" title="Link to this heading">#</a></h1>
+<p>UPSTAGE has four features for data recording:</p>
+<ol class="arabic simple">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">Actor.log()</span></code> to log a string message at a given time.</p>
+<ul class="simple">
+<li><p>Note that on Actor creation, <code class="docutils literal notranslate"><span class="pre">debug_log=True</span></code> must be given.</p></li>
+</ul>
+</li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">a_state</span> <span class="pre">=</span> <span class="pre">UP.State(recording=True)</span></code>.</p>
+<ul class="simple">
+<li><p>Access the data with <code class="docutils literal notranslate"><span class="pre">actor._state_histories[&quot;a_state&quot;]</span></code></p></li>
+<li><p>The data will be in the form <code class="docutils literal notranslate"><span class="pre">tuple[time,</span> <span class="pre">value]</span></code></p></li>
+<li><p>For <a class="reference internal" href="../how_tos/active_states.html"><span class="doc">ActiveStates</span></a>, the <code class="docutils literal notranslate"><span class="pre">value</span></code> may be
+a special <code class="docutils literal notranslate"><span class="pre">Enum</span></code> saying if the state is being activated, deactivated,
+or is active/inactive.</p></li>
+<li><p>Supply additional recording functions with <code class="docutils literal notranslate"><span class="pre">recording_functions=[(function,</span> <span class="pre">name),</span> <span class="pre">...]</span></code></p></li>
+</ul>
+</li>
+<li><p>Use a <code class="docutils literal notranslate"><span class="pre">SelfMonitoring&lt;&gt;</span></code> Store or Container.</p>
+<ul class="simple">
+<li><p>Access the data with <code class="docutils literal notranslate"><span class="pre">a_store._quantities</span></code></p></li>
+<li><p>The data will be in the form <code class="docutils literal notranslate"><span class="pre">tuple[time,</span> <span class="pre">value]</span></code></p></li>
+</ul>
+</li>
+<li><p>Use the generic data recorder: <code class="docutils literal notranslate"><span class="pre">record_data(data_object)</span></code>.</p>
+<ul class="simple">
+<li><p>Access data with <code class="docutils literal notranslate"><span class="pre">get_recorded_data()</span></code>.</p></li>
+<li><p>The data will be in the form <code class="docutils literal notranslate"><span class="pre">[(time,</span> <span class="pre">data),</span> <span class="pre">(time,</span> <span class="pre">data),</span> <span class="pre">...]</span></code>.</p></li>
+</ul>
+</li>
+</ol>
+<p>UPSTAGE also has utility methods for pulling most of the available data into a
+tabular format, along with providing column headers.</p>
+<section id="actor-logging">
+<h2>Actor Logging<a class="headerlink" href="#actor-logging" title="Link to this heading">#</a></h2>
+<p>The actor debug logging records data about the flow of the actor through its task networks. It’s designed
+for debugging and seeing how your actors are behaving, but it can be a place to add additional data if
+you want to look it up later.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">():</span>
+    <span class="n">cashier</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
+        <span class="n">debug_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Log with an argument logs a message</span>
+    <span class="n">cashier</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;A message&quot;</span><span class="p">)</span>
+    <span class="c1"># Log without an argument returns the log</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">cashier</span><span class="o">.</span><span class="n">log</span><span class="p">())</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;[Day    0 - 00:00:00] A message&#39;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>The logging comes a list of tuples. The first entry is the time as a float - useful for filtering. The second
+entry is a string of the message along with a formatted time. The time is based on <a class="reference internal" href="../how_tos/times.html"><span class="doc">Time Units</span></a>.</p>
+<p>If you set the stage variable <code class="docutils literal notranslate"><span class="pre">debug_log_time</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> (it behaves as <code class="docutils literal notranslate"><span class="pre">True</span></code> by default), then the actor will
+not log the time, and only put the message as the second entry. This message is typed to be a string, but since this
+is python, if you aren’t running a static type checker on your own code, you can put anything you like there.
+If <code class="docutils literal notranslate"><span class="pre">debug_log_time</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, UPSTAGE will attempt to format it as a string, so make sure it’s set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>On a per-actor level, you can set <code class="docutils literal notranslate"><span class="pre">debug_log_time</span></code> as well, and that value will take priority over the stage value.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">():</span>
+    <span class="n">cashier</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
+        <span class="n">debug_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">debug_log_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">cashier</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;A message&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">cashier</span><span class="o">.</span><span class="n">log</span><span class="p">())</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;A message&#39;</span><span class="p">)]</span>
+
+    <span class="n">cashier2</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Betty&quot;</span><span class="p">,</span>
+        <span class="n">debug_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">UP</span><span class="o">.</span><span class="n">set_stage_variable</span><span class="p">(</span><span class="s2">&quot;debug_log_time&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">cashier2</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">cashier2</span><span class="o">.</span><span class="n">log</span><span class="p">())</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})]</span>
+</pre></div>
+</div>
+</section>
+<section id="state-recording">
+<h2>State Recording<a class="headerlink" href="#state-recording" title="Link to this heading">#</a></h2>
+<p>Nearly every state is recordable in UPSTAGE. The <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.states.ResourceState" title="upstage_des.states.ResourceState"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceState</span></code></a>
+is an exception covered in the next section. To enable state recording, set <code class="docutils literal notranslate"><span class="pre">recording=True</span></code>.
+After running the sim, use the <code class="docutils literal notranslate"><span class="pre">_state_histories</span></code> attribute on the actor to get the data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">items_scanned</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">cash</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Ertha&quot;</span><span class="p">,</span> <span class="n">items_scanned</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">+=</span> <span class="mi">2</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">cash</span><span class="o">.</span><span class="n">_state_histories</span><span class="p">[</span><span class="s2">&quot;items_scanned&quot;</span><span class="p">])</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>That returns a list of (time, value) tuples. This works for simple data types,
+but not mutable types:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">people_seen</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">str</span><span class="p">](</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">Counter</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]](</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Counter</span><span class="p">,</span> <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">cash</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Ertha&quot;</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">people_seen</span> <span class="o">=</span> <span class="s2">&quot;James&quot;</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="s2">&quot;bread&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">people_seen</span> <span class="o">=</span> <span class="s2">&quot;Janet&quot;</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="s2">&quot;bread&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">cash</span><span class="o">.</span><span class="n">_state_histories</span><span class="p">)</span>
+    <span class="o">&gt;&gt;&gt;</span><span class="p">{</span><span class="s1">&#39;people_seen&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;James&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="s1">&#39;Janet&#39;</span><span class="p">)]}</span>
+</pre></div>
+</div>
+<p>Note that the string State of <code class="docutils literal notranslate"><span class="pre">people_seen</span></code> acts as a way to record data, even if we don’t care in
+the moment the name of the last scanned person. This lets states behave as carriers of current or past
+information, depending on your needs.</p>
+<section id="recording-functions">
+<h3>Recording Functions<a class="headerlink" href="#recording-functions" title="Link to this heading">#</a></h3>
+<p>If a state is recording, it can also record custom data whenever the state updates. This can
+provide some capabilities for data tracking inline, without having to post-process. The
+state can take either a function or a class object that has a <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method that has
+a signature that accepts a time and a value of the same type as the state.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Recording functions follow the same rule for duplicate recording as the state does.
+Same-time recordings only compare to the last entry in the history, so recorded
+values can alternate just like the state itself.</p>
+</div>
+<p>Future versions of UPSTAGE may update this to allow the actor to be and input. This is not
+done currently to avoid accidentally modifying the actor inside the recording.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">NameStorage</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seen</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">first_letter</span><span class="p">(</span><span class="n">time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">people_seen</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">str</span><span class="p">](</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">recording_functions</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">NameStorage</span><span class="p">,</span> <span class="s2">&quot;max_repeats&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">first_letter</span><span class="p">,</span> <span class="s2">&quot;first_letter&quot;</span><span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">cash</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Ertha&quot;</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">people_seen</span> <span class="o">=</span> <span class="s2">&quot;James&quot;</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">people_seen</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">people_seen</span> <span class="o">=</span> <span class="s2">&quot;James&quot;</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">people_seen</span> <span class="o">=</span> <span class="s2">&quot;Fred&quot;</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">people_seen</span> <span class="o">=</span> <span class="s2">&quot;James&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">cash</span><span class="o">.</span><span class="n">_state_histories</span><span class="p">[</span><span class="s2">&quot;max_repeats&quot;</span><span class="p">])</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">cash</span><span class="o">.</span><span class="n">_state_histories</span><span class="p">[</span><span class="s2">&quot;first_letter&quot;</span><span class="p">])</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;F&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;J&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+</section>
+<section id="complex-states">
+<span id="id1"></span><h3>Complex States<a class="headerlink" href="#complex-states" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">items</span></code> value doesn’t record, because the state doesn’t see the <code class="docutils literal notranslate"><span class="pre">cash.items</span> <span class="pre">=</span> <span class="pre">...</span></code> operation.
+For objects like that, you can use the <code class="docutils literal notranslate"><span class="pre">record_state</span></code> method on the <code class="docutils literal notranslate"><span class="pre">Actor</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="n">Counter</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]](</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Counter</span><span class="p">,</span> <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">cash</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Ertha&quot;</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="s2">&quot;bread&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">record_state</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">)</span>
+    <span class="c1"># or, cash.items = cash.items</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="s2">&quot;bread&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">items</span><span class="p">[</span><span class="s2">&quot;milk&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">3</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">record_state</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">cash</span><span class="o">.</span><span class="n">_state_histories</span><span class="p">)</span>
+    <span class="o">&gt;&gt;&gt;</span><span class="p">{</span><span class="s1">&#39;items&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Counter</span><span class="p">({</span><span class="s1">&#39;bread&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})),</span> <span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">Counter</span><span class="p">({</span><span class="s1">&#39;bread&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;milk&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}))]}</span>
+</pre></div>
+</div>
+<p>Note also that UPSTAGE deep-copies the value in the state history, so any data should be compatible with that
+operation.</p>
+<p>UPSTAGE will output data from <code class="docutils literal notranslate"><span class="pre">dataclass</span></code> states, and <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">Any]</span></code> states by creating rows in the
+data table with the naming convention <code class="docutils literal notranslate"><span class="pre">state_name.attribute_name</span></code>, where the attribute is either a dataclass
+attribute or a key from the dictionary.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <a class="reference internal" href="../how_tos/keyvalue_states.html"><span class="doc">Dictionary State</span></a> was created to mitigate some of these issues.</p>
+</div>
+</section>
+<section id="geographic-types">
+<h3>Geographic Types<a class="headerlink" href="#geographic-types" title="Link to this heading">#</a></h3>
+<p>State recording of the built-in geographic states (cartesian and geodetic) is compatible
+with the data objects. This for both the active state versions and the typical <code class="docutils literal notranslate"><span class="pre">UP.State[CartesianLocation]()</span></code>
+ways of creating the state.</p>
+<p>It’s recommended, since UPSTAGE does not store much data about the motion of geographic states, to poll or ensure you
+get the state value whenever you want to know where it is. While activating and deactivating will record the value,
+if an actor is moving along waypoints, each waypoint doesn’t record itself unless asked.</p>
+</section>
+</section>
+<section id="active-state-recording">
+<h2>Active State Recording<a class="headerlink" href="#active-state-recording" title="Link to this heading">#</a></h2>
+<p>Active states record in the same way, but extra information is given to tell the user if the state
+was activated or not and if it was switching to/from active or inactive.</p>
+<p>The state history will still be <code class="docutils literal notranslate"><span class="pre">(time,</span> <span class="pre">value)</span></code> pairs, but on activation and deactivation an <code class="docutils literal notranslate"><span class="pre">Enum</span></code>
+value is placed in the history to indicated which has taken place. The state value isn’t recorded in
+that row of the history because it will have been calculated immediately prior and recorded.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">time_worked</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">LinearChangingState</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">cash</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Ertha&quot;</span><span class="p">)</span>
+
+    <span class="n">cash</span><span class="o">.</span><span class="n">activate_linear_state</span><span class="p">(</span>
+        <span class="n">state</span><span class="o">=</span><span class="s2">&quot;time_worked&quot;</span><span class="p">,</span>
+        <span class="n">rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># this is fine to do outside of a task.</span>
+    <span class="p">)</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">time_worked</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">time_worked</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">deactivate_state</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="s2">&quot;time_worked&quot;</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">cash</span><span class="o">.</span><span class="n">time_worked</span> <span class="o">=</span> <span class="mf">5.0</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">cash</span><span class="o">.</span><span class="n">_state_histories</span><span class="p">[</span><span class="s2">&quot;time_worked&quot;</span><span class="p">])</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[</span>
+        <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ActiveStatus</span><span class="o">.</span><span class="n">activating</span><span class="p">:</span> <span class="s1">&#39;ACTIVATING&#39;</span><span class="o">&gt;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+        <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">ActiveStatus</span><span class="o">.</span><span class="n">deactivating</span><span class="p">:</span> <span class="s1">&#39;DEACTIVATING&#39;</span><span class="o">&gt;</span><span class="p">),</span>
+        <span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+<p>The built-in data gathering will account for this for you, but if you are manually processing
+the active state histories, the (de)activation signal in the history should always come
+after a recording at the same time value.</p>
+<p>Remember that if you never ask for the value of <code class="docutils literal notranslate"><span class="pre">time_worked</span></code>, it will only report it on
+activation and deactivation.</p>
+</section>
+<section id="resource-recording">
+<h2>Resource Recording<a class="headerlink" href="#resource-recording" title="Link to this heading">#</a></h2>
+<p>If you have a state that is a simpy resource, UPSTAGE won’t know how to record that state. For the reasons
+discussed above, there’s no way to link the changes in the referenced value of the state to the recording
+mechanism. Even if there was, there’s not an implicit understanding of the nature of the resource.</p>
+<p>UPSTAGE comes with resource types, based on the SimPy types, that automatically record:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="../../auto/upstage_des.resources.html#upstage_des.resources.monitoring.SelfMonitoringStore" title="upstage_des.resources.monitoring.SelfMonitoringStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelfMonitoringStore</span></code></a></p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.resources.html#upstage_des.resources.monitoring.SelfMonitoringFilterStore" title="upstage_des.resources.monitoring.SelfMonitoringFilterStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelfMonitoringFilterStore</span></code></a></p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.resources.html#upstage_des.resources.monitoring.SelfMonitoringContainer" title="upstage_des.resources.monitoring.SelfMonitoringContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelfMonitoringContainer</span></code></a></p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.resources.html#upstage_des.resources.monitoring.SelfMonitoringContinuousContainer" title="upstage_des.resources.monitoring.SelfMonitoringContinuousContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelfMonitoringContinuousContainer</span></code></a></p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.resources.html#upstage_des.resources.monitoring.SelfMonitoringSortedFilterStore" title="upstage_des.resources.monitoring.SelfMonitoringSortedFilterStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelfMonitoringSortedFilterStore</span></code></a></p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.resources.html#upstage_des.resources.monitoring.SelfMonitoringReserveContainer" title="upstage_des.resources.monitoring.SelfMonitoringReserveContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SelfMonitoringReserveContainer</span></code></a></p></li>
+</ol>
+<p>Each resource understands the kind of data it can hold, and records it appropriately. Containers are simpler,
+and just record the level that they are at.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">SelfMonitoring&lt;&gt;Store</span></code> resources accept an optional <code class="docutils literal notranslate"><span class="pre">item_func</span></code> argument, the result of which is put into
+the recorded data. By default, the number of items in the store is used.</p>
+<p>The following example shows how to use a monitoring store and get data back from it. The <code class="docutils literal notranslate"><span class="pre">_quantities</span></code> attribute
+on the state is used to hold the data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CheckoutLane</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">belt</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">ResourceState</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">SelfMonitoringStore</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">check</span> <span class="o">=</span> <span class="n">CheckoutLane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lane 1: 10 Items or Fewer&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Mix simpy with UPSTAGE for simple processes</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_proc</span><span class="p">():</span>
+        <span class="k">yield</span> <span class="n">check</span><span class="o">.</span><span class="n">belt</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;Bread&quot;</span><span class="p">)</span> <span class="c1"># simpy event</span>
+        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="n">check</span><span class="o">.</span><span class="n">belt</span><span class="p">,</span> <span class="s2">&quot;Milk&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">as_event</span><span class="p">()</span> <span class="c1"># UPSTAGE event as simpy</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Put</span><span class="p">(</span><span class="n">check</span><span class="o">.</span><span class="n">belt</span><span class="p">,</span> <span class="s2">&quot;Pizza&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">as_event</span><span class="p">()</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">_proc</span><span class="p">())</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">check</span><span class="o">.</span><span class="n">belt</span><span class="o">.</span><span class="n">_quantities</span><span class="p">)</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>Here’s how to set your own item function, omitting the middle portion which stays the same:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CheckoutLane</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">belt</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">ResourceState</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">SelfMonitoringStore</span><span class="p">,</span>
+        <span class="n">default_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;item_func&quot;</span><span class="p">:</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Counter</span><span class="p">(</span><span class="n">x</span><span class="p">)},</span>
+    <span class="p">)</span>
+
+<span class="o">...</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">check</span><span class="o">.</span><span class="n">belt</span><span class="o">.</span><span class="n">_quantities</span><span class="p">)</span>
+    <span class="o">&gt;&gt;&gt;</span> <span class="p">[</span>
+        <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Counter</span><span class="p">()),</span>
+        <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Counter</span><span class="p">({</span><span class="s1">&#39;Bread&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})),</span>
+        <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">Counter</span><span class="p">({</span><span class="s1">&#39;Bread&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Milk&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})),</span>
+        <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">Counter</span><span class="p">({</span><span class="s1">&#39;Bread&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Milk&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Pizza&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}))</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+<p>Or use the actor init to pass the item function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">check</span> <span class="o">=</span> <span class="n">CheckoutLane</span><span class="p">(</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Lane 2&quot;</span><span class="p">,</span>
+    <span class="n">belt</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;item_func&quot;</span><span class="p">:</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Counter</span><span class="p">(</span><span class="n">x</span><span class="p">)},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="general-data-recording">
+<h2>General Data Recording<a class="headerlink" href="#general-data-recording" title="Link to this heading">#</a></h2>
+<p>General data recording is for data that may not conveniently work with states or monitored
+stores. UPSTAGE provides a simple interface for storing general information:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.data_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">record_data</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">record_data</span><span class="p">(</span><span class="s2">&quot;The cashier made a funny joke&quot;</span><span class="p">)</span>
+    <span class="o">...</span>
+    <span class="n">record_data</span><span class="p">({</span><span class="s2">&quot;received&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;fruit&quot;</span><span class="p">,</span> <span class="s2">&quot;eggs&quot;</span><span class="p">],</span> <span class="s2">&quot;shipping method&quot;</span><span class="p">:</span> <span class="s2">&quot;car&quot;</span><span class="p">})</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The optional parameter <code class="docutils literal notranslate"><span class="pre">copy</span></code> can be set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to attempt a deep copy of the
+object to record a snapshot of a mutable type that may change.</p>
+</section>
+<section id="data-gathering">
+<h2>Data Gathering<a class="headerlink" href="#data-gathering" title="Link to this heading">#</a></h2>
+<p>There are three functions for gathering data from UPSTAGE:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="../../auto/upstage_des.data_utils.html#upstage_des.data_utils.data_utils.create_table" title="upstage_des.data_utils.data_utils.create_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">upstage_des.data_utils.data_utils.create_table()</span></code></a></p>
+<ul class="simple">
+<li><p>Finds all actors and their recording states</p></li>
+<li><p>Finds all <code class="docutils literal notranslate"><span class="pre">SelfMonitoring&lt;&gt;</span></code> resources that are not attached
+to actors.</p></li>
+<li><p>Ignores location states by default</p></li>
+<li><p>Reports actor name, actor type, state name, state value, and
+if the state has an active status.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">skip_locations</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>, then location objects
+will go into the state value column.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">save_static</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, then non-recording states
+will have their last value recorded in the table with an <code class="docutils literal notranslate"><span class="pre">Activation</span> <span class="pre">Status</span></code>
+column value of <code class="docutils literal notranslate"><span class="pre">&quot;Last</span> <span class="pre">Seen&quot;</span></code>.</p></li>
+<li><p>Data are in long-form, meaning rows may share a timestamp.</p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.data_utils.html#upstage_des.data_utils.data_utils.create_location_table" title="upstage_des.data_utils.data_utils.create_location_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">upstage_des.data_utils.data_utils.create_location_table()</span></code></a></p>
+<ul class="simple">
+<li><p>Finds all location states on Actors</p></li>
+<li><p>Reports location data as individual columns for the dimensions
+of the location (XYZ or LLA).</p></li>
+<li><p>Reports on active/inactive state data.</p></li>
+<li><p>Data are not completely in long-form. XYZ are on a single row, but
+rows can have the same timestamp if they are different states.</p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.data_utils.html#upstage_des.data_utils.data_recorder.get_recorded_data" title="upstage_des.data_utils.data_recorder.get_recorded_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">upstage_des.data_utils.data_recorder.get_recorded_data()</span></code></a></p>
+<ul class="simple">
+<li><p>Returns the list of tuples of time and data that was recorded.</p></li>
+<li><p>No other features, it is up to the user to pick what they want
+and how they want to process it.</p></li>
+</ul>
+</li>
+</ol>
+<p>Using the example in <a class="reference internal" href="data_creation_example.html"><span class="doc">Data Gathering Example</span></a>, the
+following table (a partial amount shown) would be obtained from the <code class="docutils literal notranslate"><span class="pre">create_table</span></code> function:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Entity Name</p></th>
+<th class="head"><p>Entity Type</p></th>
+<th class="head"><p>State Name</p></th>
+<th class="head"><p>Time</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Activation Status</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>items_scanned</p></td>
+<td><p>0</p></td>
+<td><p>0.0</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Ertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>items_scanned</p></td>
+<td><p>3</p></td>
+<td><p>-1.0</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>Ertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>cue</p></td>
+<td><p>3</p></td>
+<td><p>1.0</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Ertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>cue2</p></td>
+<td><p>3</p></td>
+<td><p>11.0</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>Ertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>time_working</p></td>
+<td><p>3</p></td>
+<td><p>2.9</p></td>
+<td><p>active</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>other</p></td>
+<td><p>0</p></td>
+<td><p>3.0</p></td>
+<td><p>Last Seen</p></td>
+</tr>
+<tr class="row-even"><td><p>Bertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>cue</p></td>
+<td><p>0</p></td>
+<td><p>0.0</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Bertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>cue2</p></td>
+<td><p>0</p></td>
+<td><p>0.0</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>Bertha</p></td>
+<td><p>Cashier</p></td>
+<td><p>time_working</p></td>
+<td><p>0</p></td>
+<td><p>0.0</p></td>
+<td><p>inactive</p></td>
+</tr>
+<tr class="row-odd"><td><p>Store Test</p></td>
+<td><p>SelfMonitoringFilterStore</p></td>
+<td><p>Resource</p></td>
+<td><p>0</p></td>
+<td><p>0.0</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The location table will look like the following table. Now how the active states can be
+“activating”, “active”, or “deactivating”. Not shown is the “inactive” value, which
+is used for when an active state value is changed, but not because it has been set
+to change automatically.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Entity Name</p></th>
+<th class="head"><p>Entity Type</p></th>
+<th class="head"><p>State Name</p></th>
+<th class="head"><p>Time</p></th>
+<th class="head"><p>X</p></th>
+<th class="head"><p>Y</p></th>
+<th class="head"><p>Z</p></th>
+<th class="head"><p>Activation Status</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Wobbly Wheel</p></td>
+<td><p>Cart</p></td>
+<td><p>location</p></td>
+<td><p>0</p></td>
+<td><p>1.0000</p></td>
+<td><p>1.0000</p></td>
+<td><p>0</p></td>
+<td><p>activating</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wobbly Wheel</p></td>
+<td><p>Cart</p></td>
+<td><p>location</p></td>
+<td><p>1</p></td>
+<td><p>2.5364</p></td>
+<td><p>2.2803</p></td>
+<td><p>0</p></td>
+<td><p>active</p></td>
+</tr>
+<tr class="row-even"><td><p>Wobbly Wheel</p></td>
+<td><p>Cart</p></td>
+<td><p>location</p></td>
+<td><p>2</p></td>
+<td><p>4.0728</p></td>
+<td><p>3.5607</p></td>
+<td><p>0</p></td>
+<td><p>active</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wobbly Wheel</p></td>
+<td><p>Cart</p></td>
+<td><p>location</p></td>
+<td><p>3</p></td>
+<td><p>5.6093</p></td>
+<td><p>4.8411</p></td>
+<td><p>0</p></td>
+<td><p>deactivating</p></td>
+</tr>
+<tr class="row-even"><td><p>Wobbly Wheel</p></td>
+<td><p>Cart</p></td>
+<td><p>location_two</p></td>
+<td><p>0</p></td>
+<td><p>1.0000</p></td>
+<td><p>1.0000</p></td>
+<td><p>0</p></td>
+<td><p>activating</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wobbly Wheel</p></td>
+<td><p>Cart</p></td>
+<td><p>location_two</p></td>
+<td><p>1</p></td>
+<td><p>-0.5051</p></td>
+<td><p>-0.3170</p></td>
+<td><p>0</p></td>
+<td><p>active</p></td>
+</tr>
+<tr class="row-even"><td><p>Wobbly Wheel</p></td>
+<td><p>Cart</p></td>
+<td><p>location_two</p></td>
+<td><p>3</p></td>
+<td><p>-3.5154</p></td>
+<td><p>-2.9510</p></td>
+<td><p>0</p></td>
+<td><p>deactivating</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>If you were to have <code class="docutils literal notranslate"><span class="pre">pandas</span></code> installed, a dataframe could be created with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">upstage_des.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">UP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.data_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_table</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="n">table</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="n">create_table</span><span class="p">()</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">header</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The table creation methods must be called within the context, but
+the resulting data does not need to stay in the context.</p>
+<p>The exception is that if a state has a value that uses the environment
+or the stage, you may see a warning if you try to access attributes or
+methods on that object.</p>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="best_practices.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Best Practices</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="simpy_compare.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">UPSTAGE vs SimPy</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#actor-logging">Actor Logging</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-recording">State Recording</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recording-functions">Recording Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#complex-states">Complex States</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#geographic-types">Geographic Types</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#active-state-recording">Active State Recording</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resource-recording">Resource Recording</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-data-recording">General Data Recording</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#data-gathering">Data Gathering</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

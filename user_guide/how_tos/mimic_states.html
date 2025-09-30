@@ -1,0 +1,642 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Mimic States &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/how_tos/mimic_states';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Task Nucleus" href="nucleus.html" />
+    <link rel="prev" title="Active States" href="active_states.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/first_simulation.html">First UPSTAGE Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/interrupts.html">Task Interrupts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/rehearsal.html">Task Rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/best_practices.html">Best Practices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/data.html">Simulation Data Gathering and Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/simpy_compare.html">UPSTAGE vs SimPy</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Full Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/first_sim_full.html">First Simulation Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/rehearsal_sim.html">Rehearsal Simulation Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/complex_cashier.html">Complex Cashier Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/data_creation_example.html">Data Gathering Example Full Source</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-Tos</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="environment.html">Environment Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="states.html">States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keyvalue_states.html">Key/Value States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multistore_states.html">Key/Value Resource State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knowledge.html">Knowledge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resource Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resource_states.html">Resource States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_states.html">Active States</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Mimic States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nucleus.html">Task Nucleus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stage_variables.html">Stage Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="times.html">Time Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geography.html">Geography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decision_tasks.html">Decision Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task_networks.html">Task Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="state_sharing.html">State Sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="entity_naming.html">Named Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="motion_manager.html">Motion Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communications.html">Communications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="typing.html">Typing and UPSTAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="random_numbers.html">Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="routines.html">Routines</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Mimic States</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="mimic-states">
+<h1>Mimic States<a class="headerlink" href="#mimic-states" title="Link to this heading">#</a></h1>
+<p>Mimic states allow one actor to use another actor’s state in place of its own. If you have two “Worker” actors riding in a car, it is
+useful to have their location mimic that of the car, rather than write a task for the workers that does the same thing as the car.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mimic states test to see if their types are compatible (if defined through <code class="docutils literal notranslate"><span class="pre">valid_types</span></code>). If they
+are note, an error will be raised.</p>
+</div>
+<p>Mimic states are activated and deactivated in a similar manner to other states, and they can mimic <a class="reference internal" href="active_states.html"><span class="doc">ActiveStates</span></a> as well.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="n">actor</span><span class="o">.</span><span class="n">activate_mimic_state</span><span class="p">(</span>
+    <span class="n">self_state</span><span class="o">=</span><span class="s2">&quot;name of state on self&quot;</span><span class="p">,</span>
+    <span class="n">mimic_state</span><span class="o">=</span><span class="s2">&quot;name of state to mirror&quot;</span><span class="p">,</span>
+    <span class="n">mimic_actor</span><span class="o">=</span><span class="n">actor_object_that_has_mimic_state</span><span class="p">,</span>
+    <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="o">...</span>
+<span class="n">actor</span><span class="o">.</span><span class="n">deactivate_mimic_state</span><span class="p">(</span>
+    <span class="n">self_state</span><span class="o">=</span><span class="s2">&quot;name of state on self&quot;</span><span class="p">,</span>
+    <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Here is a complete example that demonstrates how to use a mimic state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">class</span><span class="w"> </span><span class="nc">Car</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+<span class="linenos"> 2</span>    <span class="n">location</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocationChangingState</span><span class="p">(</span><span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos"> 3</span>    <span class="n">speed</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="linenos"> 4</span>    <span class="n">riders</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="k">class</span><span class="w"> </span><span class="nc">Worker</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+<span class="linenos"> 8</span>    <span class="n">location</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">(</span><span class="n">valid_types</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">,</span> <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos"> 9</span>    <span class="n">car</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">()</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="k">class</span><span class="w"> </span><span class="nc">CarMove</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+<span class="linenos">13</span>    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Car</span><span class="p">):</span>
+<span class="linenos">14</span>        <span class="n">new</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="linenos">15</span>        <span class="n">dist</span> <span class="o">=</span> <span class="n">new</span> <span class="o">-</span> <span class="n">actor</span><span class="o">.</span><span class="n">location</span>
+<span class="linenos">16</span>        <span class="n">time</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">/</span> <span class="n">actor</span><span class="o">.</span><span class="n">speed</span>
+<span class="linenos">17</span>        <span class="n">actor</span><span class="o">.</span><span class="n">activate_location_state</span><span class="p">(</span>
+<span class="linenos">18</span>            <span class="n">state</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+<span class="linenos">19</span>            <span class="n">speed</span><span class="o">=</span><span class="n">actor</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
+<span class="linenos">20</span>            <span class="n">waypoints</span><span class="o">=</span><span class="p">[</span><span class="n">new</span><span class="p">],</span>
+<span class="linenos">21</span>            <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+<span class="linenos">22</span>        <span class="p">)</span>
+<span class="linenos">23</span>        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+<span class="linenos">24</span>        <span class="n">actor</span><span class="o">.</span><span class="n">deactivate_all_states</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+<span class="linenos">25</span>        <span class="n">actor</span><span class="o">.</span><span class="n">location</span>
+<span class="linenos">26</span>        <span class="k">while</span> <span class="n">actor</span><span class="o">.</span><span class="n">riders</span><span class="p">:</span>
+<span class="linenos">27</span>            <span class="n">rider</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">riders</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="linenos">28</span>            <span class="n">rider</span><span class="o">.</span><span class="n">succeed_knowledge_event</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ARRIVED&quot;</span><span class="p">,</span> <span class="n">cause</span><span class="o">=</span><span class="s2">&quot;here&quot;</span><span class="p">)</span>
+<span class="linenos">29</span>
+<span class="linenos">30</span>
+<span class="linenos">31</span><span class="k">class</span><span class="w"> </span><span class="nc">WorkerRide</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+<span class="linenos">32</span>    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Worker</span><span class="p">):</span>
+<span class="linenos">33</span>        <span class="n">car</span><span class="p">:</span> <span class="n">Car</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">car</span>
+<span class="linenos">34</span>        <span class="n">actor</span><span class="o">.</span><span class="n">activate_mimic_state</span><span class="p">(</span>
+<span class="linenos">35</span>            <span class="n">self_state</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+<span class="linenos">36</span>            <span class="n">mimic_state</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+<span class="linenos">37</span>            <span class="n">mimic_actor</span><span class="o">=</span><span class="n">car</span><span class="p">,</span>
+<span class="linenos">38</span>            <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+<span class="linenos">39</span>        <span class="p">)</span>
+<span class="linenos">40</span>        <span class="n">evt</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">create_knowledge_event</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ARRIVED&quot;</span><span class="p">)</span>
+<span class="linenos">41</span>        <span class="c1"># NOT A REHEARSAL-SAFE THING TO DO:</span>
+<span class="linenos">42</span>        <span class="c1"># Better: use a store get/put for real interaction</span>
+<span class="linenos">43</span>        <span class="n">car</span><span class="o">.</span><span class="n">riders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">actor</span><span class="p">)</span>
+<span class="linenos">44</span>        <span class="k">yield</span> <span class="n">evt</span>
+<span class="linenos">45</span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">actor</span><span class="si">}</span><span class="s2"> got event: </span><span class="si">{</span><span class="n">evt</span><span class="o">.</span><span class="n">get_payload</span><span class="p">()</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="linenos">46</span>        <span class="n">actor</span><span class="o">.</span><span class="n">deactivate_mimic_state</span><span class="p">(</span>
+<span class="linenos">47</span>            <span class="n">self_state</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+<span class="linenos">48</span>            <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+<span class="linenos">49</span>        <span class="p">)</span>
+<span class="linenos">50</span>
+<span class="linenos">51</span><span class="k">def</span><span class="w"> </span><span class="nf">location_ping</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">actors</span><span class="p">):</span>
+<span class="linenos">52</span>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<span class="linenos">53</span>        <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+<span class="linenos">54</span>        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">actors</span><span class="p">:</span>
+<span class="linenos">55</span>            <span class="n">a</span><span class="o">.</span><span class="n">location</span>
+<span class="linenos">56</span>
+<span class="linenos">57</span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+<span class="linenos">58</span>    <span class="n">car</span> <span class="o">=</span> <span class="n">Car</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Zaphod&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">speed</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="linenos">59</span>    <span class="n">w1</span> <span class="o">=</span> <span class="n">Worker</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Arthur&quot;</span><span class="p">,</span> <span class="n">car</span><span class="o">=</span><span class="n">car</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="linenos">60</span>    <span class="n">w2</span> <span class="o">=</span> <span class="n">Worker</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Trillian&quot;</span><span class="p">,</span> <span class="n">car</span><span class="o">=</span><span class="n">car</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">UP</span><span class="o">.</span><span class="n">CartesianLocation</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="linenos">61</span>
+<span class="linenos">62</span>    <span class="n">CarMove</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">car</span><span class="p">)</span>
+<span class="linenos">63</span>    <span class="n">WorkerRide</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">w1</span><span class="p">)</span>
+<span class="linenos">64</span>    <span class="n">WorkerRide</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">actor</span><span class="o">=</span><span class="n">w2</span><span class="p">)</span>
+<span class="linenos">65</span>
+<span class="linenos">66</span>    <span class="n">proc</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">location_ping</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="p">[</span><span class="n">car</span><span class="p">,</span> <span class="n">w1</span><span class="p">,</span> <span class="n">w2</span><span class="p">]))</span>
+<span class="linenos">67</span>
+<span class="linenos">68</span>    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="linenos">69</span>    <span class="nb">print</span><span class="p">()</span>
+<span class="linenos">70</span>    <span class="nb">print</span><span class="p">(</span><span class="n">w1</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+<span class="linenos">71</span>    <span class="nb">print</span><span class="p">(</span><span class="n">w2</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+<span class="linenos">72</span>    <span class="nb">print</span><span class="p">(</span><span class="n">car</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
+<span class="linenos">73</span>    <span class="nb">print</span><span class="p">()</span>
+<span class="linenos">74</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+<span class="linenos">75</span>        <span class="n">t1</span><span class="p">,</span> <span class="n">loc1</span> <span class="o">=</span> <span class="n">w1</span><span class="o">.</span><span class="n">_location_history</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="linenos">76</span>        <span class="n">tc</span><span class="p">,</span> <span class="n">locc</span> <span class="o">=</span> <span class="n">car</span><span class="o">.</span><span class="n">_location_history</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+<span class="linenos">77</span>        <span class="nb">print</span><span class="p">(((</span><span class="n">t1</span> <span class="o">-</span> <span class="n">tc</span><span class="p">),</span> <span class="p">(</span><span class="n">loc1</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">locc</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="p">(</span><span class="n">loc1</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">locc</span><span class="o">.</span><span class="n">y</span><span class="p">)))</span>
+<span class="linenos">78</span>
+<span class="linenos">79</span><span class="o">&gt;&gt;&gt;</span> <span class="n">Worker</span><span class="p">:</span> <span class="n">Trillian</span> <span class="n">got</span> <span class="n">event</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;cause&#39;</span><span class="p">:</span> <span class="s1">&#39;here&#39;</span><span class="p">}:</span> <span class="mf">7.07</span>
+<span class="linenos">80</span><span class="o">&gt;&gt;&gt;</span> <span class="n">Worker</span><span class="p">:</span> <span class="n">Arthur</span> <span class="n">got</span> <span class="n">event</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;cause&#39;</span><span class="p">:</span> <span class="s1">&#39;here&#39;</span><span class="p">}:</span> <span class="mf">7.07</span>
+<span class="linenos">81</span><span class="o">&gt;&gt;&gt;</span>
+<span class="linenos">82</span><span class="o">&gt;&gt;&gt;</span> <span class="n">CartesianLocation</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">83</span><span class="o">&gt;&gt;&gt;</span> <span class="n">CartesianLocation</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">84</span><span class="o">&gt;&gt;&gt;</span> <span class="n">CartesianLocation</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">85</span><span class="o">&gt;&gt;&gt;</span>
+<span class="linenos">86</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="linenos">87</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">88</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">89</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">90</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">91</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">92</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">93</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">94</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="linenos">95</span><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Things to note:</p>
+<ul class="simple">
+<li><p>Line 26: These riders are put there by another task. This is generally bad form, but works for our small example.</p></li>
+<li><p>Line 34: We are making the worker’s CartesianLocation state match the car’s CartesianLocationChangingState.</p>
+<ul>
+<li><p>Both can be set with/return a CartesianLocation, so this is OK.</p></li>
+<li><p>If we had one State mimicking a LinearChangingState, that would also work since a State can take a floating point value.</p></li>
+<li><p>States type-check under the hood, so you’ll get notified if a mimic doesn’t match.</p></li>
+</ul>
+</li>
+<li><p>Line 43: Here we warn again about how this is a bad idea in general.</p></li>
+<li><p>Line 46: Deactivation is always needed.</p>
+<ul>
+<li><p>As discussed in <a class="reference internal" href="../tutorials/interrupts.html"><span class="doc">Rehearsal</span></a>, these states are also deactivated on an interrupt.</p></li>
+</ul>
+</li>
+</ul>
+<p>No coordination between the actors has to occur for this to work. In this example, the car exiting is done to show the useful nature of mimic states,
+and to demonstrate other UPSTAGE features, such as <code class="docutils literal notranslate"><span class="pre">create_knowledge_event</span></code> and <code class="docutils literal notranslate"><span class="pre">succeed_knowledge_event</span></code>.</p>
+<p>As long as the state values are compatible, <code class="docutils literal notranslate"><span class="pre">mimic_state</span></code> should make one get its value (when requested) from its mimic. If either is recording, that
+will cause the recording to affect both. Finally, if the actor whose state is being mimiced changes or is deleted, then the mimic state may have issues. This
+is not explicitly accounted for, and it is up to the user to make sure dependent actors handle those situations.</p>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="active_states.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Active States</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="nucleus.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Task Nucleus</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

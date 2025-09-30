@@ -1,0 +1,1032 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>First UPSTAGE Simulation &#8212; UPSTAGE 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/tutorials/first_simulation';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Task Interrupts" href="interrupts.html" />
+    <link rel="prev" title="User Guide" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/upstage-logo-medium.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">UPSTAGE</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../demo.html">
+    Demo
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../auto/modules.html">
+    upstage_des
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/gtri/upstage/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">First UPSTAGE Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interrupts.html">Task Interrupts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rehearsal.html">Task Rehearsal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="best_practices.html">Best Practices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Simulation Data Gathering and Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simpy_compare.html">UPSTAGE vs SimPy</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Full Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="first_sim_full.html">First Simulation Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rehearsal_sim.html">Rehearsal Simulation Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="complex_cashier.html">Complex Cashier Full Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_creation_example.html">Data Gathering Example Full Source</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-Tos</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/environment.html">Environment Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/states.html">States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/keyvalue_states.html">Key/Value States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/multistore_states.html">Key/Value Resource State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/knowledge.html">Knowledge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resources.html">Resource Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/resource_states.html">Resource States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/active_states.html">Active States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/mimic_states.html">Mimic States</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/nucleus.html">Task Nucleus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/stage_variables.html">Stage Variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/times.html">Time Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/events.html">Events</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/geography.html">Geography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/decision_tasks.html">Decision Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/task_networks.html">Task Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/state_sharing.html">State Sharing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/entity_naming.html">Named Entities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/motion_manager.html">Motion Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/communications.html">Communications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/typing.html">Typing and UPSTAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/random_numbers.html">Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_tos/routines.html">Routines</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">First UPSTAGE Simulation</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="first-upstage-simulation">
+<h1>First UPSTAGE Simulation<a class="headerlink" href="#first-upstage-simulation" title="Link to this heading">#</a></h1>
+<p>This simulation will demonstrate the primary features of UPSTAGE in a very
+simple scenario. The goal is demonstrate not just the core UPSTAGE features, but the
+interaction of UPSTAGE with SimPy.</p>
+<section id="scenario">
+<h2>Scenario<a class="headerlink" href="#scenario" title="Link to this heading">#</a></h2>
+<p>A single cashier works at grocery store. They go to the checkout line,
+scan groceries, take breaks, and come back to the line.</p>
+<p>The code for the full example can be <a class="reference internal" href="first_sim_full.html"><span class="doc">found here</span></a>.</p>
+</section>
+<section id="imports">
+<h2>Imports<a class="headerlink" href="#imports" title="Link to this heading">#</a></h2>
+<p>We prefer this syntax for importing UPSTAGE and SimPy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">upstage_des.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">UP</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">SIM</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;hello world&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="define-an-actor-with-state">
+<h2>Define an Actor with State<a class="headerlink" href="#define-an-actor-with-state" title="Link to this heading">#</a></h2>
+<p>An UPSTAGE Actor is a container for State, along with methods for modifying the states,
+for changing tasks, and recording data.</p>
+<p>Let’s imagine our Cashier has the ability to scan items at a certain speed, and some
+time until they get a break. We begin by subclassing <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.actor.Actor" title="upstage_des.actor.Actor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Actor</span></code></a> and including two <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.states.State" title="upstage_des.states.State"><code class="xref py py-class docutils literal notranslate"><span class="pre">State</span></code></a> class variables:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="c1"># items per minute</span>
+    <span class="n">scan_speed</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">float</span><span class="p">](</span>
+        <span class="n">valid_types</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">,),</span>
+        <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># minutes until break</span>
+    <span class="n">time_until_break</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">float</span><span class="p">](</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">120.0</span><span class="p">,</span>
+        <span class="n">valid_types</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">,),</span>
+        <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>Our Cashier is very simple, it contains two states that are primarily data containers
+for attributes of the cashier. This is typical for an UPSTAGE Actor.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">scan_speed</span></code> state is defined to require a <code class="docutils literal notranslate"><span class="pre">float</span></code> type (UPSTAGE will throw
+an error otherwise), and is <code class="docutils literal notranslate"><span class="pre">frozen</span></code>, meaning that it cannot be changed once defined.
+The <code class="docutils literal notranslate"><span class="pre">time_until_break</span></code> state is similar, except that a default value of 120 minutes is supplied.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is no explicit time dimension in upstage_des. The clock units are up to the user,
+and the user must ensure that all times are properly defined. See <a class="reference internal" href="../how_tos/times.html"><span class="doc">Time Units</span></a>
+for more, including using time units in <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.Wait" title="upstage_des.events.Wait"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wait</span></code></a>.</p>
+</div>
+<p>Then you will later instantiate a cashier with <a class="footnote-reference brackets" href="#f1" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cashier</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Theoden&quot;</span><span class="p">,</span>
+    <span class="n">scan_speed</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">time_until_break</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+    <span class="n">debug_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the <cite>name</cite> attribute is required for all UPSTAGE Actors. Also, all inputs are
+keyword-argument only for an Actor. The <code class="docutils literal notranslate"><span class="pre">debug_log</span></code> input is <code class="docutils literal notranslate"><span class="pre">False</span></code> by default,
+and when <code class="docutils literal notranslate"><span class="pre">True</span></code>, you can call <code class="docutils literal notranslate"><span class="pre">cashier.log()</span></code> to retrieve an UPSTAGE-generated log
+of what the actor has been doing. The same method, when given a string, will record
+the message into the log, along with the default logging that UPSTAGE does.</p>
+<p>States are just Python descriptors, so you may access them the same as you would any
+instance attribute: <code class="docutils literal notranslate"><span class="pre">cashier.scan_speed`</span></code>, e.g.</p>
+<p>We want to keep track of the number of items scanned, so let’s add a state that records
+the time at which items are scanned.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Cashier</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="c1"># items per minute</span>
+    <span class="n">scan_speed</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">float</span><span class="p">](</span>
+        <span class="n">valid_types</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">,),</span>
+        <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># minutes until break</span>
+    <span class="n">time_until_break</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">float</span><span class="p">](</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">120.0</span><span class="p">,</span>
+        <span class="n">valid_types</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">,),</span>
+        <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">items_scanned</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">State</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">valid_types</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">,),</span>
+        <span class="n">recording</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">time_scanning</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">LinearChangingState</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">valid_types</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">,),</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the keyword-argument <code class="docutils literal notranslate"><span class="pre">recording</span></code> has been set to <code class="docutils literal notranslate"><span class="pre">True</span></code>. Now,
+whenever that state is modified, the time and value will be recorded.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="n">scan_speed</span><span class="o">=</span><span class="mf">12.0</span><span class="p">)</span>
+
+    <span class="n">c</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">+=</span> <span class="mi">3</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_items_scanned_history</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>UPSTAGE creates the recording attribute on the instance with <code class="docutils literal notranslate"><span class="pre">_state_histories[&lt;state_name&gt;]</span></code>
+to store the tuples of <code class="docutils literal notranslate"><span class="pre">(time,</span> <span class="pre">value)</span></code> for the state on all recorded states. This is compatible with
+all states, including Locations, Resources, and states that are lists, tuples, or dicts (UPSTAGE makes deep copies).</p>
+<p>For more information on UPSTAGE’s data recording, see <a class="reference internal" href="data.html"><span class="doc">Simulation Data Gathering and Processing</span></a></p>
+<p>Note that now we have created a SimPy <code class="docutils literal notranslate"><span class="pre">Environment</span></code> in <code class="docutils literal notranslate"><span class="pre">env</span></code> using the <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.base.EnvironmentContext" title="upstage_des.base.EnvironmentContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnvironmentContext</span></code></a>
+context manager. This gives Actor instances access to the simulation clock (<code class="docutils literal notranslate"><span class="pre">env.now</span></code>). The
+environment context and features are covered <a class="reference internal" href="../how_tos/environment.html"><span class="doc">here</span></a>.</p>
+<p>When we run the environment forward and change the <code class="docutils literal notranslate"><span class="pre">items_scanned</span></code> state, the value is
+recorded at the current simulation time.</p>
+<p>Let’s also make an Actor for the checkout lane, so we have a simple location to store customer queueing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CheckoutLane</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Actor</span><span class="p">):</span>
+    <span class="n">customer_queue</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">ResourceState</span><span class="p">[</span><span class="n">SIM</span><span class="o">.</span><span class="n">Store</span><span class="p">]()</span>
+
+<span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+    <span class="n">lane</span> <span class="o">=</span> <span class="n">CheckoutLane</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;FirstLane&quot;</span><span class="p">,</span>
+        <span class="n">customer_queue</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">SelfMonitoringStore</span><span class="p">,</span>
+            <span class="s2">&quot;capacity&quot;</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>Here we use the built-in <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.states.ResourceState" title="upstage_des.states.ResourceState"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceState</span></code></a> to use a <code class="xref py py-class docutils literal notranslate"><span class="pre">SelfMonitoringStore</span></code> as an Actor state. The
+self-monitoring store is a subclass of the SimPy <code class="docutils literal notranslate"><span class="pre">Store</span></code> that records the number of items
+in the store whenever there is a get or put. The <code class="docutils literal notranslate"><span class="pre">ResourceState</span></code> could accept a default and
+not require a definition in the instantiation, but here we are demonstrating how to instantiate
+a <code class="docutils literal notranslate"><span class="pre">ResourceState</span></code> in a way that lets you parameterize the store’s values (in this case, the
+kind and the capacity). Other resources, such as containers, will have capacities and initial values.</p>
+<p>Actors also have <code class="docutils literal notranslate"><span class="pre">knowledge</span></code>, which is a simple dictionary attached to the actor that has an
+interface through the actor and tasks. This allows actors to hold runtime-dependent information
+that isn’t tied to a state. Knowledge can be set and accessed with error-throwing checks for
+its existence, or for checks that it doesn’t already have a value. An example is given later.</p>
+</section>
+<section id="define-tasks-for-the-cashier">
+<h2>Define Tasks for the Cashier<a class="headerlink" href="#define-tasks-for-the-cashier" title="Link to this heading">#</a></h2>
+<p>We want the cashier to do a series of tasks:</p>
+<ol class="arabic simple">
+<li><p>Show up to work</p></li>
+<li><p>Go to the checkout lane the “store manager” tells them.</p></li>
+<li><p>Wait for a customer OR break time</p></li>
+<li><p>If customer: Scan items and receive payment</p></li>
+<li><p>If break: take a break, then return to wait.</p></li>
+<li><p>On store closing, leave.</p></li>
+</ol>
+<p>Let’s define the tasks that wait for a customer and check the customer out.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span>
+<span class="linenos"> 2</span><span class="kn">from</span><span class="w"> </span><span class="nn">upstage_des.type_help</span><span class="w"> </span><span class="kn">import</span> <span class="n">TASK_GEN</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="k">class</span><span class="w"> </span><span class="nc">WaitInLane</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+<span class="linenos"> 6</span>    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASK_GEN</span><span class="p">:</span>
+<span class="linenos"> 7</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;Wait until break time, or a customer.&quot;&quot;&quot;</span>
+<span class="linenos"> 8</span>        <span class="n">lane</span><span class="p">:</span> <span class="n">CheckoutLane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span>
+<span class="linenos"> 9</span>            <span class="n">actor</span><span class="p">,</span>
+<span class="linenos">10</span>            <span class="s2">&quot;checkout_lane&quot;</span><span class="p">,</span>
+<span class="linenos">11</span>            <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos">12</span>        <span class="p">)</span>
+<span class="linenos">13</span>        <span class="n">customer_arrival</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">lane</span><span class="o">.</span><span class="n">customer_queue</span><span class="p">)</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span>        <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span>
+<span class="linenos">16</span>            <span class="n">actor</span><span class="p">,</span>
+<span class="linenos">17</span>            <span class="s2">&quot;start_time&quot;</span><span class="p">,</span>
+<span class="linenos">18</span>            <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos">19</span>        <span class="p">)</span>
+<span class="linenos">20</span>        <span class="n">break_start</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">+</span> <span class="n">actor</span><span class="o">.</span><span class="n">time_until_break</span>
+<span class="linenos">21</span>        <span class="n">wait_until_break</span> <span class="o">=</span> <span class="n">break_start</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span>
+<span class="linenos">22</span>        <span class="n">break_event</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">wait_until_event</span><span class="p">)</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span>        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Any</span><span class="p">(</span><span class="n">customer_arrival</span><span class="p">,</span> <span class="n">break_event</span><span class="p">)</span>
+<span class="linenos">25</span>
+<span class="linenos">26</span>        <span class="k">if</span> <span class="n">customer_arrival</span><span class="o">.</span><span class="n">is_complete</span><span class="p">():</span>
+<span class="linenos">27</span>            <span class="n">customer</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">customer_arrival</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
+<span class="linenos">28</span>            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_knowledge</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="s2">&quot;customer&quot;</span><span class="p">,</span> <span class="n">customer</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">29</span>        <span class="k">else</span><span class="p">:</span>
+<span class="linenos">30</span>            <span class="n">customer_arrival</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+<span class="linenos">31</span>            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Break&quot;</span><span class="p">])</span>
+<span class="linenos">32</span>
+<span class="linenos">33</span>
+<span class="linenos">34</span><span class="k">class</span><span class="w"> </span><span class="nc">DoCheckout</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+<span class="linenos">35</span>    <span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TASK_GEN</span><span class="p">:</span>
+<span class="linenos">36</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;Do the checkout&quot;&quot;&quot;</span>
+<span class="linenos">37</span>        <span class="n">items</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_actor_knowledge</span><span class="p">(</span>
+<span class="linenos">38</span>            <span class="n">actor</span><span class="p">,</span>
+<span class="linenos">39</span>            <span class="s2">&quot;customer&quot;</span><span class="p">,</span>
+<span class="linenos">40</span>            <span class="n">must_exist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos">41</span>        <span class="p">)</span>
+<span class="linenos">42</span>        <span class="n">per_item_time</span> <span class="o">=</span> <span class="n">actor</span><span class="o">.</span><span class="n">scan_speed</span> <span class="o">/</span> <span class="n">items</span>
+<span class="linenos">43</span>        <span class="n">actor</span><span class="o">.</span><span class="n">activate_linear_state</span><span class="p">(</span>
+<span class="linenos">44</span>            <span class="n">state</span><span class="o">=</span><span class="s2">&quot;time_scanning&quot;</span><span class="p">,</span>
+<span class="linenos">45</span>            <span class="n">rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="linenos">46</span>            <span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+<span class="linenos">47</span>        <span class="p">)</span>
+<span class="linenos">48</span>        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+<span class="linenos">49</span>            <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="n">per_item_time</span><span class="p">)</span>
+<span class="linenos">50</span>            <span class="n">actor</span><span class="o">.</span><span class="n">items_scanned</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="linenos">51</span>        <span class="n">actor</span><span class="o">.</span><span class="n">deactivate_all_states</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+<span class="linenos">52</span>        <span class="c1"># assume 2 minutes to take payment</span>
+<span class="linenos">53</span>        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s step through the task definitions line-by-line.</p>
+<ul class="simple">
+<li><p>Line 1-2: Typing help. Tasks create generators that yield UPSTAGE Events.</p></li>
+<li><p>Line 4: Create a subclass of a <code class="docutils literal notranslate"><span class="pre">Task</span></code>.</p></li>
+<li><p>Line 5: Task subclasses must implement <code class="docutils literal notranslate"><span class="pre">task</span></code> that takes a single keyword argument: <code class="docutils literal notranslate"><span class="pre">actor</span></code>.</p></li>
+<li><p>Line 7-11: Assume the cashier has some “knowledge” about the checkout lane
+they are going to (the store manager will give this to them).</p>
+<ul>
+<li><p>The knowledge has the name “checkout_lane”, and we assume it must exist, or else throw an error.</p></li>
+</ul>
+</li>
+<li><p>Line 12: Create a <code class="docutils literal notranslate"><span class="pre">Get</span></code> event that waits to get a customer from the lane’s ResourceState.
+Note that we aren’t yielding on this event yet.</p></li>
+<li><p>Line 14-18: Get information about the actor’s break time.</p>
+<ul>
+<li><p>We could use <code class="docutils literal notranslate"><span class="pre">actor.get_knowledge</span></code>, but using the task’s method puts extra information
+into the actor’s log, if you have it enabled.</p></li>
+</ul>
+</li>
+<li><p>Line 19-21: Get the time left in the sim until it’s a break, and create a simple <code class="docutils literal notranslate"><span class="pre">Wait</span></code>
+event to succeed at that time.</p></li>
+<li><p>Line 23: Yield an <code class="docutils literal notranslate"><span class="pre">Any</span></code> event, which succeeds when the first of its sub-events succeeds.</p></li>
+<li><p>Line 25: Test if the customer event succeeded first with the <code class="docutils literal notranslate"><span class="pre">Event</span></code> method <code class="docutils literal notranslate"><span class="pre">is_complete</span></code>.</p></li>
+<li><p>Line 26-27: If it did succeed, call <code class="docutils literal notranslate"><span class="pre">get_value</span></code> on the <code class="docutils literal notranslate"><span class="pre">Get</span></code> event to get customer information
+and add it to our knowledge.</p>
+<ul>
+<li><p>Here we just treat the customer information as an integer number of items. It could be anything.</p></li>
+</ul>
+</li>
+<li><p>Line 29: Cancel the <code class="docutils literal notranslate"><span class="pre">Get</span></code> event. Otherwise, it will still exist and take a customer away if one shows up.</p>
+<ul>
+<li><p>Later, when discussing interrupting, we’ll see how UPSTAGE does this automatically in some instances.</p></li>
+</ul>
+</li>
+<li><p>Line 30: We haven’t covered <code class="docutils literal notranslate"><span class="pre">TaskNetworks</span></code> yet, but the <code class="docutils literal notranslate"><span class="pre">set_actor_task_queue</span></code> method controls what task happens next.</p>
+<ul>
+<li><p>Here we are saying that if we’ve reached our break time, ignore customers and move on to the <code class="docutils literal notranslate"><span class="pre">Break</span></code> task.</p></li>
+<li><p>We didn’t define the task to go to if we see a customer, because we’ll make that implicit in a few steps.</p></li>
+</ul>
+</li>
+<li><p>Line 34: Create a task to check the customers out.</p></li>
+<li><p>Line 37-41: Retrieve the knowledge we set in the previous task.</p>
+<ul>
+<li><p>Notice how knowledge lets us be flexible about what our Actors can do, and how <code class="docutils literal notranslate"><span class="pre">must_exist</span></code> will
+help us ensure our tasks are doing the right thing.</p></li>
+</ul>
+</li>
+<li><p>Line 43-47: Activate a linear changing state, which increases its value according to <code class="docutils literal notranslate"><span class="pre">rate</span></code> as the simulation runs.</p>
+<ul>
+<li><p>We haven’t talked about these yet, but check out the How To’s for more: <a class="reference internal" href="../how_tos/active_states.html"><span class="doc">Active States</span></a>.</p></li>
+</ul>
+</li>
+<li><p>Line 48-50: Scan each item at the specified rate, and increment the cashier’s data.</p></li>
+<li><p>Line 51: Stop the <code class="docutils literal notranslate"><span class="pre">time_scanning</span></code> linear changing state from accumulating value.</p></li>
+<li><p>Line 53: Assume some follow-on wait for customer payment.</p></li>
+</ul>
+<p>This is the foundation of how UPSTAGE manages behaviors. The simulation designer creates <code class="docutils literal notranslate"><span class="pre">Tasks</span></code> that
+can be chained together to perform actions, modify data, and make decisions.</p>
+<p>There is one other kind of Task, a <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task.DecisionTask" title="upstage_des.task.DecisionTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DecisionTask</span></code></a>, which does not consume the environment clock,
+and will not yield any events <a class="footnote-reference brackets" href="#f2" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Break</span><span class="p">(</span><span class="n">UP</span><span class="o">.</span><span class="n">DecisionTask</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">make_decision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">actor</span><span class="p">:</span> <span class="n">Cashier</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decide what kind of break we are taking.&quot;&quot;&quot;</span>
+        <span class="n">actor</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">==</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_until_done</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NightBreak&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_taken</span> <span class="o">&gt;</span> <span class="n">actor</span><span class="o">.</span><span class="n">breaks_until_done</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UP</span><span class="o">.</span><span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;Too many breaks taken&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_actor_task_queue</span><span class="p">(</span><span class="n">actor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;ShortBreak&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>That task has the <code class="docutils literal notranslate"><span class="pre">make_decision</span></code> method that needs to be sublcassed. The purpose of a
+<cite>DecisionTask</cite> is to set and clear actor knowledge, and modify the task queue without
+consuming the clock. It has additional benefits for rehearsal, which will be covered later.</p>
+<section id="a-note-on-upstage-events">
+<h3>A note on UPSTAGE Events<a class="headerlink" href="#a-note-on-upstage-events" title="Link to this heading">#</a></h3>
+<p>UPSTAGE Events are custom wrappers around SimPy events that allow for accessing data about
+that event, handling the <code class="docutils literal notranslate"><span class="pre">Task</span></code> internal event loop, and for rehearsal.</p>
+<p>All <code class="docutils literal notranslate"><span class="pre">Task</span></code> s should yield UPSTAGE events, with one exception. A SimPy <code class="docutils literal notranslate"><span class="pre">Process</span></code> can be
+yielded out as well, but this will warn the user, and is generally not recommended.</p>
+<p>The event types are:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.Event" title="upstage_des.events.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a>: Mimics SimPy’s raw <code class="docutils literal notranslate"><span class="pre">Event</span></code>, useful for marking pauses until a success.</p>
+<ul class="simple">
+<li><p>See <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.actor.Actor.create_knowledge_event" title="upstage_des.actor.Actor.create_knowledge_event"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_knowledge_event()</span></code></a> for a use case.</p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.All" title="upstage_des.events.All"><code class="xref py py-class docutils literal notranslate"><span class="pre">All</span></code></a>: Succeed when all passed events succeed</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.Any" title="upstage_des.events.Any"><code class="xref py py-class docutils literal notranslate"><span class="pre">Any</span></code></a>: Succeed when any passed events succeed</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.Get" title="upstage_des.events.Get"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get</span></code></a>: Get from a store or container</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.FilterGet" title="upstage_des.events.FilterGet"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilterGet</span></code></a>: A get with a filter function</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.Put" title="upstage_des.events.Put"><code class="xref py py-class docutils literal notranslate"><span class="pre">Put</span></code></a>: Put something into a store or container</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.ResourceHold" title="upstage_des.events.ResourceHold"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceHold</span></code></a>: Put and release holds on limited resources</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.events.Wait" title="upstage_des.events.Wait"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wait</span></code></a>: A standard SimPy timeout</p></li>
+</ol>
+</section>
+</section>
+<section id="define-a-tasknetwork-for-the-cashier">
+<h2>Define a TaskNetwork for the Cashier<a class="headerlink" href="#define-a-tasknetwork-for-the-cashier" title="Link to this heading">#</a></h2>
+<p>The flow of Tasks is controlled by a TaskNetwork, and the setting of the queue within
+tasks. A Task Network is defined by the nodes and the links:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">task_classes</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;GoToWork&quot;</span><span class="p">:</span> <span class="n">GoToWork</span><span class="p">,</span>
+    <span class="s2">&quot;TalkToBoss&quot;</span><span class="p">:</span> <span class="n">TalkToBoss</span><span class="p">,</span>
+    <span class="s2">&quot;WaitInLane&quot;</span><span class="p">:</span> <span class="n">WaitInLane</span><span class="p">,</span>
+    <span class="s2">&quot;DoCheckout&quot;</span><span class="p">:</span> <span class="n">DoCheckout</span><span class="p">,</span>
+    <span class="s2">&quot;Break&quot;</span><span class="p">:</span> <span class="n">Break</span><span class="p">,</span>
+    <span class="s2">&quot;ShortBreak&quot;</span><span class="p">:</span> <span class="n">ShortBreak</span><span class="p">,</span>
+    <span class="s2">&quot;NightBreak&quot;</span><span class="p">:</span> <span class="n">NightBreak</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">task_links</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;GoToWork&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskLinks</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;TalkToBoss&quot;</span><span class="p">,</span><span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;TalkToBoss&quot;</span><span class="p">]),</span>
+    <span class="s2">&quot;TalkToBoss&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskLinks</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;WaitInLane&quot;</span><span class="p">,</span><span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;WaitInLane&quot;</span><span class="p">]),</span>
+    <span class="s2">&quot;WaitInLane&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskLinks</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;DoCheckout&quot;</span><span class="p">,</span><span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DoCheckout&quot;</span><span class="p">,</span> <span class="s2">&quot;Break&quot;</span><span class="p">]),</span>
+    <span class="s2">&quot;DoCheckout&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskLinks</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;WaitInLane&quot;</span><span class="p">,</span><span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;WaitInLane&quot;</span><span class="p">]),</span>
+    <span class="s2">&quot;Break&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskLinks</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;ShortBreak&quot;</span><span class="p">,</span><span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ShortBreak&quot;</span><span class="p">,</span> <span class="s2">&quot;NightBreak&quot;</span><span class="p">]),</span>
+    <span class="s2">&quot;ShortBreak&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskLinks</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;WaitInLane&quot;</span><span class="p">,</span><span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;WaitInLane&quot;</span><span class="p">]),</span>
+    <span class="s2">&quot;NightBreak&quot;</span><span class="p">:</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskLinks</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;GoToWork&quot;</span><span class="p">,</span><span class="n">allowed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GoToWork&quot;</span><span class="p">]),</span>
+<span class="p">}</span>
+
+<span class="n">cashier_task_network</span> <span class="o">=</span> <span class="n">UP</span><span class="o">.</span><span class="n">TaskNetworkFactory</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;CashierJob&quot;</span><span class="p">,</span>
+    <span class="n">task_classes</span><span class="o">=</span><span class="n">task_classes</span><span class="p">,</span>
+    <span class="n">task_links</span><span class="o">=</span><span class="n">task_links</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The task classes are given names, and those strings are used to define the default and
+allowable task ordering. The task ordering need to know the default task (can be None)
+and the allowed tasks. Allowed tasks must be supplied. If no default is given, an error
+will be thrown if no task ordering is given when a new task is selected. If the default
+or the set task queue violates the allowed rule, an error will be thrown.</p>
+<p>The task network forms the backbone of flexible behavior definitions, while a <code class="docutils literal notranslate"><span class="pre">DecisionTask</span></code>
+helps control the path through the network.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">cashier_task_network</span></code> is a factory that creates network instances from the definition
+that actors can use (one per actor/per network).</p>
+<p>To start a task network on an actor with the factory:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">net</span> <span class="o">=</span> <span class="n">cashier_task_network</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;GoToWork&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can either start a loop on a single task, or define an initial queue through the network if desired:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">net</span> <span class="o">=</span> <span class="n">cashier_task_network</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">set_task_queue</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;GoToWork&quot;</span><span class="p">,</span> <span class="s2">&quot;TalkToBoss&quot;</span><span class="p">])</span>
+<span class="n">cashier</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="a-note-on-tasknetworkfactory">
+<h3>A note on TaskNetworkFactory<a class="headerlink" href="#a-note-on-tasknetworkfactory" title="Link to this heading">#</a></h3>
+<p>The <a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task_network.TaskNetworkFactory" title="upstage_des.task_network.TaskNetworkFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskNetworkFactory</span></code></a> class has some convience methods
+for creating factories from typical use cases:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task_network.TaskNetworkFactory.from_single_looping" title="upstage_des.task_network.TaskNetworkFactory.from_single_looping"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_single_looping()</span></code></a>: From a single
+task, make a network that loops itself.</p>
+<ul class="simple">
+<li><p>Useful for a Singleton task that, for example, receives communications and farms them out
+or manages other task networks.</p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task_network.TaskNetworkFactory.from_single_terminating" title="upstage_des.task_network.TaskNetworkFactory.from_single_terminating"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_single_terminating()</span></code></a>: A network
+that does one task, then freezes for the rest of the simulation.</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_ordered_looping()</span></code>: A series of
+tasks with no branching that loops.</p></li>
+<li><p><a class="reference internal" href="../../auto/upstage_des.html#upstage_des.task_network.TaskNetworkFactory.from_single_looping" title="upstage_des.task_network.TaskNetworkFactory.from_single_looping"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_single_looping()</span></code></a>: A series of tasks
+with no branching that terminates at the end.</p></li>
+</ol>
+</section>
+</section>
+<section id="setting-up-customers">
+<h2>Setting up Customers<a class="headerlink" href="#setting-up-customers" title="Link to this heading">#</a></h2>
+<p>To complete the simulation, we need to make customers arrive at the checkout lanes. This can
+be done using a standard SimPy process:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">customer_spawner</span><span class="p">(</span>
+    <span class="n">env</span><span class="p">:</span> <span class="n">SIM</span><span class="o">.</span><span class="n">Environment</span><span class="p">,</span>
+    <span class="n">lanes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CheckoutLane</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SIMPY_GEN</span><span class="p">:</span>
+    <span class="c1"># We store the RNG on the stage, and this is a quick way to get the stage (steal it from an actor)</span>
+    <span class="n">stage</span> <span class="o">=</span> <span class="n">lanes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stage</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">hrs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">/</span> <span class="mi">60</span>
+        <span class="n">time_of_day</span> <span class="o">=</span> <span class="n">hrs</span> <span class="o">//</span> <span class="mi">24</span>
+        <span class="k">if</span> <span class="n">time_of_day</span> <span class="o">&lt;=</span> <span class="mi">8</span> <span class="ow">or</span> <span class="n">time_of_day</span> <span class="o">&gt;=</span> <span class="mf">15.5</span><span class="p">:</span>
+            <span class="n">time_until_open</span> <span class="o">=</span> <span class="p">(</span><span class="mi">24</span> <span class="o">-</span> <span class="n">time_of_day</span><span class="p">)</span> <span class="o">+</span> <span class="mi">8</span>
+            <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">time_until_open</span><span class="p">)</span>
+
+        <span class="n">lane_pick</span> <span class="o">=</span> <span class="n">stage</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">lanes</span><span class="p">)</span>
+        <span class="n">number_pick</span> <span class="o">=</span> <span class="n">stage</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">17</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">lane_pick</span><span class="o">.</span><span class="n">customer_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">number_pick</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">UP</span><span class="o">.</span><span class="n">Wait</span><span class="o">.</span><span class="n">from_random_uniform</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">)</span><span class="o">.</span><span class="n">as_event</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Customers arrive every 5 to 30 minutes, and only show up from the hours of 8 AM to 3:30 PM.</p>
+</section>
+<section id="running-the-sim">
+<h2>Running the Sim<a class="headerlink" href="#running-the-sim" title="Link to this heading">#</a></h2>
+<p>The sim is created with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="k">with</span> <span class="n">UP</span><span class="o">.</span><span class="n">EnvironmentContext</span><span class="p">(</span><span class="n">initial_time</span><span class="o">=</span><span class="mi">8</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span> <span class="k">as</span> <span class="n">env</span><span class="p">:</span>
+<span class="linenos"> 2</span>    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;time_unit&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">)</span>
+<span class="linenos"> 3</span>    <span class="n">cashier</span> <span class="o">=</span> <span class="n">Cashier</span><span class="p">(</span>
+<span class="linenos"> 4</span>        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
+<span class="linenos"> 5</span>        <span class="n">scan_speed</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="linenos"> 6</span>        <span class="n">time_until_break</span><span class="o">=</span><span class="mf">120.0</span><span class="p">,</span>
+<span class="linenos"> 7</span>        <span class="n">breaks_until_done</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<span class="linenos"> 8</span>        <span class="n">debug_log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="linenos"> 9</span>    <span class="p">)</span>
+<span class="linenos">10</span>    <span class="n">lane_1</span> <span class="o">=</span> <span class="n">CheckoutLane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lane 1&quot;</span><span class="p">)</span>
+<span class="linenos">11</span>    <span class="n">lane_2</span> <span class="o">=</span> <span class="n">CheckoutLane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Lane 2&quot;</span><span class="p">)</span>
+<span class="linenos">12</span>    <span class="n">boss</span> <span class="o">=</span> <span class="n">StoreBoss</span><span class="p">(</span><span class="n">lanes</span><span class="o">=</span><span class="p">[</span><span class="n">lane_1</span><span class="p">,</span> <span class="n">lane_2</span><span class="p">])</span>
+<span class="linenos">13</span>
+<span class="linenos">14</span>    <span class="n">UP</span><span class="o">.</span><span class="n">add_stage_variable</span><span class="p">(</span><span class="s2">&quot;boss&quot;</span><span class="p">,</span> <span class="n">boss</span><span class="p">)</span>
+<span class="linenos">15</span>
+<span class="linenos">16</span>    <span class="n">net</span> <span class="o">=</span> <span class="n">cashier_task_network</span><span class="o">.</span><span class="n">make_network</span><span class="p">()</span>
+<span class="linenos">17</span>    <span class="n">cashier</span><span class="o">.</span><span class="n">add_task_network</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="linenos">18</span>    <span class="n">cashier</span><span class="o">.</span><span class="n">start_network_loop</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;GoToWork&quot;</span><span class="p">)</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>    <span class="n">customer_proc</span> <span class="o">=</span> <span class="n">customer_spawner</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="p">[</span><span class="n">lane_1</span><span class="p">,</span> <span class="n">lane_2</span><span class="p">])</span>
+<span class="linenos">21</span>    <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">customer_proc</span><span class="p">)</span>
+<span class="linenos">22</span>
+<span class="linenos">23</span>    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">20</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Going through the lines:</p>
+<ul class="simple">
+<li><p>Line 1: The simulation starts at 8 AM (in minutes).</p></li>
+<li><p>Line 2: We set a stage variable (accessible through globals) that we are doing time in minutes (just for logging).</p></li>
+<li><p>Line 3-9: Create a cashier that needs breaks every 2 hours, the 4th of which means they can go home.</p></li>
+<li><p>Line 10-12: Create two checkout lanes, and a <code class="docutils literal notranslate"><span class="pre">StoreBoss</span></code> that the cashier uses to get a lane assigned.</p></li>
+<li><p>Line 14: Add the <code class="docutils literal notranslate"><span class="pre">StoreBoss</span></code> to the global stage.</p>
+<ul>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">TalkToBoss</span></code> task, the task calls: <code class="docutils literal notranslate"><span class="pre">boss:</span> <span class="pre">StoreBoss</span> <span class="pre">=</span> <span class="pre">self.stage.boss</span></code></p></li>
+</ul>
+</li>
+<li><p>Line 16-18: Create and start the task network on the cashier.</p></li>
+<li><p>Lines 20-21: Use SimPy to run the customer event.</p></li>
+<li><p>Line 23: Run for 20 simulation hours.</p></li>
+</ul>
+<p>Since only one cashier is assigned, you can examine the backlog on the lanes (and the cashiers progress) with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">lane_1</span><span class="o">.</span><span class="n">customer_queue</span><span class="o">.</span><span class="n">_quantities</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">495.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">512.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">512.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">682.913493237309</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">682.913493237309</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">729.4798348277678</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">729.4798348277678</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">783.0901071872663</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">783.0901071872663</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">1087.3217585080076</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">lane_2</span><span class="o">.</span><span class="n">customer_queue</span><span class="o">.</span><span class="n">_quantities</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">[(</span><span class="mf">566.5416040656762</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">566.5416040656762</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">622.3573572404293</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">836.9173054961495</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">876.4624776047534</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">926.2323723216172</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">971.9681436809026</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">1033.381298927381</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">1136.5736387094469</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">1188.3694502822516</span><span class="p">,</span> <span class="mi">9</span><span class="p">)]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">cashier</span><span class="o">.</span><span class="n">_state_histories</span><span class="p">[</span><span class="s2">&quot;items_scanned&quot;</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="o">...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">683.5134932373091</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">683.6134932373092</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">683.7134932373092</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">683.8134932373092</span><span class="p">,</span> <span class="mi">18</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">683.9134932373092</span><span class="p">,</span> <span class="mi">19</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">729.6048348277678</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">729.7298348277678</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">729.8548348277678</span><span class="p">,</span> <span class="mi">22</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="mf">729.9798348277678</span><span class="p">,</span> <span class="mi">23</span><span class="p">),</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Your run may be different, due to the calls to <code class="docutils literal notranslate"><span class="pre">stage.random</span></code> (a passthrough for <code class="docutils literal notranslate"><span class="pre">random.Random()</span></code>).
+See <a class="reference internal" href="../how_tos/random_numbers.html"><span class="doc">Random Numbers</span></a> for more.</p>
+<p>Notice how lane 1 takes customers right away, but lane 2 stacks up. Also notice how the
+<code class="docutils literal notranslate"><span class="pre">SelfMonitoringStore</span></code> creates the <code class="docutils literal notranslate"><span class="pre">._quantities</span></code> datatype that shows the time history of number of
+items in the store. If it was a Container, instead of a Store, it would record the level.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="f1" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>You can run this now and ignore the warning about an environment.</p>
+</aside>
+<aside class="footnote brackets" id="f2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>This is not strictly true, it does yield a zero time timeout under the hood.</p>
+</aside>
+</aside>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">User Guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="interrupts.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Task Interrupts</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scenario">Scenario</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imports">Imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-an-actor-with-state">Define an Actor with State</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-tasks-for-the-cashier">Define Tasks for the Cashier</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-note-on-upstage-events">A note on UPSTAGE Events</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#define-a-tasknetwork-for-the-cashier">Define a TaskNetwork for the Cashier</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-note-on-tasknetworkfactory">A note on TaskNetworkFactory</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-customers">Setting up Customers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-sim">Running the Sim</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2025, UPSTAGE Contributors, GTRI.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
