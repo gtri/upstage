@@ -9,9 +9,13 @@ Use knowledge when you want to add built-in enforcement/overwrite checking.
 States don't have that by default, so you'd have to write more validation
 rules in tasks rather than mostly business logic.
 
-There's built-in signature building for Actors based on the states, but
-it only works in the interpreter.
+There's built-in signature and docstring building for Actors based on the
+states, but it only works in the interpreter. If you are documenting code,
+static docs builders won't pick up on it. 
 
+You can use mixins with Actors, but they cannot have an `__init__` method.
+It's better to just subclass an Actor with no states and inherit that with
+your other base classes to get modular behavior.
 
 Tasks
 =====

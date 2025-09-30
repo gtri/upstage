@@ -81,7 +81,7 @@ def test_actor_subclass(
         assert sts == exp
 
     # Test that copying a state name will cause a failure.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Duplicated state name"):
 
         class _(DoubleSubclass):  # type: ignore [valid-type, misc]
             state_three = UP.State[float](default=1.2)

@@ -10,7 +10,7 @@ from collections.abc import Callable, Iterable
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, Self, Union
 
 from simpy import Process
 
@@ -57,26 +57,8 @@ class TaskData:
 class Actor(SettableEnv, NamedUpstageEntity):
     """Actors perform tasks and are composed of states.
 
-    You can subclass, but do not overwrite __init_subclass__.
-
-    Always super().__init__().
-
-    Parameters
-    ----------
-    name : str
-        The name of the actor.  This is a required attribute.
-    debug_log : bool, optional
-        Run the debug logger which captures runtime information about the
-        actor.
-    **states
-        Keyword arguments to set the values of the actor's states.
-
-    Raises:
-    ------
-    ValueError
-        If the keys of the states passed as keyword arguments do not match the
-        names of the actor's states.
-
+    You can subclass, but do not overwrite __init_subclass__. Mixins are allowed
+    but they cannot depend on __init__. Always put mixins after actor base classes.
     """
 
     def __init_states(self, **states: Any) -> None:
@@ -114,7 +96,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         if error_msg:
             raise SimulationError(error_msg)
 
-    def __init__(
+    def __actual_init__(
         self,
         *,
         name: str,
@@ -161,43 +143,94 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         self.__init_states(**states)
 
+    def __init__(
+        self,
+        *,
+        name: str,
+        debug_log: bool = True,
+        debug_log_time: bool | None = None,
+        **states: Any,
+    ) -> None:
+        """Create an actor.
+
+        This specific version of __init__ exists to be overriden.
+
+        Args:
+            name (str): The name of the actor.
+            debug_log (bool, optional): Whether to write to debug log. Defaults to True.
+            debug_log_time (bool, optional): If time is logged in debug messages.
+                Defaults to None (uses Stage value), otherwise local value is used.
+            states (Any): Keyword args.
+        """
+        self.__actual_init__(name=name, debug_log=debug_log, debug_log_time=debug_log_time)
+
     def __init_subclass__(
         cls,
         *args: Any,
-        entity_groups: Iterable[str] | str | None = None,
         **kwargs: Any,
     ) -> None:
-        super().__init_subclass__(entity_groups=entity_groups)
-        # get the states
-        states = {}
-        all_states = {}
+        super().__init_subclass__(*args, **kwargs)
+        all_states: dict[str, State] = {}
         # This ensures that newer classes overwrite older states
         for base_class in cls.mro()[::-1]:
             for state_name, state in base_class.__dict__.items():
                 if isinstance(state, State):
-                    if base_class == cls:
-                        states[state_name] = state
-                        state.name = state_name
+                    if state_name in all_states:
+                        raise ValueError(f"Duplicated state name: {state_name}")
                     all_states[state_name] = state
+                    state.name = state_name
         cls._state_defs = all_states
 
         nxt = cls.mro()[1]
         if nxt is object:
             raise UpstageError(f"Actor has bad inheritance, MRO: {cls.mro()}")
 
-        sig = signature(cls.__init__)
+        def new_init(
+            self: Actor,
+            *,
+            name: str,
+            debug_log: bool = True,
+            debug_log_time: bool | None = None,
+            **states: Any,
+        ) -> None:
+            self.__actual_init__(
+                name=name, debug_log=debug_log, debug_log_time=debug_log_time, **states
+            )
+
+        # Update the docstring - might be helpful for active doc builds
+        docstring = f"""Create a {cls.__name__} actor.
+
+Args:
+    name (str): The name of the actor.
+    debug_log (bool, optional): Whether to write to debug log. Defaults to True.
+    debug_log_time (bool, optional): If time is logged in debug messages.
+        Defaults to None (uses Stage value), otherwise local value is used.
+"""
+        sig = signature(new_init)
         params = list(sig.parameters.values())
         # Find the "states=" parameter of the signature and remove it.
         state_parameter = [x for x in params if x.name == "states"]
         if state_parameter:
             params.remove(state_parameter[0])
-        for state in states:
-            params.insert(-1, Parameter(state, Parameter.KEYWORD_ONLY))
+        for state, value in all_states.items():
+            typ = Any if not value._types else Union[*value._types]
+            default_str = "No Default"
+            default = Parameter.empty
+            if value.has_default():
+                default = value._default if value._default is not None else value._default_factory
+                default_str = f"{default}"
+            params.insert(
+                len(params),
+                Parameter(state, Parameter.KEYWORD_ONLY, annotation=typ, default=default),
+            )
+            docstring += f"\n    {state} ({type}): Actor State. Defaults to {default_str}."
         try:
-            setattr(cls.__init__, "__signature__", sig.replace(parameters=params))
+            setattr(new_init, "__signature__", sig.replace(parameters=params))
         except ValueError as e:
-            e.add_note("Failure likely due to repeated state name in inherited actor")
+            e.add_note(f"Failure likely due to repeated state name in inherited actor {cls}")
             raise e
+        new_init.__doc__ = docstring
+        setattr(cls, "__init__", new_init)
 
     def _add_special_group(self) -> None:
         """Add self to the actor context list.
