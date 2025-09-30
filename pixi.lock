@@ -8182,8 +8182,8 @@ packages:
   timestamp: 1728377334097
 - pypi: ./
   name: upstage-des
-  version: 0.3.3
-  sha256: 98324edf262ca721a36d23d243fa522ed77a9d1ec44d40d165983d0fda5621fb
+  version: 0.4.0
+  sha256: bdb26261f86fd8911ce19ff7e99142cb776d4e4a3de0f87bf694a51a3b54087e
   requires_dist:
   - simpy>=4
   - myst-parser ; extra == 'docs'
