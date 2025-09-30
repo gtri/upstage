@@ -66,6 +66,12 @@ class Actor(SettableEnv, NamedUpstageEntity):
         for state, value in states.items():
             if state in self._state_defs:
                 seen.add(state)
+                st = self._state_defs[state]
+                if st._no_init:
+                    raise SimulationError(
+                        f"State {state} on {self} has set no_init=True. "
+                        "Initializing a no_init state is disallowed."
+                    )
                 setattr(self, state, value)
             else:
                 raise UpstageError(f"Input to {self} was not expected: {state}={value}")
@@ -102,6 +108,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         name: str,
         debug_log: bool = True,
         debug_log_time: bool | None = None,
+        initial_knowledge: dict[str, Any] | None = None,
         **states: Any,
     ) -> None:
         """Create an Actor.
@@ -111,6 +118,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
             debug_log (bool, optional): Whether to write to debug log. Defaults to True.
             debug_log_time (bool, optional): If time is logged in debug messages.
                 Defaults to None (uses Stage value), otherwise local value is used.
+            initial_knowledge (dict[str, Any], optional): A dictionary to initialize
+                knowledge with.
             states (Any): Values for each state as kwargs.
         """
         self.name = name
@@ -143,12 +152,16 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         self.__init_states(**states)
 
+        if initial_knowledge is not None:
+            self.set_bulk_knowledge(initial_knowledge, overwrite=True, caller="init")
+
     def __init__(
         self,
         *,
         name: str,
         debug_log: bool = True,
         debug_log_time: bool | None = None,
+        initial_knowledge: dict[str, Any] | None = None,
         **states: Any,
     ) -> None:
         """Create an actor.
@@ -160,9 +173,16 @@ class Actor(SettableEnv, NamedUpstageEntity):
             debug_log (bool, optional): Whether to write to debug log. Defaults to True.
             debug_log_time (bool, optional): If time is logged in debug messages.
                 Defaults to None (uses Stage value), otherwise local value is used.
+            initial_knowledge (dict[str, Any], optional): A dictionary to initialize
+                knowledge with.
             states (Any): Keyword args.
         """
-        self.__actual_init__(name=name, debug_log=debug_log, debug_log_time=debug_log_time)
+        self.__actual_init__(
+            name=name,
+            debug_log=debug_log,
+            debug_log_time=debug_log_time,
+            initial_knowledge=initial_knowledge,
+        )
 
     def __init_subclass__(
         cls,
@@ -213,6 +233,8 @@ Args:
         if state_parameter:
             params.remove(state_parameter[0])
         for state, value in all_states.items():
+            if value._no_init:
+                continue
             typ = Any if not value._types else Union[*value._types]
             default_str = "No Default"
             default: Any = Parameter.empty
