@@ -1,16 +1,16 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 """This file contains the fundamental Actor class for UPSTAGE."""
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, Self, Union
 
 from simpy import Process
 
@@ -32,6 +32,7 @@ from .states import (
     GeodeticLocationChangingState,
     ResourceState,
     State,
+    _KeyValueBase,
 )
 from .task import Task
 from .task_network import TaskNetwork, TaskNetworkFactory
@@ -56,26 +57,8 @@ class TaskData:
 class Actor(SettableEnv, NamedUpstageEntity):
     """Actors perform tasks and are composed of states.
 
-    You can subclass, but do not overwrite __init_subclass__.
-
-    Always super().__init__().
-
-    Parameters
-    ----------
-    name : str
-        The name of the actor.  This is a required attribute.
-    debug_log : bool, optional
-        Run the debug logger which captures runtime information about the
-        actor.
-    **states
-        Keyword arguments to set the values of the actor's states.
-
-    Raises:
-    ------
-    ValueError
-        If the keys of the states passed as keyword arguments do not match the
-        names of the actor's states.
-
+    You can subclass, but do not overwrite __init_subclass__. Mixins are allowed
+    but they cannot depend on __init__. Always put mixins after actor base classes.
     """
 
     def __init_states(self, **states: Any) -> None:
@@ -83,6 +66,12 @@ class Actor(SettableEnv, NamedUpstageEntity):
         for state, value in states.items():
             if state in self._state_defs:
                 seen.add(state)
+                st = self._state_defs[state]
+                if st._no_init:
+                    raise SimulationError(
+                        f"State {state} on {self} has set no_init=True. "
+                        "Initializing a no_init state is disallowed."
+                    )
                 setattr(self, state, value)
             else:
                 raise UpstageError(f"Input to {self} was not expected: {state}={value}")
@@ -100,13 +89,26 @@ class Actor(SettableEnv, NamedUpstageEntity):
             )
         if "log" in seen:
             raise UpstageError("Do not name a state `log`")
+        # Check that we won't name clash state names and recording function names
+        recording_names: dict[str, int] = Counter()
+        for name, state_def in self._state_defs.items():
+            recording_names[name] += 1
+            for _, rec_name in state_def._recording_functions:
+                recording_names[rec_name] += 1
+        error_msg = ""
+        for k, v in recording_names.items():
+            if v > 1:
+                error_msg += f"Duplicated state or recording name: {k}\n"
+        if error_msg:
+            raise SimulationError(error_msg)
 
-    def __init__(
+    def __actual_init__(
         self,
         *,
         name: str,
         debug_log: bool = True,
         debug_log_time: bool | None = None,
+        initial_knowledge: dict[str, Any] | None = None,
         **states: Any,
     ) -> None:
         """Create an Actor.
@@ -116,6 +118,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
             debug_log (bool, optional): Whether to write to debug log. Defaults to True.
             debug_log_time (bool, optional): If time is logged in debug messages.
                 Defaults to None (uses Stage value), otherwise local value is used.
+            initial_knowledge (dict[str, Any], optional): A dictionary to initialize
+                knowledge with.
             states (Any): Values for each state as kwargs.
         """
         self.name = name
@@ -148,43 +152,107 @@ class Actor(SettableEnv, NamedUpstageEntity):
 
         self.__init_states(**states)
 
+        if initial_knowledge is not None:
+            self.set_bulk_knowledge(initial_knowledge, overwrite=True, caller="init")
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        debug_log: bool = True,
+        debug_log_time: bool | None = None,
+        initial_knowledge: dict[str, Any] | None = None,
+        **states: Any,
+    ) -> None:
+        """Create an actor.
+
+        This specific version of __init__ exists to be overriden.
+
+        Args:
+            name (str): The name of the actor.
+            debug_log (bool, optional): Whether to write to debug log. Defaults to True.
+            debug_log_time (bool, optional): If time is logged in debug messages.
+                Defaults to None (uses Stage value), otherwise local value is used.
+            initial_knowledge (dict[str, Any], optional): A dictionary to initialize
+                knowledge with.
+            states (Any): Keyword args.
+        """
+        self.__actual_init__(
+            name=name,
+            debug_log=debug_log,
+            debug_log_time=debug_log_time,
+            initial_knowledge=initial_knowledge,
+        )
+
     def __init_subclass__(
         cls,
         *args: Any,
-        entity_groups: Iterable[str] | str | None = None,
         **kwargs: Any,
     ) -> None:
-        super().__init_subclass__(entity_groups=entity_groups)
-        # get the states
-        states = {}
-        all_states = {}
+        super().__init_subclass__(*args, **kwargs)
+        all_states: dict[str, State] = {}
         # This ensures that newer classes overwrite older states
         for base_class in cls.mro()[::-1]:
             for state_name, state in base_class.__dict__.items():
                 if isinstance(state, State):
-                    if base_class == cls:
-                        states[state_name] = state
-                        state.name = state_name
+                    if state_name in all_states:
+                        raise ValueError(f"Duplicated state name: {state_name}")
                     all_states[state_name] = state
+                    state.name = state_name
         cls._state_defs = all_states
 
         nxt = cls.mro()[1]
         if nxt is object:
             raise UpstageError(f"Actor has bad inheritance, MRO: {cls.mro()}")
 
-        sig = signature(cls.__init__)
+        def new_init(
+            self: Actor,
+            *,
+            name: str,
+            debug_log: bool = True,
+            debug_log_time: bool | None = None,
+            **states: Any,
+        ) -> None:
+            self.__actual_init__(
+                name=name, debug_log=debug_log, debug_log_time=debug_log_time, **states
+            )
+
+        # Update the docstring - might be helpful for active doc builds
+        docstring = f"""Create a {cls.__name__} actor.
+
+Args:
+    name (str): The name of the actor.
+    debug_log (bool, optional): Whether to write to debug log. Defaults to True.
+    debug_log_time (bool, optional): If time is logged in debug messages.
+        Defaults to None (uses Stage value), otherwise local value is used.
+"""
+        sig = signature(new_init)
         params = list(sig.parameters.values())
         # Find the "states=" parameter of the signature and remove it.
         state_parameter = [x for x in params if x.name == "states"]
         if state_parameter:
             params.remove(state_parameter[0])
-        for state in states:
-            params.insert(-1, Parameter(state, Parameter.KEYWORD_ONLY))
+        for state, value in all_states.items():
+            if value._no_init:
+                continue
+            typ = Any if not value._types else Union[*value._types]
+            default_str = "No Default"
+            default: Any = Parameter.empty
+            if value.has_default():
+                default = value._default if value._default is not None else value._default_factory
+                default_str = f"{default}"
+            params.insert(
+                len(params),
+                Parameter(state, Parameter.KEYWORD_ONLY, annotation=typ, default=default),
+            )
+            docstring += f"\n    {state} ({type}): Actor State. Defaults to {default_str}."
         try:
-            setattr(cls.__init__, "__signature__", sig.replace(parameters=params))
+            setattr(new_init, "__signature__", sig.replace(parameters=params))
         except ValueError as e:
-            e.add_note("Failure likely due to repeated state name in inherited actor")
+            e.add_note(f"Failure likely due to repeated state name in inherited actor {cls}")
             raise e
+        new_init.__doc__ = docstring
+        setattr(cls, "__init__", new_init)
 
     def _add_special_group(self) -> None:
         """Add self to the actor context list.
@@ -415,10 +483,23 @@ class Actor(SettableEnv, NamedUpstageEntity):
             raise UpstageError("Mimic state activated on rehearsal. This is unsupported/unstable")
         if self_state in self._mimic_states:
             raise UpstageError(f"{self_state} already mimicked")
+
+        state = self._state_defs[self_state]
+        if isinstance(state, _KeyValueBase):
+            raise SimulationError(f"States of type {type(state)} are not mimic-able.")
+        if isinstance(mimic_actor._state_defs[mimic_state], _KeyValueBase):
+            raise SimulationError(
+                f"States of type {type(mimic_actor._state_defs[mimic_state])} are not mimic-able."
+            )
+        their_v = getattr(mimic_actor, mimic_state)
+        if not state._type_check(their_v, throw=False):
+            raise SimulationError(
+                f"Cannot mimic states of different types: {state._types} vs {type(their_v)}"
+            )
+
         self._mimic_states[self_state] = (mimic_actor, mimic_state)
         self._mimic_states_by_task[task].add(self_state)
 
-        state = self._state_defs[self_state]
         self_state_name = self._mimic_state_name(self_state)
         if state.is_recording:
 
@@ -909,6 +990,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
             state_obj = self._state_defs[state]
             if isinstance(state_obj, ResourceState):
                 states[state] = state_obj._make_clone(self, getattr(self, state))
+            elif isinstance(state_obj, _KeyValueBase):
+                states[state] = state_obj._make_clone(self)
             else:
                 states[state] = copy(getattr(self, state))
         states.update(new_states)

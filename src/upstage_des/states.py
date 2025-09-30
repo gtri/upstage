@@ -1,25 +1,29 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 """A state defines the conditions of an actor over time."""
 
-from collections.abc import Callable
+from abc import abstractmethod
+from collections.abc import Callable, Iterable
 from copy import deepcopy
+from dataclasses import fields, replace
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, cast, runtime_checkable
 
-from simpy import Container, Store
+from simpy import Container, Environment, Store
 
 from upstage_des.base import SimulationError, UpstageError
 from upstage_des.data_types import CartesianLocation, GeodeticLocation
 from upstage_des.math_utils import _vector_add, _vector_subtract
 from upstage_des.resources.monitoring import SelfMonitoringStore
+from upstage_des.state_proxies import _DataclassProxy, _DictionaryProxy
 from upstage_des.task import Task
 
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
+
 
 __all__ = (
     "ActiveState",
@@ -33,7 +37,19 @@ __all__ = (
 )
 
 CALLBACK_FUNC = Callable[["Actor", Any], None]
+
 ST = TypeVar("ST")
+
+RECORD_FUNC = Callable[[float, ST], Any]
+
+
+@runtime_checkable
+class RecordClass(Protocol):
+    @abstractmethod
+    def __call__(self, time: float, value: ST) -> Any: ...
+
+
+RECORD_TUPLES = tuple[RECORD_FUNC, str] | tuple[type, str]
 
 
 class ActiveStatus(Enum):
@@ -78,11 +94,13 @@ class State(Generic[ST]):
         *,
         default: ST | None = None,
         frozen: bool = False,
+        no_init: bool = False,
         valid_types: type | tuple[type, ...] | None = None,
         recording: bool = False,
         record_duplicates: bool = False,
         default_factory: Callable[[], ST] | None = None,
         allow_none_default: bool = False,
+        recording_functions: list[RECORD_TUPLES] | None = None,
     ) -> None:
         """Create a state descriptor for an Actor.
 
@@ -104,6 +122,7 @@ class State(Generic[ST]):
         Args:
             default (Any | None, optional): Default value of the state. Defaults to None.
             frozen (bool, optional): If the state is allowed to change. Defaults to False.
+            no_init (bool, optional): Ignore the state in the init and rely on the default.
             valid_types (type | tuple[type, ...] | None, optional): Types allowed. Defaults to None.
             recording (bool, optional): If the state records itself. Defaults to False.
             record_duplicates (bool, optional): If the state records duplicate values.
@@ -112,16 +131,35 @@ class State(Generic[ST]):
                 Defaults to None.
             allow_none_default (bool, optional): Consider a `None` default to be
                 valid
+            recording_functions (list[RECORD_TUPLES], optional):
+                A list of functions or callable classes to use when the state records.
+                The second entry in the tuple is a string of the name to use in
+                `_state_histories`.
         """
-        if default is None and default_factory is not None:
-            default = default_factory()
-
         self._default = default
+        self._default_factory = default_factory
+
+        if self._default is not None and self._default_factory is not None:
+            raise UpstageError("State needs to only use default or default factory.")
+        any_def = self._default is not None or self._default_factory is not None
+
+        self._no_init = no_init
+        if self._no_init and not any_def:
+            raise SimulationError("State needs a default for no_init=True")
         self._frozen = frozen
         self._recording = recording
         self._record_duplicates = record_duplicates
-        self._recording_callbacks: dict[Any, CALLBACK_FUNC] = {}
+        self._change_callbacks: dict[Any, CALLBACK_FUNC] = {}
         self._allow_none_default = allow_none_default
+        self._recording_functions: list[tuple[RECORD_FUNC, str]] = []
+        if recording_functions is not None:
+            for thing, name in recording_functions:
+                if isinstance(thing, type):
+                    use = thing()
+                    assert isinstance(use, RecordClass)
+                    self._recording_functions.append((use, name))
+                else:
+                    self._recording_functions.append((thing, name))
 
         self._types: tuple[type, ...]
 
@@ -133,6 +171,17 @@ class State(Generic[ST]):
             self._types = valid_types
         self.IGNORE_LOCK: bool = False
 
+    def _do_record_funcs(self, instance: "Actor", now: float, value: ST) -> None:
+        for func, name in self._recording_functions:
+            result = func(now, value)
+            new_append = (now, result)
+            if name not in instance._state_histories:
+                instance._state_histories[name] = [new_append]
+            elif self._record_duplicates or not _compare(
+                new_append, instance._state_histories[name][-1]
+            ):
+                instance._state_histories[name].append(new_append)
+
     def _do_record(self, instance: "Actor", value: ST, override: Any = None) -> None:
         """Record the value of the state.
 
@@ -143,19 +192,21 @@ class State(Generic[ST]):
         """
         if not self._recording:
             return
-        env = getattr(instance, "env", None)
-        if env is None:
+        if getattr(instance, "env", None) is None:
             raise SimulationError(
                 f"Actor {instance} does not have an `env` attribute for state {self.name}"
             )
+        now = float(instance.env.now)
         use = value if override is None else override
-        to_append = (env.now, deepcopy(use))
+        to_append = (now, deepcopy(use))
         if self.name not in instance._state_histories:
             instance._state_histories[self.name] = [to_append]
         elif self._record_duplicates or not _compare(
             to_append, instance._state_histories[self.name][-1]
         ):
             instance._state_histories[self.name].append(to_append)
+
+        self._do_record_funcs(instance, *to_append)
 
     def _do_callback(self, instance: "Actor", value: ST) -> None:
         """Run callbacks for the state change.
@@ -164,7 +215,7 @@ class State(Generic[ST]):
             instance (Actor): The actor holding the state
             value (Any): The value of the state
         """
-        for _, callback in self._recording_callbacks.items():
+        for _, callback in self._change_callbacks.items():
             callback(instance, value)
 
     def _broadcast_change(self, instance: "Actor", name: str, value: ST) -> None:
@@ -182,7 +233,16 @@ class State(Generic[ST]):
     # NOTE: A dictionary as a descriptor doesn't work well,
     # because all the operations seem to happen *after* the get
     # NOTE: Lists also have the same issue that
-    def __set__(self, instance: "Actor", value: ST) -> None:
+    def _type_check(self, value: Any, throw: bool = True) -> bool:
+        """Check if a type matches this state."""
+        if not self._types:
+            return True
+        ans = isinstance(value, self._types)
+        if throw and not ans:
+            raise TypeError(f"{value} is of type {type(value)} not of type {self._types}")
+        return ans
+
+    def __set__(self, instance: "Actor", value: Any) -> None:
         """Set the state's value.
 
         Args:
@@ -197,8 +257,7 @@ class State(Generic[ST]):
                     f"to value of {old_value}. It cannot be changed once set!"
                 )
 
-        if self._types and not isinstance(value, self._types):
-            raise TypeError(f"{value} is of type {type(value)} not of type {self._types}")
+        self._type_check(value, throw=True)
 
         instance.__dict__[self.name] = value
 
@@ -232,12 +291,17 @@ class State(Generic[ST]):
         Args:
             instance (Actor): Actor holding the state.
         """
+        # The default sits on the descriptor class, not on the instance.
+        # If there's a factory we need to remake the default
+        if self._default_factory is not None:
+            value = self._default_factory()
+            self.__set__(instance, value)
+            return
         if self._default is None:
             if self._allow_none_default:
                 return
-            raise SimulationError("State not allowed `None` default.")
-        value = deepcopy(self._default)
-        self.__set__(instance, value)
+            raise SimulationError(f"State {self.name} not allowed `None` default.")
+        self.__set__(instance, self._default)
 
     def has_default(self) -> bool:
         """Check if a default exists.
@@ -247,7 +311,7 @@ class State(Generic[ST]):
         """
         if self._allow_none_default:
             return True
-        return self._default is not None
+        return self._default is not None or self._default_factory is not None
 
     def _add_callback(self, source: Any, callback: CALLBACK_FUNC) -> None:
         """Add a recording callback.
@@ -256,7 +320,7 @@ class State(Generic[ST]):
             source (Any): A key for the callback
             callback (Callable[[Actor, Any], None]): A function to call
         """
-        self._recording_callbacks[source] = callback
+        self._change_callbacks[source] = callback
 
     def _remove_callback(self, source: Any) -> None:
         """Remove a callback.
@@ -264,7 +328,7 @@ class State(Generic[ST]):
         Args:
             source (Any): The callback's key
         """
-        del self._recording_callbacks[source]
+        del self._change_callbacks[source]
 
     @property
     def is_recording(self) -> bool:
@@ -347,10 +411,6 @@ class ActiveState(State, Generic[ST]):
         if instance is None:
             # instance attribute accessed on class, return self
             return self  # pragma: no cover
-        if self.name not in instance.__dict__:
-            # Just set the value to the default
-            # Mutable types will be tricky here, so deepcopy them
-            instance.__dict__[self.name] = deepcopy(self._default)  # pragma: no cover
         if self.name in instance._mimic_states:
             actor, name = instance._mimic_states[self.name]
             value = getattr(actor, name)
@@ -1044,17 +1104,18 @@ class CommunicationStore(ResourceState[Store]):
     The input an Actor needs to receive for a CommunicationStore is a dictionary of:
         >>> {
         >>>     'kind': <class> (optional)
-        >>>     'mode': <string> (required)
+        >>>     'modes': <string> (optional)
         >>> }
 
     Example:
         >>> class Worker(Actor):
-        >>>     walkie = CommunicationStore(mode="UHF")
-        >>>     intercom = CommunicationStore(mode="loudspeaker")
+        >>>     walkie = CommunicationStore(modes="UHF")
+        >>>     intercom = CommunicationStore(modes=None)
         >>>
         >>> worker = Worker(
         >>>     name='Billy',
         >>>     walkie={'kind': SelfMonitoringStore},
+        >>>     intercom={"modes": "loudspeaker"},
         >>> )
 
     """
@@ -1062,14 +1123,14 @@ class CommunicationStore(ResourceState[Store]):
     def __init__(
         self,
         *,
-        mode: str,
+        modes: str | list[str] | None,
         default: type | None = None,
         valid_types: type | tuple[type, ...] | None = None,
     ):
         """Create a comms store.
 
         Args:
-            mode (str): A mode to describe the comms channel.
+            modes (str, list[str], optional): Modes to describe the comms channel.
             default (type | None, optional): Store class by default.
                 Defaults to None.
             valid_types (type | tuple[type, ...] | None, optional): Valid store classes.
@@ -1085,4 +1146,382 @@ class CommunicationStore(ResourceState[Store]):
             if not issubclass(v, Store):
                 raise SimulationError("CommunicationStore must use a Store subclass")
         super().__init__(default=default, valid_types=valid_types)
-        self._mode = mode
+        self._modes = modes
+
+    @property
+    def _modename(self) -> str:
+        return "_" + self.name + "__mode_names_"
+
+    def __set__(self, instance: "Actor", value: dict | Any) -> None:
+        # See if the instance has any specific mode data to find.
+        modes: str | list[str] | None = self._modes
+        if isinstance(value, dict) and "modes" in value:
+            modes = value.pop("modes")
+        super().__set__(instance, value)
+        if modes is None:
+            raise SimulationError(
+                f"CommunicationsStore {self.name} needs a mode defined"
+                " by default or through the initialization."
+            )
+        if isinstance(modes, str):
+            modes = [modes]
+        if not isinstance(modes, list) and not all(isinstance(x, str) for x in modes):
+            raise SimulationError("CommunicationsStore modes should be a list of strings.")
+        instance.__dict__[self._modename] = set(modes)
+
+
+class _KeyValueBase(State):
+    """A base state for holding key/value pairs.
+
+    This is greatly simplified state meant for a runtime
+    definition, rather than assuming defaults.
+
+    Use either a dataclass or a dictionary for the value of
+    the state when instantiating the Actor.
+    """
+
+    def __init__(
+        self,
+        *,
+        valid_types: type | tuple[type, ...] | None = None,
+        recording: bool = False,
+        record_duplicates: bool = False,
+        recording_functions: list[RECORD_TUPLES] | None = None,
+    ) -> None:
+        # Frozen, recording, and record duplicates are set so
+        # that the overall state's value (a dictionary) is
+        # never touched, and only its members are accessed.
+        super().__init__(
+            frozen=True,
+            valid_types=valid_types,
+            recording=False,
+            record_duplicates=False,
+            recording_functions=recording_functions,
+        )
+        self._record_indiv = recording
+        self._record_indiv_dupe = record_duplicates
+
+    def _record_single(self, instance: "Actor", time: float, key: str, value: Any) -> None:
+        name = f"{self.name}.{key}"
+        new = (time, value)
+        if name not in instance._state_histories:
+            instance._state_histories[name] = [new]
+        elif self._record_duplicates or not _compare(new, instance._state_histories[name][-1]):
+            instance._state_histories[name].append(new)
+
+    def _get_keys_values(self, instance: "Actor") -> list[tuple[str, Any]]:
+        raise NotImplementedError()
+
+    def _get_value(self, instance: "Actor", key: str) -> Any:
+        raise NotImplementedError
+
+    def _record_state(self, instance: "Actor", key: str | None = None, all: bool = False) -> None:
+        if not self._record_indiv:
+            return
+
+        if getattr(instance, "env", None) is None:
+            raise SimulationError(
+                f"Actor {instance} does not have an `env` attribute for state {self.name}"
+            )
+        now = float(instance.env.now)
+        if all:
+            for k, v in self._get_keys_values(instance):
+                self._record_single(instance, now, k, v)
+        elif key is not None:
+            v = self._get_value(instance, key)
+            self._record_single(instance, now, key, v)
+        else:
+            raise SimulationError(f"No key given for recording on {instance}")
+
+        self._do_record_funcs(instance, now, instance.__dict__[self.name])
+
+    def _make_clone(self, instance: "Actor") -> Any:
+        raise NotImplementedError()
+
+
+VT = TypeVar("VT")
+
+
+class DictionaryState(_KeyValueBase, Generic[VT]):
+    """A state that contains a {str: value} dictionary.
+
+    This state provides features for holding a dictionary that is self-recording
+    when attributes are set. Similar to States, recording functions can augment
+    the recorded information on every key/value update. Recorded keys are
+    given the variable name of <state name>.<key>
+
+    For simplicity of data recording, this state expects all keys to be strings.
+    If you supply a valid_type input, the state will type check your values
+    against it.
+
+    The dictionary state does not expect any default factories or settings, you
+    must initialize it with at least a blank dictionary.
+
+    The state is not actually a dictionary, but a proxy for the dictionary where
+    get, set, contains, and iter operations are supported.
+
+    Example:
+
+    .. code-block:: python
+
+        class VendingMachine(UP.Actor):
+            inventory = UP.DictionaryState[int](valid_types=(int,), recording=True)
+            requested = UP.DictionaryState[int](valid_types=(int,), recording=True)
+            request = UP.ResourceState[Store](default=Store)
+
+        class TrackRequests(UP.Task):
+            def task(self, *, actor: VendingMachine) -> TASK_GEN:
+                get = UP.Get(actor.request)
+                yield get
+                item_name = get.get_value()
+                actor.requested.setdefault(item_name, 0)
+                actor.requested[item_name] += 1
+                if item_name in actor.inventory:
+                    actor.inventory[item_name] -= 1
+                else:
+                    print(f"We have no items named {item_name}".)
+
+        inventory = {"chips": 10, "cookies":10, "granola bars": 24}
+        with UP.EnvironmentContext() as env:
+            vend = VendingMachine(
+                name="Machine",
+                inventory=inventory,
+                request={},
+            )
+            ...
+
+
+    Args:
+        Generic (_type_): The type information for the values
+    """
+
+    def __get__(self, instance: "Actor", objtype: type | None = None) -> dict[str, VT]:
+        return cast(
+            dict[str, VT], _DictionaryProxy[VT](self, instance, instance.__dict__[self.name])
+        )
+
+    def __set__(self, instance: "Actor", value: dict[str, VT]) -> None:
+        if self.name in instance.__dict__:
+            raise SimulationError(f"State {self.name} already set on {instance}.")
+
+        instance.__dict__[self.name] = {}
+        for k, v in value.items():
+            self._type_check(v, throw=True)
+            instance.__dict__[self.name][k] = v
+
+        self._record_state(instance, all=True)
+
+    def _get_keys_values(self, instance: "Actor") -> list[tuple[str, Any]]:
+        return list(instance.__dict__[self.name].items())
+
+    def _get_value(self, instance: "Actor", key: str) -> Any:
+        return instance.__dict__[self.name][key]
+
+    def _make_clone(self, instance: "Actor") -> dict[str, VT]:
+        return cast(dict[str, VT], instance.__dict__[self.name].copy())
+
+
+DCT = TypeVar("DCT")
+
+
+class DataclassState(_KeyValueBase, Generic[DCT]):
+    """A state that contains a dataclass.
+
+    This state provides features for holding a dataclass that is self-recording
+    when attributes are set. Similar to States, recording functions can augment
+    the recorded information on every key/value update. Recorded keys are
+    given the variable name of <state name>.<attribute name>
+
+    If you supply a dataclass object to the valid_type input, the state will
+    type check your values against it. These states are less flexible than
+    dictionary states, but do provide more specific type information on a per-
+    attribute basis. If you have common data structures that you might update
+    frequently, a DataclassState can provide some structure that is more flexible
+    than changing an actor's states. It also allows other models to be incorporated
+    that are dependent on data only, and not the actors themselves.
+
+    The dataclass state does not expect any default factories or settings, you
+    must initialize it with a dataclass instance.
+
+    The state is not actually a dataclass, but a proxy for the dataclass where
+    get, set, contains, and iter operations are supported.
+
+    Example:
+
+    .. code-block:: python
+
+        @dataclass
+        class Properties:
+            speed: float
+            health: float
+            damage: float
+            armor: float = field(default=0.0)
+
+        class Barbarian(UP.Actor):
+            properties = UP.DataclassState[Properties](
+                valid_types=(Properties,),
+                recording=True,
+            )
+
+        def fight_model(fighter1: Properties, fighter2: Properties):
+            ...
+
+        class ArenaBattle(UP.Task):
+            def task(self, *, actor: ArenaActor) -> TASK_GEN:
+                get = UP.Get(actor.next_fight)
+                yield get
+                b1: Barbarian
+                b2: Barbarian
+                b1, b2 = get.get_value()
+                winner = fight_model(b1.properties, b2.properties)
+
+    Args:
+        Generic (_type_): The type information for the values
+    """
+
+    def __get__(self, instance: "Actor", objtype: type | None = None) -> DCT:
+        return cast(DCT, _DataclassProxy[DCT](self, instance, instance.__dict__[self.name]))
+
+    def __set__(self, instance: "Actor", value: DCT) -> None:
+        if self.name in instance.__dict__:
+            raise SimulationError(f"State {self.name} already set on {instance}.")
+
+        self._type_check(value, throw=True)
+        instance.__dict__[self.name] = value
+
+        self._record_state(instance, all=True)
+
+    def _get_keys_values(self, instance: "Actor") -> list[tuple[str, Any]]:
+        ans = []
+        dc = instance.__dict__[self.name]
+        for field in fields(dc):
+            ans.append((field.name, getattr(dc, field.name)))
+        return ans
+
+    def _get_value(self, instance: "Actor", key: str) -> Any:
+        return getattr(instance.__dict__[self.name], key)
+
+    def _make_clone(self, instance: "Actor") -> DCT:
+        return cast(DCT, replace(instance.__dict__[self.name]))
+
+
+class MultiStoreState(DictionaryState[T]):
+    """A state for holding stores or containers keyed by a string.
+
+    Works best when all values are the same kind of container.
+
+    This state follows rules similar to ResourceState, but for a dictionary
+    of container/store objects.
+
+    The input an Actor needs to receive for a MultiStoreState is a dictionary of:
+    * 'kind': <class> (optional if you provided a default)
+    * 'capacity': <numeric> (optional, works on stores and containers)
+    * 'init': <numeric> (optional, works on containers)
+    * key:value for any other input expected as a keyword argument by the resource class
+
+    Types are enforced via `valid_types`, and if no `kind` is specified, the
+    `default` input is used.
+
+    The default kwargs will be applied to any input, so make sure they are
+    compatible with different containers, or be more speficific with your typing.
+    Arguments that don't apply will raise an error.
+
+    Example:
+
+    .. code-block:: python
+
+        class Warehouse(Actor):
+            storage = MultiStoreState[Store| Container](
+                default=Store,
+                valid_types=(Store, Container),
+                default_kwargs={"capacity": 100},
+            )
+
+        wh = Warehouse(
+            name='Depot',
+            storage = {
+                "shelf":{"capacity":10},
+                "bucket":{"kind": SelfMonitoringContainer, "init": 30},
+                "charger":{},
+            }
+        )
+        wh.storage["shelf"].capacity == 10
+        wh.storage["bucket"].level == 30
+        wh.storage["charger"].capacity == 100
+        wh.storage["charger"].items == []
+
+
+    """
+
+    def __init__(
+        self,
+        *,
+        valid_types: type | tuple[type, ...] | None = None,
+        default: type[Store] | type[Container] | None = None,
+        default_kwargs: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(valid_types=valid_types)
+        self._default = default
+        self._default_kwargs = {} if default_kwargs is None else default_kwargs.copy()
+
+    def _type_checker(self, resource_type: Any) -> None:
+        any_type = False
+        for t in self._types:
+            if not (issubclass(t, Store) or issubclass(t, Container)):
+                raise UpstageError("Bad valid_type for MultiStoreState.")
+            inst = isinstance(resource_type, t)
+            typ = issubclass(resource_type, t) if type(resource_type) is type else True
+            if inst or typ:
+                any_type = True
+        if self._types and not any_type:
+            raise UpstageError(
+                f"{resource_type} is of type {resource_type} not of type {self._types}"
+            )
+
+    def _make_resource(self, env: Environment, input: T | dict[str, Any]) -> T:
+        if not isinstance(input, dict):
+            # we've been passed an actual resource, so save it and leave
+            self._type_checker(input)
+            return input
+
+        kwargs = self._default_kwargs.copy()
+        kwargs.update({k: v for k, v in input.items() if k != "kind"})
+
+        resource_type = input.get("kind", self._default)
+        if resource_type is None:
+            raise UpstageError("No default specified for MultiStoreState. Did you forget 'kind'?")
+        self._type_checker(resource_type)
+        try:
+            resource_obj = resource_type(env, **kwargs)
+        except TypeError as e:
+            raise UpstageError(
+                f"Bad argument input to resource state {self.name}"
+                f" resource class {resource_type} :{e}"
+            )
+        except Exception as e:
+            raise UpstageError(f"Exception in ResourceState init: {e}")
+        return cast(T, resource_obj)
+
+    def __set__(
+        self, instance: "Actor", value: dict[str, T | dict[str, Any]] | Iterable[str]
+    ) -> None:
+        if self.name in instance.__dict__:
+            raise SimulationError(f"State {self.name} already set on {instance}.")
+        env = getattr(instance, "env", None)
+        if env is None or not isinstance(env, Environment):
+            raise UpstageError(
+                f"Actor {instance} does not have the right `env` attribute for state {self.name}"
+            )
+        # process the values
+        use: dict[str, T] = {}
+        if not isinstance(value, dict):
+            value = {name: {} for name in value}
+        attrs: dict[str, Any] | T
+        for name, attrs in value.items():
+            use[name] = self._make_resource(env, attrs)
+
+        super().__set__(instance, use)
+
+    def has_default(self) -> bool:
+        # Force the state to be defined.
+        return False

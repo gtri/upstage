@@ -30,7 +30,9 @@ Additional features include:
 1. `NamedEntity` in a thread-safe global context, enabling easier "director" logic creation with less argument passing in your code
 1. The `Stage`: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
 1. __Rehearsal__: Write planning and simulation code in one place only, and "rehearse" an actor through a task network using planning factors to discover task feasibility before the actor attempts to complete the task.
-1. All States are recordable
+1. All States are recordable, and some record dataclass and dictionary values
+1. A `Routine` class for building reusable event behaviors to simplify `Task` coding.
+1. Point-To-Point and Routing Table communications handlers.
 1. Numerous runtime checks and error handling for typical DES pitfalls: based on more than a decade of custom DES-building experience.
 1. And more!
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
@@ -23,7 +23,8 @@ from upstage_des.base import (
 )
 
 # Comms
-from upstage_des.communications.comms import CommsManager, Message, MessageContent
+from upstage_des.communications.comms import Message, MessageContent, PointToPointCommsManager
+from upstage_des.communications.routing import RoutingTableCommsManager
 
 # Constants
 from upstage_des.constants import PLANNING_FACTOR_OBJECT
@@ -74,9 +75,12 @@ from upstage_des.state_sharing import SharedLinearChangingState
 from upstage_des.states import (
     CartesianLocationChangingState,
     CommunicationStore,
+    DataclassState,
     DetectabilityState,
+    DictionaryState,
     GeodeticLocationChangingState,
     LinearChangingState,
+    MultiStoreState,
     ResourceState,
     State,
 )
@@ -130,10 +134,13 @@ __all__ = [
     "CartesianLocationData",
     "GeodeticLocationData",
     "LinearChangingState",
+    "DictionaryState",
+    "DataclassState",
     "CartesianLocationChangingState",
     "State",
     "GeodeticLocationChangingState",
     "DetectabilityState",
+    "MultiStoreState",
     "ResourceState",
     "CommunicationStore",
     "DecisionTask",
@@ -147,7 +154,8 @@ __all__ = [
     "TaskNetworkNucleus",
     "NucleusInterrupt",
     "SharedLinearChangingState",
-    "CommsManager",
+    "PointToPointCommsManager",
+    "RoutingTableCommsManager",
     "Message",
     "MessageContent",
     "SensorMotionManager",

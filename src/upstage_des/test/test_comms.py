@@ -1,20 +1,21 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 from typing import Any
 
+import pytest
 from simpy import Store
 
 import upstage_des.api as UP
 from upstage_des.api import (
     Actor,
-    CommsManager,
     EnvironmentContext,
     Get,
     Message,
     MessageContent,
+    PointToPointCommsManager,
     ResourceState,
     State,
     Task,
@@ -36,7 +37,7 @@ class ReceiveTask(Task):
 
 
 class SendTask(Task):
-    comms: CommsManager
+    comms: PointToPointCommsManager
     receiver: ReceiveSend
 
     def task(self, *, actor: ReceiveSend) -> TASK_GEN:
@@ -54,7 +55,7 @@ def test_send_receive() -> None:
         rec_task = ReceiveTask()
         sen_task = SendTask()
 
-        comms = CommsManager(
+        comms = PointToPointCommsManager(
             name="Comm",
             init_entities=[(receiver, "incoming")],
             debug_logging=True,
@@ -84,7 +85,7 @@ def test_send_receive_delayed() -> None:
         rec_task = ReceiveTask()
         sen_task = SendTask()
 
-        comms = CommsManager(
+        comms = PointToPointCommsManager(
             name="Comm",
             send_time=0.25,
             debug_logging=True,
@@ -115,7 +116,7 @@ def test_degraded() -> None:
         rec_task = ReceiveTask()
         sen_task = SendTask()
 
-        comms = CommsManager(
+        comms = PointToPointCommsManager(
             name="Comm",
             send_time=0.25,
             debug_logging=True,
@@ -143,7 +144,7 @@ def test_blocked() -> None:
         rec_task = ReceiveTask()
         sen_task = SendTask()
 
-        comms = CommsManager(
+        comms = PointToPointCommsManager(
             name="Comm",
             send_time=0.25,
             debug_logging=True,
@@ -186,8 +187,8 @@ def test_comms_wait() -> None:
 
 
 class Worker(UP.Actor):
-    walkie = UP.CommunicationStore(mode="UHF")
-    intercom = UP.CommunicationStore(mode="loudspeaker")
+    walkie = UP.CommunicationStore(modes=["UHF", "other"])
+    intercom = UP.CommunicationStore(modes="loudspeaker")
 
 
 def test_worker_talking() -> None:
@@ -195,8 +196,8 @@ def test_worker_talking() -> None:
         w1 = Worker(name="worker1")
         w2 = Worker(name="worker2")
 
-        uhf_comms = CommsManager(name="Walkies", mode="UHF")
-        loudspeaker_comms = CommsManager(name="Overhead", mode="loudspeaker")
+        uhf_comms = PointToPointCommsManager(name="Walkies", mode="UHF")
+        loudspeaker_comms = PointToPointCommsManager(name="Overhead", mode="loudspeaker")
 
         uhf_comms.run()
         loudspeaker_comms.run()
@@ -212,4 +213,180 @@ def test_worker_talking() -> None:
 
         env.run()
         assert len(w2.walkie.items) == 1
+        assert w2.walkie.items[0].mode == "UHF"
         assert len(w1.intercom.items) == 1
+        assert w1.intercom.items[0].mode == "loudspeaker"
+
+
+class CommNode(Actor):
+    messages = UP.CommunicationStore(modes=None)
+
+
+def _build_net(two_way: bool = False) -> tuple[dict[str, CommNode], UP.RoutingTableCommsManager]:
+    nodes = {
+        name: CommNode(name=name, messages={"modes": ["cup-and-string"]}) for name in "ABCDEFGH"
+    }
+    mgr = UP.RoutingTableCommsManager(
+        name="StaticManager",
+        mode="cup-and-string",
+        send_time=1 / 3600.0,
+        retry_max_time=20 / 3600.0,
+        retry_rate=4 / 3600.0,
+        debug_logging=True,
+    )
+    # Set up the routes
+    opts = [
+        ("A", "B"),
+        ("B", "C"),
+        ("A", "D"),
+        ("D", "E"),
+        ("E", "F"),
+        ("F", "G"),
+        ("G", "H"),
+        ("H", "C"),
+        ("E", "B"),
+    ]
+    for u, v in opts:
+        mgr.connect_nodes(nodes[u], nodes[v], two_way=two_way)
+    return nodes, mgr
+
+
+def _start(
+    msg: str, mgr: UP.RoutingTableCommsManager, nodes: dict[str, CommNode], source: str, dest: str
+) -> SIMPY_GEN:
+    put = mgr.make_put(msg, nodes[source], nodes[dest])
+    yield put.as_event()
+
+
+def test_routing_basic() -> None:
+    with EnvironmentContext() as env:
+        nodes, mgr = _build_net()
+        # Check the shortest path calcs with node dropouts.
+        nxt = mgr.select_hop(nodes["A"], nodes["C"])
+        assert nxt is nodes["B"]
+        nxt = mgr.select_hop(nodes["A"], nodes["C"], [nodes["B"]])
+        assert nxt is nodes["D"]
+        nxt = mgr.select_hop(nodes["A"], nodes["C"], [nodes["B"], nodes["D"]])
+        assert not nxt
+
+        # Asking for a node not in the network will fail
+        notin = CommNode(name="not in", messages={"modes": ["doesn'thave"]})
+        nxt = mgr.select_hop(notin, nodes["C"], [nodes["B"], nodes["D"]])
+        assert nxt is None
+
+        with pytest.raises(UP.SimulationError, match="has no comms store on mode"):
+            mgr.connect_nodes(notin, nodes["C"])
+
+        # Test the actual routing mechanics
+        # Run the manager
+        mgr.run()
+        env.process(_start("First message", mgr, nodes, "A", "C"))
+        env.run()
+        # Takes two hops to reach the destination
+        assert env.now == 1 / 3600 * 2.0
+        assert len(mgr.debug_log) == 3
+        assert mgr.debug_log[0]["time"] == 0
+        assert mgr.debug_log[0]["event"] == "Moved message"
+        assert mgr.debug_log[0]["current"] == nodes["A"]
+        assert mgr.debug_log[0]["destination"] == nodes["B"]
+        assert mgr.debug_log[1]["time"] == 1 / 3600
+        assert mgr.debug_log[1]["event"] == "Moved message"
+        assert mgr.debug_log[1]["current"] == nodes["B"]
+        assert mgr.debug_log[1]["destination"] == nodes["C"]
+        assert mgr.debug_log[2]["time"] == 1 / 3600 * 2
+        assert mgr.debug_log[2]["event"] == "Destination reached"
+        assert len(nodes["C"].messages.items) == 1
+        assert nodes["C"].messages.items[0].content.message == "First message"
+
+        nodes, mgr = _build_net(two_way=True)
+        mgr.run()
+        env.process(_start("First message", mgr, nodes, "C", "A"))
+        env.run()
+        assert len(mgr.debug_log) == 3
+        assert nodes["A"].messages.items[0].content.message == "First message"
+        assert nodes["B"].messages.items == []
+
+
+def test_routing_drop_node() -> None:
+    """When we drop a node, expect it to take longer.
+
+    This doesn't have global on, which means B will be tried twice.
+    """
+    with EnvironmentContext() as env:
+        nodes, mgr = _build_net()
+        mgr.run()
+        mgr.blocked_nodes.append(nodes["B"])
+        env.process(_start("Second message", mgr, nodes, "A", "C"))
+        env.run()
+        expected_time = (20 / 3600.0 * 2) + (1 / 3600 * 6)
+        assert pytest.approx(env.now) == expected_time
+        assert len(mgr.debug_log) == 19
+        expect = ["Can't send, waiting"] * 5 + ["Stopped trying to send"] + ["Moved message"] * 2
+        expect += ["Can't send, waiting"] * 5 + ["Stopped trying to send"]
+        expect += ["Moved message"] * 4 + ["Destination reached"]
+        assert [x["event"] for x in mgr.debug_log] == expect
+        assert nodes["C"].messages.items[0].content.message == "Second message"
+
+
+def test_routing_drop_node_global() -> None:
+    """When we drop a node, expect it to take longer.
+
+    This has global on, which means B will be tried only once.
+    """
+    with EnvironmentContext() as env:
+        nodes, mgr = _build_net()
+        mgr.global_ignore = True
+        mgr.blocked_nodes.append(nodes["B"])
+        mgr.run()
+        env.process(_start("Third message", mgr, nodes, "A", "C"))
+        env.run()
+        expected_time = 20 / 3600.0 + (1 / 3600 * 6)
+        assert pytest.approx(env.now) == expected_time
+        assert len(mgr.debug_log) == 13
+        expect = ["Can't send, waiting"] * 5 + ["Stopped trying to send"] + ["Moved message"] * 2
+        expect += ["Moved message"] * 4 + ["Destination reached"]
+        assert [x["event"] for x in mgr.debug_log] == expect
+        assert nodes["C"].messages.items[0].content.message == "Third message"
+
+
+def test_routing_drop_and_return() -> None:
+    """Drop a node, but bring it back mid-send."""
+    with EnvironmentContext() as env:
+        nodes, mgr = _build_net()
+        mgr.blocked_nodes.append(nodes["B"])
+        mgr.run()
+        env.process(_start("Fourth message", mgr, nodes, "A", "C"))
+
+        env.run(until=7 / 3600.0)
+        mgr.blocked_nodes = []
+        env.run()
+        expected_time = 8 / 3600.0 + (1 / 3600 * 2)
+        assert pytest.approx(env.now) == expected_time
+        assert len(mgr.debug_log) == 5
+        expect = ["Can't send, waiting"] * 2 + ["Moved message"] * 2 + ["Destination reached"]
+        assert [x["event"] for x in mgr.debug_log] == expect
+        assert nodes["C"].messages.items[0].content.message == "Fourth message"
+
+
+def test_routing_no_route() -> None:
+    """Drop a node, but bring it back mid-send."""
+    with EnvironmentContext() as env:
+        nodes, mgr = _build_net()
+        mgr.blocked_nodes.append(nodes["B"])
+        mgr.blocked_nodes.append(nodes["D"])
+        mgr.run()
+        env.process(_start("Fifth message", mgr, nodes, "A", "C"))
+
+        env.run()
+        expected_time = 20 / 3600.0 * 2
+        assert pytest.approx(env.now) == expected_time
+        assert len(mgr.debug_log) == 13
+        expect = ["Can't send, waiting"] * 5 + ["Stopped trying to send"]
+        expect += ["Can't send, waiting"] * 5 + ["Stopped trying to send"]
+        expect += ["No message route available"]
+        assert [x["event"] for x in mgr.debug_log] == expect
+        assert nodes["C"].messages.items == []
+
+
+if __name__ == "__main__":
+    test_routing_no_route()

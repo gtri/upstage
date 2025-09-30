@@ -16,6 +16,12 @@ continuation patterns, described farther below.
 
 Knowledge is accessed and updated through:
 
+* In ``Actor`` instantiation
+  
+  * Use the ``initial_knowledge`` keyword argument when creating your actor.
+
+  * Pass a dictionary to set as knowledge.
+
 * :py:meth:`upstage_des.actor.Actor.get_knowledge`
 
   * ``name``: The name of the knowledge.

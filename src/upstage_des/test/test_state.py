@@ -1,8 +1,9 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
+from dataclasses import dataclass, fields
 from typing import Any, cast
 
 import pytest
@@ -13,6 +14,7 @@ import upstage_des.resources.monitoring as monitor
 from upstage_des.actor import Actor
 from upstage_des.api import EnvironmentContext, SimulationError, UpstageError
 from upstage_des.states import LinearChangingState, ResourceState, State
+from upstage_des.task import TASK_GEN
 from upstage_des.type_help import SIMPY_GEN
 
 
@@ -42,9 +44,9 @@ class StateTestActor(Actor):
 
 
 class MutableDefaultActor(Actor):
-    lister = State[list](default=[])
-    diction = State[dict](default={})
-    setstate = State[set](default=set())
+    lister = State[list](default_factory=list)
+    diction = State[dict](default_factory=dict)
+    setstate = State[set](default_factory=set)
 
 
 def test_state_fails_without_env() -> None:
@@ -356,19 +358,21 @@ def test_matching_states() -> None:
 
     class Worker(UP.Actor):
         sleepiness = UP.State[float](default=0.0, valid_types=(float,))
-        walkie = UP.CommunicationStore(mode="UHF")
-        intercom = UP.CommunicationStore(mode="loudspeaker")
+        walkie = UP.CommunicationStore(modes=["UHF", "loudspeaker"])
+        intercom = UP.CommunicationStore(modes="loudspeaker")
 
     with EnvironmentContext():
         worker = Worker(name="Billy")
         store_name = worker._get_matching_state(
             UP.CommunicationStore,
-            {"_mode": "loudspeaker"},
+            {"_modes": "loudspeaker"},
         )
         assert store_name is not None
         store = getattr(worker, store_name, "")
         assert store is worker.intercom, "Wrong state retrieved"
         assert store is not worker.walkie, "Wrong state retrieved"
+        assert getattr(worker, "_intercom__mode_names_") == set(["loudspeaker"])
+        assert getattr(worker, "_walkie__mode_names_") == set(["UHF", "loudspeaker"])
 
         # Show the FCFS behavior
         state_name = worker._get_matching_state(
@@ -385,3 +389,406 @@ def test_matching_states() -> None:
         assert state_name is not None
         value = getattr(worker, state_name)
         assert value is worker.walkie, "Wrong state retrieved"
+
+
+def test_dictionary_state() -> None:
+    """Test multi states."""
+
+    class TheActor(UP.Actor):
+        holder = UP.DictionaryState[int | str](valid_types=(int, str), recording=True)
+
+    use = {"item": 0, "other": 4, "new": "A"}
+
+    with UP.EnvironmentContext() as env:
+        ta = TheActor(name="example", holder=use)
+        ans = {k: v for k, v in ta.holder.items()}
+        assert ans == use
+
+        for k, v in use.items():
+            assert ta.holder[k] == v
+
+        # Making sure we are not using the original object
+        use["newer"] = 4
+        assert "newer" not in ta.holder
+
+        ta.holder["newer"] = 5
+        env.run(3)
+        ta.holder["new"] = 1
+        with pytest.raises(
+            TypeError,
+            match="Bad type for dictionary",
+        ):
+            ta.holder["item"] = 2.0  # type: ignore [assignment]
+        ta.holder["item"] = 42
+        res = ta.holder.setdefault("newest", "a value")
+        assert res == "a value"
+        res = ta.holder.setdefault("item", "xyz")
+        # Since the error is skipped, it's still set as 2.0
+        assert res == 42
+
+        ks = ["item", "other", "new", "newer", "newest"]
+        vs = [42, 4, 1, 5, "a value"]
+        assert list(ta.holder.keys()) == ks
+        assert list(ta.holder.values()) == vs
+        assert list(ta.holder.items()) == [(k, v) for k, v in zip(ks, vs)]
+        assert ta.holder == {k: v for k, v in zip(ks, vs)}
+
+        env.run(5)
+        ta.holder["item"] = 10
+        ta.holder["other"] = 11
+
+        for key in ta.holder.keys():
+            rec_key = f"holder.{key}"
+            assert rec_key in ta._state_histories
+        for key in ta.holder:
+            assert key in ks
+        assert ta._state_histories["holder.item"] == [(0.0, 0), (3.0, 42), (5.0, 10)]
+        assert ta._state_histories["holder.other"] == [(0.0, 4), (5.0, 11)]
+        assert ta._state_histories["holder.new"] == [(0.0, "A"), (3.0, 1)]
+        assert ta._state_histories["holder.newer"] == [(0.0, 5)]
+        assert ta._state_histories["holder.newest"] == [(3.0, "a value")]
+
+
+def test_dictionary_state_record() -> None:
+    def total_recorder(time: float, value: dict[str, int]) -> int:
+        return sum(value.values())
+
+    class Usher(UP.Actor):
+        people_seen = UP.DictionaryState[int](
+            valid_types=int,
+            recording=True,
+            recording_functions=[(total_recorder, "total_customers")],
+        )
+        rando = UP.DictionaryState[Any](recording=True)
+
+    class TicketTaking(UP.Task):
+        def task(self, *, actor: Usher) -> TASK_GEN:
+            for customer in ["adult", "adult", "child", "adult", "child", "vip"]:
+                actor.people_seen.setdefault(customer, 0)
+                actor.people_seen[customer] += 1
+                yield UP.Wait(0.1)
+
+    with UP.EnvironmentContext() as env:
+        ush = Usher(name="Yeah", people_seen={"adult": 0, "child": 0}, rando={"stuff": {}})
+        task = TicketTaking()
+        task.run(actor=ush)
+        env.run()
+        ush.rando["stuff"]["here"] = 1
+        assert env.now == 0.6
+        assert "people_seen.adult" in ush._state_histories
+        assert "people_seen.child" in ush._state_histories
+        assert "people_seen.vip" in ush._state_histories
+        assert "total_customers" in ush._state_histories
+
+
+def test_dataclass_state() -> None:
+    @dataclass
+    class TestDC:
+        a: int
+        b: float
+
+    def recorder(time: float, value: TestDC) -> float:
+        return value.a + value.b
+
+    class ExampleActor(UP.Actor):
+        dc_state = UP.DataclassState[TestDC](
+            valid_types=TestDC,
+            recording=True,
+            recording_functions=[(recorder, "total_of_data")],
+        )
+
+    class SomeTask(UP.Task):
+        def task(self, *, actor: ExampleActor) -> TASK_GEN:
+            actor.dc_state.a += 1
+            actor.dc_state.b += 4
+            yield UP.Wait(0.1)
+            actor.dc_state.b += 4
+            yield UP.Wait(0.1)
+            actor.dc_state.a -= 3
+
+    with UP.EnvironmentContext() as env:
+        ea = ExampleActor(name="Exam", dc_state=TestDC(0, 0.0))
+        task = SomeTask()
+        task.run(actor=ea)
+        env.run()
+        assert env.now == 0.2
+        # does fields work?
+        fs = fields(ea.dc_state)
+        assert [f.name for f in fs] == ["a", "b"]
+
+        with pytest.raises(TypeError, match="doesn't match type:"):
+            ea.dc_state.a = "cause error"  # type: ignore [assignment]
+
+        # let's check histories
+        assert len(ea._state_histories) == 3
+        assert ea._state_histories["dc_state.a"] == [(0.0, 0), (0.0, 1), (0.2, -2)]
+        assert ea._state_histories["dc_state.b"] == [(0.0, 0.0), (0.0, 4.0), (0.1, 8.0)]
+        assert ea._state_histories["total_of_data"] == [
+            (0.0, 0.0),
+            (0.0, 1.0),
+            (0.0, 5.0),
+            (0.1, 9.0),
+            (0.2, 6.0),
+        ]
+
+        assert ea.dc_state == TestDC(-2, 8.0)
+
+
+def test_multistore_state() -> None:
+    class MSActor(UP.Actor):
+        mstate = UP.MultiStoreState[UP.SelfMonitoringStore](
+            valid_types=Store,
+            default=UP.SelfMonitoringStore,
+            default_kwargs={"capacity": 3},
+        )
+        cstate = UP.MultiStoreState[Container](
+            valid_types=Container,
+            default=Container,
+        )
+
+    with UP.EnvironmentContext() as env:
+        ms = MSActor(
+            name="Example",
+            mstate=["One", "Two"],
+            cstate={"New": {"kind": UP.SelfMonitoringContainer, "init": 100}},
+        )
+        mstate = ms.mstate
+        assert len(mstate) == 2
+        assert "One" in mstate
+        assert "Two" in mstate
+        assert ms.mstate["One"].capacity == 3
+        assert ms.mstate["Two"].capacity == 3
+        assert ms.cstate["New"].level == 100
+
+        def _proc() -> SIMPY_GEN:
+            yield ms.mstate["One"].put(1)
+            yield ms.mstate["Two"].put(2)
+            yield env.timeout(1.0)
+            yield ms.cstate["New"].put(20)
+
+        env.process(_proc())
+        env.run()
+        assert ms.mstate["One"].items == [1]
+        assert ms.mstate["Two"].items == [2]
+        assert ms.cstate["New"].level == 120
+        assert hasattr(ms.cstate["New"], "_quantities")
+        assert ms.cstate["New"]._quantities == [(0, 100), (1, 120)]
+
+        with pytest.raises(UpstageError, match="is of type <class 'simpy.resources.container"):
+            MSActor(name="Example2", mstate={"Other": {}, "AContainer": {"kind": Container}})
+
+        with pytest.raises(UpstageError, match="Missing values for states"):
+            MSActor(name="Example3", mstate={"Other": {}})
+
+        actor = MSActor(name="exam", mstate={"E": UP.SelfMonitoringStore(env=env)}, cstate=["New"])
+        assert actor.mstate["E"].items == []
+
+        with pytest.raises(UpstageError, match="Bad argument input"):
+            MSActor(name="example", mstate={"other": {"badinput": 10}})
+
+    # test the docstring
+    class Warehouse(Actor):
+        storage = UP.MultiStoreState[Store | Container](
+            default=Store,
+            valid_types=(Store, Container),
+            default_kwargs={"capacity": 100},
+        )
+
+    with UP.EnvironmentContext() as env:
+        wh = Warehouse(
+            name="Depot",
+            storage={
+                "shelf": {"capacity": 10},
+                "bucket": {"kind": UP.SelfMonitoringContainer, "init": 30},
+                "charger": {},
+            },
+        )
+        assert wh.storage["shelf"].capacity == 10
+        assert hasattr(wh.storage["bucket"], "level")
+        assert wh.storage["bucket"].level == 30
+        assert wh.storage["charger"].capacity == 100
+        assert hasattr(wh.storage["charger"], "items")
+        assert wh.storage["charger"].items == []
+        env.run(until=2)
+
+        def _proc() -> SIMPY_GEN:
+            yield UP.Put(wh.storage["bucket"], 20).as_event()
+
+        env.process(_proc())
+        env.run()
+        assert wh.storage["bucket"].level == 50
+        assert hasattr(wh.storage["bucket"], "_quantities")
+        assert wh.storage["bucket"]._quantities == [(0.0, 30), (2.0, 50)]
+
+
+def test_extra_recording() -> None:
+    """Test that the extra recording works."""
+
+    def recorder(time: float, value: float) -> float:
+        return time * value
+
+    def recorder2(time: float, value: float) -> float:
+        return time * (value + 1)
+
+    class FailingRecord(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+
+    class FailingRecord2(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "time_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording_functions=[(recorder, "a_state")],
+        )
+
+    class RecordingStates(UP.Actor):
+        a_state = UP.State[float](
+            default=0.0,
+            recording=True,
+            recording_functions=[(recorder, "a_mult")],
+        )
+        b_state = UP.State[float](
+            default=0.0,
+            recording=True,
+            recording_functions=[
+                (recorder, "b_mult"),
+                (recorder2, "b_mult2"),
+            ],
+        )
+
+    with UP.EnvironmentContext() as env:
+        with pytest.raises(SimulationError, match="Duplicated state or recording name"):
+            FailingRecord(name="example")
+
+        with pytest.raises(SimulationError, match="Duplicated state or recording name"):
+            FailingRecord2(name="example")
+
+        rs = RecordingStates(name="example")
+        env.run(until=1)
+        rs.a_state = 3
+        rs.b_state = 4
+        env.run(until=3)
+        rs.a_state += 1
+        rs.b_state += 1
+        assert "a_state" in rs._state_histories
+        assert "a_mult" in rs._state_histories
+        assert "b_mult" in rs._state_histories
+        assert "b_mult2" in rs._state_histories
+        assert "b_state" in rs._state_histories
+        assert len(rs._state_histories) == 5
+
+        assert rs._state_histories["a_state"] == [(0.0, 0), (1.0, 3), (3.0, 4)]
+        assert rs._state_histories["a_mult"] == [(0.0, 0), (1.0, 3), (3.0, 12)]
+        assert rs._state_histories["b_state"] == [(0.0, 0), (1.0, 4), (3.0, 5)]
+        assert rs._state_histories["b_mult"] == [(0.0, 0), (1.0, 4), (3.0, 15)]
+        assert rs._state_histories["b_mult2"] == [(0.0, 0), (1.0, 5), (3.0, 18)]
+
+
+def test_extra_recording_docs() -> None:
+    """Test the recording example from the docs.
+
+    This also checks the typing and loading from a class.
+    """
+
+    from collections import Counter
+
+    class NameStorage:
+        def __init__(self) -> None:
+            self.seen: dict[str, int] = Counter()
+            self.seen[""] = 0
+
+        def __call__(self, time: float, value: str) -> float:
+            if value:
+                self.seen[value] += 1
+            return max(self.seen.values())
+
+    def first_letter(time: float, value: str) -> str:
+        if value:
+            return value[0]
+        return ""
+
+    class Cashier(UP.Actor):
+        people_seen = UP.State[str](
+            default="",
+            recording=True,
+            record_duplicates=True,
+            recording_functions=[
+                (NameStorage, "max_repeats"),
+                (first_letter, "first_letter"),
+            ],
+        )
+
+    with UP.EnvironmentContext():
+        cash = Cashier(name="Ertha")
+        cash2 = Cashier(name="Bertha")
+        cash.people_seen = "James"
+        cash.people_seen = "Bob"
+        cash.people_seen = "James"
+        cash.people_seen = "Fred"
+        cash.people_seen = "James"
+
+        assert cash._state_histories["max_repeats"] == [
+            (0.0, 0),
+            (0.0, 1),
+            (0.0, 1),
+            (0.0, 2),
+            (0.0, 2),
+            (0.0, 3),
+        ]
+        assert cash._state_histories["first_letter"] == [
+            (0.0, ""),
+            (0.0, "J"),
+            (0.0, "B"),
+            (0.0, "J"),
+            (0.0, "F"),
+            (0.0, "J"),
+        ]
+
+        assert cash2._state_histories["max_repeats"] == [(0.0, 0)]
+
+    class CashierNonDup(UP.Actor):
+        people_seen = UP.State[str](
+            default="",
+            recording=True,
+            record_duplicates=False,
+            recording_functions=[
+                (NameStorage, "max_repeats"),
+                (first_letter, "first_letter"),
+            ],
+        )
+
+    with UP.EnvironmentContext():
+        cash3 = CashierNonDup(name="Ertha")
+        cash3.people_seen = "James"
+        cash3.people_seen = "Bob"
+        cash3.people_seen = "James"
+        cash3.people_seen = "Fred"
+        cash3.people_seen = "James"
+
+        assert cash3._state_histories["max_repeats"] == [
+            (0.0, 0),
+            (0.0, 1),
+            (0.0, 2),
+            (0.0, 3),
+        ]
+        assert cash3._state_histories["first_letter"] == [
+            (0.0, ""),
+            (0.0, "J"),
+            (0.0, "B"),
+            (0.0, "J"),
+            (0.0, "F"),
+            (0.0, "J"),
+        ]
+
+
+if __name__ == "__main__":
+    test_multistore_state()

@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
@@ -48,11 +48,14 @@ def test_api() -> None:
         "CartesianLocationData",
         "GeodeticLocationData",
         "LinearChangingState",
+        "DataclassState",
+        "DictionaryState",
         "CartesianLocationChangingState",
         "State",
         "GeodeticLocationChangingState",
         "DetectabilityState",
         "ResourceState",
+        "MultiStoreState",
         "DecisionTask",
         "Task",
         "process",
@@ -61,7 +64,8 @@ def test_api() -> None:
         "TaskNetwork",
         "TaskNetworkFactory",
         "TaskLinks",
-        "CommsManager",
+        "PointToPointCommsManager",
+        "RoutingTableCommsManager",
         "Message",
         "MessageContent",
         "MotionAndDetectionError",

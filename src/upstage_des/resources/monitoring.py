@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
@@ -49,8 +49,8 @@ class MonitoringMixin(NamedUpstageEntity, skip_classname=True):
 
 
 class SelfMonitoringStore(
-    Store,
     MonitoringMixin,
+    Store,
     skip_classname=True,
 ):
     """A self-monitoring version of the SimPy Store."""
@@ -108,8 +108,8 @@ class SelfMonitoringStore(
 
 
 class SelfMonitoringFilterStore(
-    FilterStore,
     MonitoringMixin,
+    FilterStore,
     skip_classname=True,
 ):
     """A self-monitoring version of the SimPy FilterStore."""
@@ -166,8 +166,8 @@ class SelfMonitoringFilterStore(
 
 
 class SelfMonitoringContainer(
-    Container,
     MonitoringMixin,
+    Container,
     skip_classname=True,
 ):
     """A self-monitoring version of the SimPy Container."""
@@ -219,8 +219,8 @@ class SelfMonitoringContainer(
 
 
 class SelfMonitoringContinuousContainer(
-    ContinuousContainer,
     MonitoringMixin,
+    ContinuousContainer,
     skip_classname=True,
 ):
     """A self-monitoring version of the Continuous Container."""
@@ -275,8 +275,8 @@ class SelfMonitoringSortedFilterStore(SortedFilterStore, SelfMonitoringStore, sk
 
 
 class SelfMonitoringReserveContainer(
-    ReserveContainer,
     MonitoringMixin,
+    ReserveContainer,
     skip_classname=True,
 ):
     """A self-monitoring version of the ReserveContainer."""

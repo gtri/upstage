@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
@@ -9,7 +9,6 @@ from collections import defaultdict
 from collections.abc import Generator, Iterable
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
-from functools import wraps
 from math import floor
 from random import Random
 from time import gmtime, strftime
@@ -233,12 +232,13 @@ class UpstageBase:
     >>>     assert data.env is env
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Simple init to check if environment should be set."""
         try:
             _ = self.env
         except UpstageError:
             warn(f"Environment not created at instantiation of {self}")
+        super().__init__(*args, **kwargs)
 
     @property
     def env(self) -> SimpyEnv:
@@ -382,35 +382,7 @@ class NamedUpstageEntity(UpstageBase):
         >>> assert rc in rc.get_entity_group("car")
     """
 
-    @classmethod
-    def __init_subclass__(
-        cls,
-        entity_groups: Iterable[str] | str | None = None,
-        add_to_entity_groups: bool = True,
-        skip_classname: bool = False,
-    ) -> None:
-        if not add_to_entity_groups:
-            return
-
-        entity_groups = [] if entity_groups is None else entity_groups
-
-        if isinstance(entity_groups, str):
-            entity_groups = [entity_groups]
-
-        entity_groups = list(entity_groups)
-
-        if cls.__name__ not in entity_groups and not skip_classname:
-            entity_groups.append(cls.__name__)
-
-        entity_group = list(set(entity_groups))
-        old_init = cls.__init__
-
-        @wraps(old_init)
-        def the_actual_init(inst: NamedUpstageEntity, *args: Any, **kwargs: Any) -> None:
-            inst._add_entity(entity_group)
-            old_init(inst, *args, **kwargs)
-
-        setattr(cls, "__init__", the_actual_init)
+    _entity_groups: set[str]
 
     def _add_to_group(self, group_name: str) -> None:
         """Add to a single group.
@@ -437,7 +409,7 @@ class NamedUpstageEntity(UpstageBase):
         """
         ...
 
-    def _add_entity(self, group_names: list[str]) -> None:
+    def _add_entity(self, group_names: set[str]) -> None:
         """Add self to an entity group(s).
 
         Args:
@@ -448,6 +420,36 @@ class NamedUpstageEntity(UpstageBase):
                 continue
             self._add_to_group(group_name)
         self._add_special_group()
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Init the named entity."""
+        super().__init__(*args, **kwargs)
+        self._add_entity(self._entity_groups)
+
+    @classmethod
+    def __init_subclass__(cls, *args: Any, **kwargs: Any) -> None:
+        entity_groups: Iterable[str] | str | None = kwargs.get("entity_groups")
+        add_to_entity_groups: bool = kwargs.get("add_to_entity_groups", True)
+        skip_classname: bool = kwargs.get("skip_classname", False)
+        cls._entity_groups = set()
+        if not add_to_entity_groups:
+            return
+
+        entity_groups = [] if entity_groups is None else entity_groups
+
+        if isinstance(entity_groups, str):
+            entity_groups = [entity_groups]
+
+        entity_groups = set(entity_groups)
+
+        if cls.__name__ not in entity_groups and not skip_classname:
+            entity_groups.add(cls.__name__)
+
+        for base in cls.mro():
+            for grp in getattr(base, "_entity_groups", set()):
+                entity_groups.add(grp)
+
+        cls._entity_groups = entity_groups
 
 
 class SettableEnv(UpstageBase):
