@@ -35,15 +35,21 @@ State inputs:
 1. ``valid_types``: Types that the state can take for runtime checks. This may be removed in the future.
 2. ``recording``: If the state records every time its value changes.
 3. ``default``: A default value to use for the state. This allows the actor to be instantiated without it.
-4. ``frozen``: If ``True``, any attempt to set the state value throws an exception (default ``False``).
-5. ``record_duplicates``: If recording, allow duplicates to be recorded (default ``False``).
-6. ``allow_none_default``: If ``True``, the state can have no default value set and not throw the exception.
-7. ``default_factory``: Not shown, but provide a function to create the default value. Useful for mutable defaults.
+4. ``no_init``: If ``True``, keep the state out of the Actor's init, and raise an error if it's input.
+5. ``frozen``: If ``True``, any attempt to set the state value throws an exception (default ``False``).
+6. ``record_duplicates``: If recording, allow duplicates to be recorded (default ``False``).
+7. ``allow_none_default``: If ``True``, the state can have no default value set and not throw the exception.
+8. ``default_factory``: Not shown, but provide a function to create the default value. Useful for mutable defaults.
 
 The ``allow_none_default`` input is useful if you won't have access to the information needed to set a state when
 your Actor is instantiated. This is common when you need actors to have mutual references to each other, for example.
 
 If you set a default and a default factory, UPSTAGE will raise an error to force you to pick one or the other.
+
+The ``no_init`` input requires a default to be set. The purpose of this setting is to hint to the user that
+the state shouldn't be initialized to anything other than the value given by the default settings. This
+is useful for states that act like counters and should always start at a default value. If the state
+receives an input on initialization, and error will be thrown.
 
 Some states do not use all these parameters, so consult the specific documentation for more.
 

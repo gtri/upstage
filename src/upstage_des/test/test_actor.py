@@ -129,7 +129,7 @@ def test_get_knowledge() -> None:
         pass
 
     with EnvironmentContext():
-        act = TestActor(name="A Test Actor")
+        act = TestActor(name="A Test Actor", initial_knowledge={"initone": set([1, 2, 3])})
 
         name = "new"
         other_name = "some data"
@@ -141,6 +141,9 @@ def test_get_knowledge() -> None:
 
         other_value = act.get_knowledge(other_name)
         assert other_value is None, "Empty knowledge returned something other than None"
+
+        init_know = act.get_knowledge("initone")
+        assert init_know == set([1, 2, 3])
 
 
 def test_set_knowledge() -> None:
@@ -298,3 +301,27 @@ def test_actor_copy_with_knowledge() -> None:
 
         v2 = clone.get_knowledge("new")
         assert v2["A"] == 1, "Cloned knowledge retained reference"
+
+
+def test_no_init_state() -> None:
+    with pytest.raises(SimulationError, match="needs a default for no_init=True"):
+
+        class BadActor(UP.Actor):
+            st = UP.State[int](no_init=True)
+
+    class NoInitExample(UP.Actor):
+        a = UP.State[int](default=0, no_init=True)
+        b = UP.State[float](default_factory=lambda: 3.0, no_init=True)
+        c = UP.State[str]()
+
+    with UP.EnvironmentContext():
+        act = NoInitExample(
+            name="exam",
+            c="hello",
+        )
+        assert act.a == 0
+        assert act.b == 3.0
+        assert act.c == "hello"
+
+        with pytest.raises(SimulationError, match="Initializing a no_init state is disallowed"):
+            NoInitExample(name="exam", a=2, c="hello")

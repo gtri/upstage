@@ -94,6 +94,7 @@ class State(Generic[ST]):
         *,
         default: ST | None = None,
         frozen: bool = False,
+        no_init: bool = False,
         valid_types: type | tuple[type, ...] | None = None,
         recording: bool = False,
         record_duplicates: bool = False,
@@ -121,6 +122,7 @@ class State(Generic[ST]):
         Args:
             default (Any | None, optional): Default value of the state. Defaults to None.
             frozen (bool, optional): If the state is allowed to change. Defaults to False.
+            no_init (bool, optional): Ignore the state in the init and rely on the default.
             valid_types (type | tuple[type, ...] | None, optional): Types allowed. Defaults to None.
             recording (bool, optional): If the state records itself. Defaults to False.
             record_duplicates (bool, optional): If the state records duplicate values.
@@ -139,7 +141,11 @@ class State(Generic[ST]):
 
         if self._default is not None and self._default_factory is not None:
             raise UpstageError("State needs to only use default or default factory.")
+        any_def = self._default is not None or self._default_factory is not None
 
+        self._no_init = no_init
+        if self._no_init and not any_def:
+            raise SimulationError("State needs a default for no_init=True")
         self._frozen = frozen
         self._recording = recording
         self._record_duplicates = record_duplicates
