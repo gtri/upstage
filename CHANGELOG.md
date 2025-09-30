@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.4.0
+
+* State default and default_factory improvements (#82)
+  * Only one of the two is allowed
+  * The factory is run on each initialization of an Actor
+  * No more deepcopy of a default
+* State Recording Functions (#85)
+  * Custom functions and callable classes add more data when states update
+* Dictionary and Dataclass States (#94)
+  * `DictionaryState` and `DataclassState` added.
+  * UPSTAGE will record attribute changes in those data types automatically
+  * No more `actor.record_state(statename)` needed for those data types as states.
+* Added `MultiStoreState` (#96)
+  * Similar to `DictionaryState`. Keys map to `Store` and `Container` resources.
+  * Help for defaults and other settings for the resources.
+  * Data recording manages `_quantities`
+* Communications Improvements
+  * Modes for `CommunicationStore` are not required until instantiation (#97)
+  * Added a Communications manager for network message routing (#99)
+* Fixed bug in `NamedUpstageEntity` where multiple inheritance failed to provide all `entity_groups` (#101)
+* Actors can set knowledge on instantiation (#102)
+* States can force the default value to be the first value with `no_init=True` (#102)
+
 ## v0.3.3
 
 * Added jupyterlite example to documentation
