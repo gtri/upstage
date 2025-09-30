@@ -215,7 +215,7 @@ Args:
         for state, value in all_states.items():
             typ = Any if not value._types else Union[*value._types]
             default_str = "No Default"
-            default = Parameter.empty
+            default: Any = Parameter.empty
             if value.has_default():
                 default = value._default if value._default is not None else value._default_factory
                 default_str = f"{default}"
