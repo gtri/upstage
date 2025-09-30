@@ -99,7 +99,6 @@ def test_routine_cancel() -> None:
     # First check, does the routine do what we think?
     with UP.EnvironmentContext() as env:
         actor = ExampleActor2(name="example")
-
         task = CancelTask()
         proc = task.run(actor=actor)
         place = _placer(actor.store, "first", 2.0, env)
@@ -114,7 +113,6 @@ def test_routine_cancel() -> None:
     # Check cancelling partway
     with UP.EnvironmentContext() as env:
         actor = ExampleActor2(name="example")
-
         task = CancelTask()
         proc = task.run(actor=actor)
         place = _placer(actor.store, "first", 2.0, env)
@@ -129,7 +127,6 @@ def test_routine_cancel() -> None:
     # Check cancelling before anything
     with UP.EnvironmentContext() as env:
         actor = ExampleActor2(name="example")
-
         task = CancelTask()
         proc = task.run(actor=actor)
         env.run(until=3)
@@ -141,7 +138,6 @@ def test_routine_cancel() -> None:
     # For fun and enrichment, see what rehearsal does
     with UP.EnvironmentContext() as env:
         actor = ExampleActor2(name="example")
-
         task = CancelTask()
         actor_clone = task.rehearse(actor=actor)
         assert actor_clone.value == [UP.PLANNING_FACTOR_OBJECT] * 2
