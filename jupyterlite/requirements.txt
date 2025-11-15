@@ -6,3 +6,4 @@ jupyterlab-night
 plotly>=6,<7
 nbformat
 upstage_des>=0.4,<0.5
+networkx>=3.5,<4

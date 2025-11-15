@@ -1,0 +1,110 @@
+raw_inputs:
+  wood_pulp: 3000
+  resin_a: 500
+  resin_b: 1000
+  plastic_sheets: 400
+  dye: 300
+  abrasive_grit: 250
+manufacturing_recipes:
+  - name: paper_making
+    description: "Make basic paper for sticky notes"
+    inputs:
+      wood_pulp: 100
+      dye: 5
+    outputs:
+      colored_paper_roll: 10
+    success_rate: 0.99
+    timing: 3.0 # hours by default
+  - name: stiff_paper
+    description: "Backing paper for sandpaper"
+    inputs:
+      wood_pulp: 200
+    outputs:
+      stiff_paper_roll: 3
+    timing: 4 hours 30 minutes
+    success_rate: 0.9
+  - name: light_glue_making
+    inputs:
+      resin_a: 30
+      resin_b: 30
+    outputs:
+      light_glue: 60
+    timing: 1 hour 20 minutes
+    success_rate: 1.0
+  - name: tough_glue_making
+    inputs:
+      resin_a: 50
+      resin_b: 10
+    outputs:
+      tough_glue: 60
+    timing: 1 hour 20 minutes
+    success_rate: 1.0
+  - name: sandpaper_making
+    inputs:
+      tough_glue: 30
+      stiff_paper_roll: 2
+      abrasive_grit: 20
+    outputs:
+      sandpaper: 2
+    timing: 2 hours
+    success_rate: 1.0
+  - name: cut_plastic_sheets
+    inputs:
+      plastic_sheets: 5
+    outputs:
+      cut_plastic_sheets: 5
+    timing: 30 minutes
+    success_rate: 0.75
+  - name: tape_making
+    inputs:
+      light_glue: 30
+      cut_plastic_sheets: 5
+    outputs:
+      tape: 10
+    timing: 2 hours
+    success_rate: 1.0
+  - name: sticky_note_making
+    inputs:
+      light_glue: 30
+      colored_paper_roll: 10
+    outputs:
+      sticky_notes: 5
+    timing: 3 hours
+    success_rate: 1.0
+manufacturing_stations:
+  - name: Chemistry 1
+    capable_processes: ["light_glue_making"]
+  - name: Chemistry 2
+    capable_processes: ["light_glue_making", "tough_glue_making"]
+  - name: Chemistry 3
+    capable_processes: ["tough_glue_making"]
+  - name: Roller Cutter
+    capable_processes: ["cut_plastic_sheets"]
+  - name: Paper Making 1
+    capable_processes: ["paper_making"]
+  - name: Paper Making Ultra 1
+    capable_processes: ["stiff_paper"]
+  - name: Paper Making Ultra 2
+    capable_processes: ["stiff_paper", "paper_making"]
+  - name: Adhesion Machine 1
+    capable_processes: ["tape_making", "sticky_note_making"]
+  - name: Adhesion Machine 2
+    capable_processes: ["tape_making", "sticky_note_making"]
+  - name: Sandpaper Machine
+    capable_processes: ["sandpaper_making"]
+shop_layout:
+  machine_locations:
+    "Chemistry 1": [4, 18]
+    "Chemistry 2": [8, 18]
+    "Chemistry 3": [12, 18]
+    "Roller Cutter": [6, 14]
+    "Paper Making 1": [10, 14]
+    "Paper Making Ultra 1": [14, 14]
+    "Paper Making Ultra 2": [4, 9]
+    "Adhesion Machine 1": [8, 9]
+    "Adhesion Machine 2": [12, 9]
+    "Extra Adhesion Machine": [19, 19]
+  robot_depot: [10, 0]
+  input_station: [0, 0]
+  output_station: [20, 0]
+  extent: [21, 21]
