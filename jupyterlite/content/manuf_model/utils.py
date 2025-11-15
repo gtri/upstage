@@ -5,7 +5,7 @@ from math import ceil
 
 import networkx as nx
 import numpy as np
-from inputs import ManufacturingItemData, ManufacturingProcessData, ManufacturingStationData
+from manuf_model.inputs import ManufacturingItemData, ManufacturingProcessData, ManufacturingStationData
 from scipy.optimize import Bounds, LinearConstraint, milp
 
 
@@ -29,23 +29,24 @@ def solve_for_inputs(
 
     G = nx.DiGraph()
     for proc in processes:
-        inputs = proc["inputs"].keys()
-        outputs = proc["outputs"].keys()
+        inputs = proc.inputs
+        outputs = proc.outputs
         for a, b in product(inputs, outputs):
-            G.add_edge(b, a)
+            G.add_edge(b.name, a.name)
 
+    node: str
     for node in nx.topological_sort(G):
         amt = needs[node]
-        proc = [p for p in processes if node in p["outputs"]]
+        proc = [p for p in processes if p.has_output(node)]
         if not proc:
             continue
         assert len(proc) == 1
         proc = proc[0]
-        amt_per = proc["outputs"][node]
+        amt_per = proc.get_output(node).amount
         runs = ceil(amt / amt_per)
-        process_counts[proc["name"]] += runs
-        for inp, num in proc["inputs"].items():
-            needs[inp] += num * runs
+        process_counts[proc.name] += runs
+        for inp in proc.inputs:
+            needs[inp.name] += inp.amount * runs
 
     return process_counts, needs
 
@@ -53,8 +54,8 @@ def solve_for_inputs(
 def assign_work(
     process_counts: dict[str, int],
     machines: list[ManufacturingStationData],
-    machine_classes: list[str],
-) -> tuple[dict[str, list[str]] | None, str]:
+    machine_classes: dict[str, list[str]],
+) -> tuple[dict[str, dict[str, int]] | None, str]:
     """Assign processes to machines.
 
     We've pre-solved the counts of processes to avoid a large optimization problem.
@@ -70,7 +71,7 @@ def assign_work(
     Args:
         process_counts (dict[str, int]): _description_
         machines (list[ManufacturingStationData]): _description_
-        machine_classes (list[str]): Partial names to match on.
+        machine_classes (dict[str, list[str]]): Named machine classes.
 
     Returns:
         dict[str, list[str]] | None: Machine name to process list or None if error.
@@ -81,7 +82,7 @@ def assign_work(
 
     # Make data based on index
     mach_to_proc_map = {
-        i: [processes.index(p) for p in m.capable_processes]
+        i: [processes.index(p) for p in m.capable_processes if p in processes]
         for i, m in enumerate(machines)
     }
     proc_count_map = {
@@ -89,7 +90,7 @@ def assign_work(
         for k, v in process_counts.items()
     }
     mach_to_class_map = {
-        i: [j for j, c in enumerate(machine_classes) if c in m][0]
+        i: [j for j, c in enumerate(machine_classes) if m in machine_classes[c]][0]
         for i, m in enumerate(mach_names)
     }
 
@@ -173,10 +174,10 @@ def assign_work(
     if not res.success:
         return None, res.message
     
-    results: dict[str, list[str]] = defaultdict(list)
+    results: dict[str, dict[str, int]] = defaultdict(dict)
     
     for (m, p), idx in x_idx.items():
         mname = mach_names[m]
         pname = processes[p]
-        results[mname].append(pname)
+        results[mname][pname] = int(res.x[idx])
     return results, ""

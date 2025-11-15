@@ -92,6 +92,22 @@ manufacturing_stations:
     capable_processes: ["tape_making", "sticky_note_making"]
   - name: Sandpaper Machine
     capable_processes: ["sandpaper_making"]
+machine_classes:
+  chemistry: 
+    - Chemistry 1
+    - Chemistry 2
+    - Chemistry 3
+  cutting:
+    - Roller Cutter
+  paper:
+    - Paper Making 1
+    - Paper Making Ultra 1
+    - Paper Making Ultra 2
+  adhesion:
+    - Adhesion Machine 1
+    - Adhesion Machine 2
+  sandpaper:
+    - Sandpaper Machine
 shop_layout:
   machine_locations:
     "Chemistry 1": [4, 18]

@@ -98,7 +98,7 @@ class ShopStart(UP.DecisionTask):
         # Find the stations that can produce the goals
         process_counts = solve_for_inputs(goals, actor.processes)
         # hard coded for now..
-        classes = ["Chemistry", "Cutter", "Paper Making", "Adhesion", "Sandpaper"]
+        classes: dict[str, list[str]] = actor.get_knowledge("machine_classes")
         assignment, message = assign_work(process_counts, actor.stations, classes)
         if assignment is None:
             raise UP.SimulationError(f"Bad solve in assignment: {message}")

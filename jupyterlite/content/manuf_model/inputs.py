@@ -23,6 +23,18 @@ class ManufacturingProcessData:
     timing: float | Callable[[Random], float]
     success_rate: float = field(default=1.0)
 
+    def has_output(self, name: str) -> bool:
+        return any([name==o.name for o in self.outputs])
+    
+    def has_input(self, name: str) -> bool:
+        return any([name==i.name for i in self.inputs])
+
+    def get_output(self, name: str) -> ManufacturingItemData:
+        return [o for o in self.outputs if name==o.name][0]
+    
+    def get_input(self, name: str) -> ManufacturingItemData:
+        return [i for i in self.inputs if name==i.name][0]
+
 
 @dataclass
 class ManufacturingStationData:
@@ -36,4 +48,8 @@ class ShopFloorData:
     """A manufacturing plant, very roughly approximated."""
     name: str
     machines: list[ManufacturingStationData]
-    locations: dict[str, tuple[float, float]]
+    station_locations: dict[str, tuple[float, float]]
+    robot_depot: tuple[float, float]
+    input_station: tuple[float, float]
+    output_station: tuple[float, float]
+    extent: tuple[float, float]
