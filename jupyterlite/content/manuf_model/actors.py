@@ -2,17 +2,18 @@
 from functools import lru_cache
 
 import networkx as nx
-from inputs import ManufacturingItemData, ManufacturingProcessData
+from manuf_model.inputs import ManufacturingItemData, ManufacturingProcessData
 
 import upstage_des.api as UP
 
 
 class ManufacturingStation(UP.Actor):
     """A station that does some manufacturing task."""
-    location = UP.CartesianLocation()
+    location = UP.State[UP.CartesianLocation]()
     possible_jobs = UP.State[list[ManufacturingProcessData]]()
-    shop = UP.State["ManufacturingShop"]()
-    current_job = UP.State[str | None](default=None, allow_none_default=True)
+    job_ranks = UP.State[dict[str, int]]()
+    shop = UP.State["ManufacturingShop"](default=None, allow_none_default=True)
+    job_list = UP.State[list[str] | None](default=None, allow_none_default=True)
     output_location = UP.State[str](default="")
     attempted_jobs = UP.DictionaryState[int](valid_types=(int,), recording=True)
     jobs_done = UP.DictionaryState[int](valid_types=(int,), recording=True)

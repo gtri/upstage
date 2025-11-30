@@ -124,3 +124,10 @@ shop_layout:
   input_station: [0, 0]
   output_station: [20, 0]
   extent: [21, 21]
+robots:
+  small:
+    capacity: 10
+    count: 10
+  large:
+    capacity: 30
+    count: 10

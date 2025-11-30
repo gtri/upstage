@@ -12,7 +12,7 @@ from scipy.optimize import Bounds, LinearConstraint, milp
 def solve_for_inputs(
     outputs: list[ManufacturingItemData],
     processes: list[ManufacturingProcessData],
-) -> tuple[dict[str, int], dict[str, int]]:
+) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
     """Given outputs, solve for inputs needed, number of processes.
 
     Args:
@@ -35,6 +35,7 @@ def solve_for_inputs(
             G.add_edge(b.name, a.name)
 
     node: str
+    process_rank = {str(name): i for i, names in enumerate(nx.topological_generations(G)) for name in names}
     for node in nx.topological_sort(G):
         amt = needs[node]
         proc = [p for p in processes if p.has_output(node)]
@@ -48,7 +49,7 @@ def solve_for_inputs(
         for inp in proc.inputs:
             needs[inp.name] += inp.amount * runs
 
-    return process_counts, needs
+    return process_counts, process_rank, needs
 
 
 def assign_work(

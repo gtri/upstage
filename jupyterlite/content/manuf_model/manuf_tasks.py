@@ -1,10 +1,11 @@
 """Tasks for shop floor machines and planning."""
 from collections import defaultdict
 from dataclasses import replace
+from itertools import chain
 
-from actors import ManufacturingShop, ManufacturingStation
-from inputs import ManufacturingItemData
-from utils import assign_work, solve_for_inputs
+from manuf_model.actors import ManufacturingShop, ManufacturingStation
+from manuf_model.inputs import ManufacturingItemData
+from manuf_model.utils import assign_work, solve_for_inputs
 
 import upstage_des.api as UP
 from upstage_des.type_help import TASK_GEN
@@ -16,7 +17,7 @@ class StationHold(UP.Task):
     """Wait for a job to be assigned."""
     def task(self, *, actor: ManufacturingStation) -> TASK_GEN:
         """Infinite hold until a variable being set kicks us out."""
-        if actor.current_job is None:
+        if actor.job_list is None:
             yield UP.Event
 
     def on_interrupt(
@@ -35,23 +36,19 @@ class StationInputWait(UP.Task):
     def task(self, *, actor: ManufacturingStation) -> TASK_GEN:
         """Wait for inputs."""
         current_inputs: dict[str, int] = defaultdict(int)
-        recipe = [j for j in actor.possible_jobs if j.name == actor.current_job][0]
-        while True:
-            # put out a request for items!
-            yield UP.Put(actor.shop.needs, (self, recipe))
+        assert actor.job_list is not None
+        next_job = sorted(actor.job_list, key=actor.job_ranks.__getitem__)[0]
+        self.set_actor_knowledge(actor, "chosen job", next_job, overwrite=True)
+        recipe = [j for j in actor.possible_jobs if j.name == next_job][0]
+        actor.log(f"Got job: {next_job}")
+        # put out a request for items!
+        yield UP.Put(actor.shop.needs, (self, recipe))
+        while any(
+            current_inputs[need.name] < need.amount
+            for need in recipe.inputs
+        ):
             inp: ManufacturingItemData = yield UP.Get(actor.input_queue)
             current_inputs[inp.name] += inp.amount
-            if all(
-                current_inputs[need.name] <= need.amount
-                for need in recipe.inputs
-            ):
-                # We can process the recipe and put the rest of the ingredients
-                # back on the input stack.
-                use = {need.name: need.amount for need in recipe.inputs}
-                for k, v in current_inputs.items():
-                    amt = v - use.get(k, 0)
-                    if amt > 0:
-                        yield UP.Put(actor.input_queue, ManufacturingItemData(k, amt))
 
 
 class StationTask(UP.Task):
@@ -59,7 +56,8 @@ class StationTask(UP.Task):
     def task(self, *, actor: ManufacturingStation) -> TASK_GEN:
         """Create outputs from inputs."""
         rng = UP.get_stage().random
-        recipe = [j for j in actor.possible_jobs if j.name == actor.current_job][0]
+        job = self.get_actor_knowledge(actor, "chosen job", must_exist=True)
+        recipe = [j for j in actor.possible_jobs if j.name == job][0]
 
         time_to_proc = recipe.timing \
             if isinstance(recipe.timing, float) else \
@@ -78,6 +76,9 @@ class StationTask(UP.Task):
         else:
             yield UP.Put(actor.output_queue, [ManufacturingItemData(name="TRASH", amount=1)])
 
+        # Remove memory/goal of the job.
+        self.clear_actor_knowledge(actor, "chosen job")
+        actor.job_list.remove(job)
         # Hold on processing until the output is cleared
         evt = actor.create_knowledge_event("OUTPUT CLEARED")
         yield evt
@@ -89,36 +90,38 @@ station_process_net = UP.TaskNetworkFactory.from_ordered_loop(
 )
 
 ### Shop management tasks
-
 class ShopStart(UP.DecisionTask):
     """Set requirements for the shop."""
     def make_decision(self, *, actor: ManufacturingShop) -> None:
         """Set requirements then be done."""
         goals: list[ManufacturingItemData] = actor.get_knowledge("output goals", must_exist=True)
-        # Find the stations that can produce the goals
-        process_counts = solve_for_inputs(goals, actor.processes)
-        # hard coded for now..
-        classes: dict[str, list[str]] = actor.get_knowledge("machine_classes")
-        assignment, message = assign_work(process_counts, actor.stations, classes)
-        if assignment is None:
-            raise UP.SimulationError(f"Bad solve in assignment: {message}")
+        assignment: dict[str, dict[str, int]] = actor.get_knowledge("assignment", must_exist=True)
         for machine_name, processes in assignment.items():
-            ...
+            process_list = list(chain(*[[k]*v for k,v in processes.items()]))
+            actor.stations[machine_name].job_list = process_list
 
 
 class ShopRobotTasking(UP.Task):
     """Watch for changes that need a robot."""
     def task(self, *, actor: ManufacturingShop) -> TASK_GEN:
         """Check for outputs to call robots."""
+        need_get = UP.Get(actor.needs)
         stations = list(actor.stations.values())
         gets = [
             UP.Get(station.output_queue)
             for station in stations
-        ]
+        ] + [need_get]
         yield UP.Any(*gets)
-        for station, get in zip(stations, gets):
-            if get.is_complete():
-                # Kick off a task to get robots!
-                ...
-            else:
-                get.cancel()
+        # satisfy an input need first.
+        if need_get.is_complete():
+            ...
+
+
+shop_process_net = UP.TaskNetworkFactory(
+    "shop process network",
+    task_classes={"ShopStart": ShopStart, "ShopRobotTasking": ShopRobotTasking},
+    task_links={
+        "ShopStart": UP.TaskLinks(default="ShopRobotTasking", allowed=["ShopRobotTasking"]), 
+        "ShopRobotTasking": UP.TaskLinks(default="ShopRobotTasking", allowed=["ShopRobotTasking"]),
+    },
+)
