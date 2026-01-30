@@ -6,6 +6,7 @@
 """Classes for UPSTAGE events that feed to simpy."""
 
 from collections.abc import Callable
+from contextlib import suppress
 from typing import Any as tyAny
 from warnings import warn
 
@@ -14,7 +15,7 @@ from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.resource import Release, Request
 from simpy.resources.store import StoreGet, StorePut
 
-from .base import SimulationError, UpstageBase, UpstageError
+from .base import SIMPY_GEN, SimulationError, UpstageBase, UpstageError
 from .constants import PLANNING_FACTOR_OBJECT
 from .units import unit_convert
 
@@ -281,7 +282,7 @@ class BaseRequestEvent(BaseEvent):
             return
         if not self.is_complete():
             self._request_event.cancel()
-        # TODO: Do we put it back?
+        # Note: inherited classes need to deal with put-backs.
 
     def is_complete(self) -> bool:
         """Test if the request is finished.
@@ -603,8 +604,11 @@ class Get(BaseRequestEvent):
         if self.__is_store:
             if self.rehearsing and self.done_rehearsing:
                 return PLANNING_FACTOR_OBJECT
-            if self._request_event is not None and self._request_event.value is not None:
-                return self._request_event.value
+            if self._request_event is not None:
+                try:
+                    return self._request_event.value
+                except AttributeError:
+                    raise SimulationError("Requested item from an unfinished Get request.")
             else:
                 raise SimulationError("Requested item from an unfinished Get request.")
         else:
@@ -630,6 +634,27 @@ class Get(BaseRequestEvent):
         if self.__is_store:
             event_response = PLANNING_FACTOR_OBJECT
         return time_advance, event_response
+
+    def cancel(self) -> None:
+        """Cancel the get, and check if we got the item.
+
+        There is an edge case where a Get request has the item, but
+        isn't given back to the process because an interrupt sorts
+        to first in the queue. This method handles that edge
+        case, giving the item back.
+        """
+        super().cancel()
+        # Return the item if we got it.
+        if isinstance(self._request_event, ContainerGet | StoreGet):
+            with suppress(SimulationError):
+                value = self.get_value()
+                if value is PLANNING_FACTOR_OBJECT:
+                    return
+
+                def _putter() -> SIMPY_GEN:
+                    yield self.get_location.put(value)
+
+                self.env.process(_putter())
 
 
 class ResourceHold(BaseRequestEvent):

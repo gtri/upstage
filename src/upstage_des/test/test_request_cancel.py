@@ -30,7 +30,7 @@ class Putting(UP.Task):
         yield UP.Put(actor.the_store, "Second")
 
 
-f1 = UP.TaskNetworkFactory.from_single_looping("GET", Getting)
+f1 = UP.TaskNetworkFactory.from_single_terminating("GET", Getting)
 f2 = UP.TaskNetworkFactory.from_single_terminating("PUT", Putting)
 
 
