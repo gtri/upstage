@@ -3,9 +3,8 @@ from collections import defaultdict
 from dataclasses import replace
 from itertools import chain
 
-from manuf_model.actors import ManufacturingShop, ManufacturingStation
-from manuf_model.inputs import ManufacturingItemData
-from manuf_model.utils import assign_work, solve_for_inputs
+from manuf_model.actors import NeedsData, ManufacturingShop, ManufacturingStation
+from manuf_model.inputs import ManufacturingItemData, ManufacturingProcessData
 
 import upstage_des.api as UP
 from upstage_des.type_help import TASK_GEN
@@ -42,7 +41,7 @@ class StationInputWait(UP.Task):
         recipe = [j for j in actor.possible_jobs if j.name == next_job][0]
         actor.log(f"Got job: {next_job}")
         # put out a request for items!
-        yield UP.Put(actor.shop.needs, (self, recipe))
+        yield UP.Put(actor.shop.needs, NeedsData(self.env.now, self, "INPUT", recipe))
         while any(
             current_inputs[need.name] < need.amount
             for need in recipe.inputs
@@ -73,8 +72,10 @@ class StationTask(UP.Task):
                 actor.products_made[output.name] += output.amount
             # Dump all the outputs in one
             yield UP.Put(actor.output_queue, [replace(x) for x in recipe.outputs])
-        else:
-            yield UP.Put(actor.output_queue, [ManufacturingItemData(name="TRASH", amount=1)])
+            yield UP.Put(actor.shop.needs, NeedsData(self.env.now, actor, "OUTPUT", [replace(x) for x in recipe.outputs]))
+        # else:
+        #     yield UP.Put(actor.output_queue, [replace(x) for x in recipe.outputs])
+        #     yield UP.Put(actor.needs, (self.env.now, actor, "OUTPUT", ManufacturingItemData(name="TRASH", amount=1)))
 
         # Remove memory/goal of the job.
         self.clear_actor_knowledge(actor, "chosen job")
@@ -103,18 +104,54 @@ class ShopStart(UP.DecisionTask):
 
 class ShopRobotTasking(UP.Task):
     """Watch for changes that need a robot."""
+    def satisfy_needs(self, actor: ManufacturingShop) -> TASK_GEN:
+        """Satisfy or skip pending needs."""
+        preference = ["INPUT", "OUTPUT"]
+        actor._pending_needs.sort(key=lambda x: (preference.index(x[2]), x[0]))
+        for need in  actor._pending_needs:
+            if need.kind == "INPUT":
+                assert isinstance(need.need, ManufacturingProcessData)
+                # Get robots to move all input items to the station
+                needed = [x for x in need.needs.inputs]
+                from_store = actor.storage
+                to_store = need.needing_station.input_queue
+                fr, to = actor, need.needing_station
+                # Check if the needed are there
+                # How do I check that they aren't claimed?
+            elif need.kind == "OUTPUT":
+                assert isinstance(need.need, list)
+                assert all(isinstance(x, ManufacturingItemData) for x in need.need)
+                # Get robots to move output items to a store
+                from_store = need.needing_station.output_queue
+                fr, to = need.needing_station, actor
+
     def task(self, *, actor: ManufacturingShop) -> TASK_GEN:
         """Check for outputs to call robots."""
+        # Handle any existing needs
+        yield from self.satisfy_needs(actor)
+
         need_get = UP.Get(actor.needs)
-        stations = list(actor.stations.values())
-        gets = [
-            UP.Get(station.output_queue)
-            for station in stations
-        ] + [need_get]
-        yield UP.Any(*gets)
-        # satisfy an input need first.
-        if need_get.is_complete():
-            ...
+        yield need_get
+        the_need: NeedsData = need_get.get_value()
+        self._pending_needs.append(the_need)
+
+    def on_interrupt(self, *, actor: ManufacturingShop, cause: UP.NucleusInterrupt) -> UP.InterruptStates:
+        """Interrupt and route to task satisfaction code.
+
+        The cause will be for a the main store getting new things
+        or robots returning back home
+
+        Args:
+            actor (ManufacturingShop): _description_
+            cause (UP.NucleusInterrupt): _description_
+
+        Returns:
+            UP.InterruptStates: _description_
+        """
+        assert cause.state_name == "status_change"
+
+        return UP.InterruptStates.RESTART
+
 
 
 shop_process_net = UP.TaskNetworkFactory(

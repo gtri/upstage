@@ -1,5 +1,7 @@
 """Actors for a simple machine shop."""
+from dataclasses import dataclass
 from functools import lru_cache
+from typing import Literal
 
 import networkx as nx
 from manuf_model.inputs import ManufacturingItemData, ManufacturingProcessData
@@ -28,6 +30,14 @@ class ManufacturingStation(UP.Actor):
     )
 
 
+@dataclass
+class NeedsData:
+    time: float
+    needing_station: ManufacturingStation
+    kind: Literal["OUTPUT", "INPUT"]
+    need: ManufacturingProcessData | list[ManufacturingItemData]
+
+
 class ManufacturingShop(UP.Actor):
     """Coordinate a shop floor."""
     stations = UP.State[dict[str, ManufacturingStation]]()
@@ -50,6 +60,8 @@ class ManufacturingShop(UP.Actor):
         default=UP.SelfMonitoringStore,
     )
     paths = UP.State[nx.DiGraph](valid_types=nx.DiGraph)
+    _pending_needs = UP.State[list[NeedsData]](default_factory=list)
+    status_change = UP.State[int](default=0)
 
     @lru_cache
     def robot_counts(self, amount: int) -> set[tuple[int, ...]]:

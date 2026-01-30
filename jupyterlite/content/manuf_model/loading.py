@@ -35,6 +35,7 @@ class RobotData(TypedDict):
     capacity: float
     count: int
 
+
 class Loaded(TypedDict):
     input_resources: list[ManufacturingItemData]
     recipes: list[ManufacturingProcessData]
@@ -100,7 +101,6 @@ def load_from_yaml(file: Path) -> Loaded:
 def start_model(
     inputs: Loaded,
     goals: list[ManufacturingItemData],
-    robot_capacity: dict[str, int] | None = None,
 ):
     process_counts, process_ranks, needs = utils.solve_for_inputs(
         outputs=goals,
@@ -116,7 +116,7 @@ def start_model(
     
     shop = inputs["shop"]
 
-    robot_capacity = {"carrier": 10} if robot_capacity is None else robot_capacity
+    robot_capacity = {k: v["capacity"] for k, v in inputs["robots"].items()}
     all_resources = {
         manuf_item.name
         for recipe in inputs["recipes"]
@@ -169,13 +169,11 @@ def start_model(
             nuc.add_network(net.name, ["current_job"])
 
         # For the shop, we just have one net
-        net = manuf_tasks.shop_process_net.make_network()
-        the_shop.add_task_network(net)
-        
-        
-        
-        
+        shop_net = manuf_tasks.shop_process_net.make_network()
+        the_shop.add_task_network(shop_net)
         
         
         # WAIT TO START IT
-        the_shop.start_network_loop(net.name, "ShopStart")
+        nuc = UP.TaskNetworkNucleus(actor=the_shop)
+        nuc.add_network(shop_net.name, ["status_change"])
+        the_shop.start_network_loop(shop_net.name, "ShopStart")
