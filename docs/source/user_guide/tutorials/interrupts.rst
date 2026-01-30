@@ -134,6 +134,7 @@ UPSTAGE's interrupt handling system mitigates these key sources of
 error or frustration:
 
 #. Forgetting to cancel get and put events in an interrupt
+#. Handling edge cases when interrupting a get loses an item
 #. Cancelling and clearing :doc:`knowledge events </user_guide/how_tos/knowledge>`.
 #. Make the main task more readable about what it's doing.
 #. Simplifies interrupt causes and conditions.
