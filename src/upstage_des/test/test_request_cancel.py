@@ -1,10 +1,10 @@
 from typing import Any
-import pytest
+
 from simpy import Store, Timeout
-from simpy.resources.store import StoreGet, StorePut
+from simpy.resources.store import StorePut
+
 import upstage_des.api as UP
 from upstage_des.type_help import SIMPY_GEN, TASK_GEN
-
 
 
 class Storing(UP.Actor):
@@ -16,9 +16,9 @@ class Getting(UP.Task):
     def task(self, *, actor: Storing) -> TASK_GEN:
         """Get"""
         getter = UP.Get(actor.the_store)
-        ans = yield getter
+        yield getter
         actor.result = getter.get_value()
-    
+
     def on_interrupt(self, *, actor: Storing, cause: Any) -> UP.InterruptStates:
         return UP.InterruptStates.END
 
@@ -47,7 +47,7 @@ def _build_actor() -> Storing:
 
 def test_cancel_return() -> None:
     """For issue 110: https://github.com/gtri/upstage/issues/110
-    
+
     Demonstrate that a cancelled get request can return the item,
     and that it does so with a Put, so other getters can have it.
     """
@@ -73,7 +73,7 @@ def test_cancel_return() -> None:
             tasks = storing.get_running_tasks()
             task_data = tasks["GET"]
             task_data.process.interrupt(cause="Interrupted you")
-        
+
         env.process(_proc())
         # Run until the timeouts are supposed to act.
         env.run(until=1.0)
@@ -82,6 +82,8 @@ def test_cancel_return() -> None:
         assert len(env._queue) == 2
         assert env._queue[0][0] == 1.0
         assert env._queue[1][0] == 1.0
+        assert isinstance(env._queue[0][-1], Timeout)
+        assert isinstance(env._queue[1][-1], Timeout)
         assert env._queue[0][-1]._delay == 1.0
         assert env._queue[1][-1]._delay == 0.5
 
