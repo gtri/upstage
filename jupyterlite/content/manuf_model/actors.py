@@ -1,7 +1,7 @@
 """Actors for a simple machine shop."""
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Literal
+from typing import Any, Literal
 
 import networkx as nx
 from manuf_model.inputs import ManufacturingItemData, ManufacturingProcessData
@@ -35,29 +35,46 @@ class NeedsData:
     time: float
     needing_station: ManufacturingStation
     kind: Literal["OUTPUT", "INPUT"]
-    need: ManufacturingProcessData | list[ManufacturingItemData]
+    needs: ManufacturingProcessData | list[ManufacturingItemData]
+
+
+def _record_tote(time: float, carrying:list) -> Any:
+    ...
+
+
+class Tote(UP.Actor):
+    carrying = UP.State[list](
+        default_factory=list,
+        recording=True,
+        recording_functions=[(_record_tote, "carried")],
+    )
+    location = UP.State[str](default="", recording=True)
+
+    def is_empty(self) -> bool:
+        return self.carrying == []
+
+
+class ToteBay(UP.Actor):
+    empty_totes = UP.ResourceState[UP.SelfMonitoringStore](
+        default=UP.SelfMonitoringStore,
+    )
+    filled_totes = UP.State[list[Tote]](default_factory=list)
+    incoming_robots = UP.ResourceState[UP.SelfMonitoringStore](
+        default=UP.SelfMonitoringStore,
+    )
+    storage = UP.MultiStoreState(
+        valid_types=UP.SelfMonitoringContainer,
+        default=UP.SelfMonitoringContainer,
+    )
 
 
 class ManufacturingShop(UP.Actor):
     """Coordinate a shop floor."""
     stations = UP.State[dict[str, ManufacturingStation]]()
     processes = UP.State[list[ManufacturingProcessData]]()
-    robot_capacity = UP.State[dict[str, int]]()
-    robots = UP.MultiStoreState(
+    robots = UP.ResourceState[UP.SelfMonitoringContainer](
         valid_types=UP.SelfMonitoringContainer,
         default=UP.SelfMonitoringContainer,
-    )
-    storage = UP.MultiStoreState(
-        valid_types=UP.SelfMonitoringContainer,
-        default=UP.SelfMonitoringContainer,
-    )
-    needs = UP.ResourceState[UP.SelfMonitoringStore](
-        valid_types=UP.SelfMonitoringStore,
-        default=UP.SelfMonitoringStore,
-    )
-    outgoing = UP.ResourceState[UP.SelfMonitoringStore](
-        valid_types=UP.SelfMonitoringStore,
-        default=UP.SelfMonitoringStore,
     )
     paths = UP.State[nx.DiGraph](valid_types=nx.DiGraph)
     _pending_needs = UP.State[list[NeedsData]](default_factory=list)
@@ -90,9 +107,13 @@ class ManufacturingShop(UP.Actor):
         return opts
 
 
+def _tote_recorder(time: float, value: Tote | None) -> str:
+    return str(value)
+
+
 class TransportRobot(UP.Actor):
     """Robot."""
     capacity = UP.State[float]()
-    holding = UP.State[list[ManufacturingItemData]](default_factory=list, recording=True)
+    holding = UP.State[Tote | None](default=None, allow_none_default=True, recording=True, recording_functions=[(_tote_recorder, "carrying")])
     location = UP.CartesianLocationChangingState(recording=True)
     sight_radius = UP.State[float](default=0.5)

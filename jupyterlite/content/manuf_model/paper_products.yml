@@ -5,6 +5,21 @@ raw_inputs:
   plastic_sheets: 400
   dye: 300
   abrasive_grit: 250
+object_sizing: # quantity per tote
+  wood_pulp: 200
+  resin_a: 100
+  resin_b: 100
+  plastic_sheets: 60
+  dye: 15
+  abrasive_grit: 250
+  colored_paper_roll: 5
+  stiff_paper_roll: 5
+  light_glue: 100
+  tough_glue: 100
+  sandpaper: 4
+  cut_plastic_sheets: 10
+  tape: 20
+  sticky_notes: 10
 manufacturing_recipes:
   - name: paper_making
     description: "Make basic paper for sticky notes"
@@ -120,14 +135,14 @@ shop_layout:
     "Adhesion Machine 1": [8, 9]
     "Adhesion Machine 2": [12, 9]
     "Extra Adhesion Machine": [19, 19]
+  tote_stations:
+    - name: "Input Station"
+      location: [0, 0]
+    - name: Intermediate
+      location: [10, 20]
   robot_depot: [10, 0]
-  input_station: [0, 0]
+  input_tote_station: Input Station
   output_station: [20, 0]
   extent: [21, 21]
-robots:
-  small:
-    capacity: 10
-    count: 10
-  large:
-    capacity: 30
-    count: 10
+robots: 20
+totes: 50

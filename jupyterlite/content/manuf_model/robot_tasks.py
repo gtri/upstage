@@ -7,7 +7,15 @@ from upstage_des.type_help import TASK_GEN
 
 ### Robot tasks
 
-class MoveProducts(UP.Task):
+class Rest(UP.Task):
+    ...
+
+
+class Plan(UP.DecisionTask):
+    ...
+
+
+class Move(UP.Task):
     """A task to handle sending robots to move a product."""
     def task(self, *, actor: ManufacturingShop) -> TASK_GEN:
         """Go robot, go!"""
@@ -25,7 +33,8 @@ class MoveProducts(UP.Task):
         for comb in sorted(robot_counts, key=sum):
             ...
 
-mover_factory = UP.TaskNetworkFactory.from_single_terminating(
+mover_factory = UP.TaskNetworkFactory(
     "do robot things",
-    MoveProducts,
+    task_classes={},
+    task_links={},
 )

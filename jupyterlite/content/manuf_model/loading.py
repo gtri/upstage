@@ -31,17 +31,14 @@ def _time_string(input: str | float) -> float:
     return time
 
 
-class RobotData(TypedDict):
-    capacity: float
-    count: int
-
-
 class Loaded(TypedDict):
     input_resources: list[ManufacturingItemData]
+    item_sizing: dict[str, float | int]
     recipes: list[ManufacturingProcessData]
     shop: ShopFloorData
     machine_classes: dict[str, list[str]]
-    robots: dict[str, RobotData]
+    robots: int
+    totes: int
 
 
 def load_from_yaml(file: Path) -> Loaded:
@@ -58,6 +55,7 @@ def load_from_yaml(file: Path) -> Loaded:
         ManufacturingItemData(k, v)
         for k, v in data.get("raw_inputs", {}).items()
     ]
+    item_sizes = data["object_sizing"].copy()
     recipes = [
         ManufacturingProcessData(
             name=recipe["name"],
@@ -88,13 +86,15 @@ def load_from_yaml(file: Path) -> Loaded:
         output_station=shop["output_station"],
         extent=shop["extent"],
     )
-    robots = {k: {**v} for k, v in data["robots"].items()}
+    robots = data["robots"]
     return {
         "input_resources": input_resources,
+        "item_sizing": item_sizes,
         "recipes": recipes,
         "shop": shop_floor,
         "machine_classes": data["machine_classes"],
         "robots": robots,
+        "totes": data["totes"],
     }
 
 
@@ -146,10 +146,10 @@ def start_model(
             name=shop.name,
             stations={s.name: s for s in stations},
             processes=inputs["recipes"],
-            robot_capacity={k: v["capacity"] for k, v in inputs["robots"].items()},
-            robots={k: {"init": v["count"]} for k, v in inputs["robots"].items()},
+            robots={"init": inputs["robots"]},
             storage={r:{"init":res_amounts.get(r, 0.0)} for r in all_resources},
             paths=nx.DiGraph(),
+            totes=inputs["totes"],
         )
         the_shop.set_bulk_knowledge(
             {

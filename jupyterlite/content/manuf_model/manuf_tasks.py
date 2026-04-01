@@ -10,8 +10,6 @@ import upstage_des.api as UP
 from upstage_des.type_help import TASK_GEN
 
 ### Station tasks
-
-
 class StationHold(UP.Task):
     """Wait for a job to be assigned."""
     def task(self, *, actor: ManufacturingStation) -> TASK_GEN:
@@ -110,7 +108,7 @@ class ShopRobotTasking(UP.Task):
         actor._pending_needs.sort(key=lambda x: (preference.index(x[2]), x[0]))
         for need in  actor._pending_needs:
             if need.kind == "INPUT":
-                assert isinstance(need.need, ManufacturingProcessData)
+                assert isinstance(need.needs, ManufacturingProcessData)
                 # Get robots to move all input items to the station
                 needed = [x for x in need.needs.inputs]
                 from_store = actor.storage
@@ -119,8 +117,8 @@ class ShopRobotTasking(UP.Task):
                 # Check if the needed are there
                 # How do I check that they aren't claimed?
             elif need.kind == "OUTPUT":
-                assert isinstance(need.need, list)
-                assert all(isinstance(x, ManufacturingItemData) for x in need.need)
+                assert isinstance(need.needs, list)
+                assert all(isinstance(x, ManufacturingItemData) for x in need.needs)
                 # Get robots to move output items to a store
                 from_store = need.needing_station.output_queue
                 fr, to = need.needing_station, actor
