@@ -94,7 +94,7 @@ class State(Generic[ST]):
         *,
         default: ST | None = None,
         frozen: bool = False,
-        no_init: bool = False,
+        init: bool = True,
         valid_types: type | tuple[type, ...] | None = None,
         recording: bool = False,
         record_duplicates: bool = False,
@@ -122,7 +122,8 @@ class State(Generic[ST]):
         Args:
             default (Any | None, optional): Default value of the state. Defaults to None.
             frozen (bool, optional): If the state is allowed to change. Defaults to False.
-            no_init (bool, optional): Ignore the state in the init and rely on the default.
+            init (bool, optional): If True, the state appears in the Actor's __init__.
+                If False, the state is excluded and the default is used. Defaults to True.
             valid_types (type | tuple[type, ...] | None, optional): Types allowed. Defaults to None.
             recording (bool, optional): If the state records itself. Defaults to False.
             record_duplicates (bool, optional): If the state records duplicate values.
@@ -143,9 +144,9 @@ class State(Generic[ST]):
             raise UpstageError("State needs to only use default or default factory.")
         any_def = self._default is not None or self._default_factory is not None
 
-        self._no_init = no_init
+        self._no_init = not init
         if self._no_init and not any_def:
-            raise SimulationError("State needs a default for no_init=True")
+            raise SimulationError("State needs a default when init=False")
         self._frozen = frozen
         self._recording = recording
         self._record_duplicates = record_duplicates

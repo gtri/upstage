@@ -304,14 +304,14 @@ def test_actor_copy_with_knowledge() -> None:
 
 
 def test_no_init_state() -> None:
-    with pytest.raises(SimulationError, match="needs a default for no_init=True"):
+    with pytest.raises(SimulationError, match="State needs a default when init=False"):
 
         class BadActor(UP.Actor):
-            st = UP.State[int](no_init=True)
+            st = UP.State[int](init=False)
 
     class NoInitExample(UP.Actor):
-        a = UP.State[int](default=0, no_init=True)
-        b = UP.State[float](default_factory=lambda: 3.0, no_init=True)
+        a = UP.State[int](default=0, init=False)
+        b = UP.State[float](default_factory=lambda: 3.0, init=False)
         c = UP.State[str]()
 
     with UP.EnvironmentContext():
@@ -323,5 +323,5 @@ def test_no_init_state() -> None:
         assert act.b == 3.0
         assert act.c == "hello"
 
-        with pytest.raises(SimulationError, match="Initializing a no_init state is disallowed"):
+        with pytest.raises(SimulationError, match="init=False state is disallowed"):
             NoInitExample(name="exam", a=2, c="hello")

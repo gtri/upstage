@@ -10,7 +10,7 @@ from collections.abc import Callable, Iterable
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Any, Self, Union
+from typing import TYPE_CHECKING, Any, Self, Union, dataclass_transform
 
 from simpy import Process
 
@@ -54,12 +54,21 @@ class TaskData:
     process: Process
 
 
+@dataclass_transform(kw_only_default=True, field_specifiers=(State,))
 class Actor(SettableEnv, NamedUpstageEntity):
     """Actors perform tasks and are composed of states.
 
     You can subclass, but do not overwrite __init_subclass__. Mixins are allowed
     but they cannot depend on __init__. Always put mixins after actor base classes.
+
+    This class uses :pep:`681` (``@dataclass_transform``) so that type checkers
+    automatically generate ``__init__`` signatures for subclasses based on their
+    ``State`` field declarations.
     """
+
+    name: str
+    debug_log: bool = True
+    debug_log_time: bool | None = None
 
     def __init_states(self, **states: Any) -> None:
         seen = set()
@@ -69,8 +78,8 @@ class Actor(SettableEnv, NamedUpstageEntity):
                 st = self._state_defs[state]
                 if st._no_init:
                     raise SimulationError(
-                        f"State {state} on {self} has set no_init=True. "
-                        "Initializing a no_init state is disallowed."
+                        f"State {state} on {self} has init=False. "
+                        "Initializing an init=False state is disallowed."
                     )
                 setattr(self, state, value)
             else:
