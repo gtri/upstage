@@ -8,13 +8,14 @@
 from collections.abc import Generator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, TypeVar
+from warnings import warn
 
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
 
 from simpy import Process
 
-from upstage_des.base import SimulationError
+from upstage_des.base import SimulationError, UpstageError
 from upstage_des.task import DecisionTask, Task, TerminalTask, process
 
 REH_ACTOR = TypeVar("REH_ACTOR", bound="Actor")
@@ -22,10 +23,56 @@ REH_ACTOR = TypeVar("REH_ACTOR", bound="Actor")
 
 @dataclass
 class TaskLinks:
-    """Type hinting for task link dictionaries."""
+    """Describes the transitions from one task to others in a network.
 
-    default: str | None
-    allowed: Sequence[str]
+    Both ``default`` and ``allowed`` accept task class references or string
+    names.  Class references are resolved to their ``__name__`` when the
+    network is constructed.
+    """
+
+    default: str | type[Task] | None
+    allowed: Sequence[str | type[Task]]
+
+    def _resolve(self) -> "TaskLinks":
+        """Return a copy with all class references replaced by ``__name__`` strings."""
+        default = self.default.__name__ if isinstance(self.default, type) else self.default
+        allowed = [a.__name__ if isinstance(a, type) else a for a in self.allowed]
+        return TaskLinks(default=default, allowed=allowed)
+
+
+def _validate_network(
+    task_classes: Mapping[str, type[Task]],
+    task_links: Mapping[str, TaskLinks],
+) -> None:
+    """Check that all task-link references point to tasks that exist.
+
+    Args:
+        task_classes: Task name to class mapping.
+        task_links: Task name to link mapping.
+
+    Raises:
+        UpstageError: If a referenced task name is not in *task_classes*.
+    """
+    known = set(task_classes.keys())
+    missing: set[str] = set()
+    for src, links in task_links.items():
+        if isinstance(links.default, str) and links.default and links.default not in known:
+            missing.add(links.default)
+        for name in links.allowed:
+            if isinstance(name, str) and name not in known:
+                missing.add(name)
+    if missing:
+        raise UpstageError(
+            f"Task link(s) reference unknown task name(s): {sorted(missing)}. "
+            f"Known tasks: {sorted(known)}"
+        )
+    unlinked = known - set(task_links.keys())
+    if unlinked:
+        warn(
+            f"Task(s) {sorted(unlinked)} are in task_classes but have no entry in task_links.",
+            UserWarning,
+            stacklevel=3,
+        )
 
 
 class TaskNetwork:
@@ -54,6 +101,7 @@ class TaskNetwork:
         self._current_task_name: str | None = None
         self._current_task_inst: Task | None = None
         self._current_task_proc: Process | None = None
+        _validate_network(task_classes, task_links)
 
     def is_feasible(self, curr: str, new: str) -> bool:
         """Determine if a task can follow another one.
@@ -83,6 +131,7 @@ class TaskNetwork:
                 raise SimulationError(  # pramga: no cover
                     f"No default task set for after {curr_task_name} on {actor}."
                 )
+            assert isinstance(default_next_task, str)
             next_name = default_next_task
         else:
             next_name = task_from_queue
@@ -200,28 +249,110 @@ class TaskNetwork:
 
 
 class TaskNetworkFactory:
-    """A factory for creating task network instances."""
+    """A factory for creating task network instances.
+
+    The constructor accepts two styles:
+
+    **String-keyed (original API)**::
+
+        TaskNetworkFactory("Net", {"A": ATask, "B": BTask},
+                           {"A": TaskLinks("B", ["B"]), ...})
+
+    **Class-keyed (new API)** — ``task_classes`` is derived automatically::
+
+        TaskNetworkFactory("Net", task_links={
+            ATask: TaskLinks(default=BTask, allowed=[BTask]),
+            ...
+        })
+    """
+
+    @staticmethod
+    def _resolve_inputs(
+        task_classes: Mapping[str, type[Task]] | Mapping[type[Task], TaskLinks] | None,
+        task_links: Mapping[str, TaskLinks] | Mapping[type[Task], TaskLinks] | None,
+    ) -> tuple[dict[str, type[Task]], dict[str, TaskLinks]]:
+        """Normalise the two constructor styles into ``(str→class, str→TaskLinks)``."""
+        if task_classes is None and task_links is None:
+            raise UpstageError("At least one of task_classes or task_links must be provided.")
+
+        # Detect the class-keyed style: keys are types, not strings
+        class_keyed_map: Mapping[type[Task], TaskLinks] | None = None
+
+        if task_links is not None and task_classes is None:
+            # task_links only — must be class-keyed
+            if all(isinstance(k, type) for k in task_links):
+                class_keyed_map = task_links  # type: ignore[assignment]
+            else:
+                raise UpstageError(
+                    "When task_classes is omitted, task_links keys must be Task classes."
+                )
+        elif task_links is None and task_classes is not None:
+            # task_classes only — check if it's actually the class-keyed form
+            if all(isinstance(k, type) for k in task_classes):
+                class_keyed_map = task_classes  # type: ignore[assignment]
+            else:
+                raise UpstageError(
+                    "When task_links is omitted, task_classes must be a "
+                    "{TaskClass: TaskLinks} mapping."
+                )
+        elif task_links is not None and task_classes is not None:
+            # Both provided — check if task_links uses class keys
+            if all(isinstance(k, type) for k in task_links):
+                class_keyed_map = task_links  # type: ignore[assignment]
+            elif all(isinstance(k, str) for k in task_classes) and all(
+                isinstance(k, str) for k in task_links
+            ):
+                # Traditional string-keyed API — resolve any class refs in TaskLinks values
+                str_links: dict[str, TaskLinks] = {}
+                for k, v in task_links.items():
+                    assert isinstance(k, str)
+                    str_links[k] = v._resolve()
+                str_classes = {k: v for k, v in task_classes.items() if isinstance(k, str)}
+                return str_classes, str_links  # type: ignore[return-value]
+            else:
+                raise UpstageError(
+                    "Cannot mix class and string keys across task_classes/task_links."
+                )
+
+        # ---- resolve class-keyed form ----
+        assert class_keyed_map is not None
+        out_classes: dict[str, type[Task]] = {}
+        out_links: dict[str, TaskLinks] = {}
+        for cls, links in class_keyed_map.items():
+            task_name = cls.__name__
+            out_classes[task_name] = cls
+            resolved = links._resolve()
+            out_links[task_name] = resolved
+            # Also collect classes referenced in defaults / allowed
+            if isinstance(links.default, type):
+                out_classes.setdefault(links.default.__name__, links.default)
+            for entry in links.allowed:
+                if isinstance(entry, type):
+                    out_classes.setdefault(entry.__name__, entry)
+
+        return out_classes, out_links
 
     def __init__(
         self,
         name: str,
-        task_classes: Mapping[str, type[Task]],
-        task_links: Mapping[str, TaskLinks],
+        task_classes: Mapping[str, type[Task]] | Mapping[type[Task], TaskLinks] | None = None,
+        task_links: Mapping[str, TaskLinks] | Mapping[type[Task], TaskLinks] | None = None,
     ) -> None:
         """Create a factory for making instances of a task network.
 
-        Task links are defined as:
-            {task_name: TaskLinks(default= task_name | None, allowed= list[task_names]}
-        where each task has a default next task (or None), and tasks that could follow it.
-
         Args:
             name (str): The network name
-            task_classes (dict[str, Task]): Network task classes
-            task_links (dict[str, dict[str, str  |  list[str]  |  None]]): Network links.
+            task_classes: ``{str: Task}`` mapping **or** ``{Task: TaskLinks}``
+                mapping (class-keyed style).  May be *None* when *task_links*
+                uses class keys.
+            task_links: ``{str: TaskLinks}`` or ``{Task: TaskLinks}`` mapping.
+                May be *None* when *task_classes* carries the class-keyed form.
         """
         self.name = name
-        self.task_classes = task_classes
-        self.task_links = task_links
+        resolved_classes, resolved_links = self._resolve_inputs(task_classes, task_links)
+        self.task_classes: Mapping[str, type[Task]] = resolved_classes
+        self.task_links: Mapping[str, TaskLinks] = resolved_links
+        _validate_network(self.task_classes, self.task_links)
 
     @classmethod
     def from_single_looping(cls, name: str, task_class: type[Task]) -> "TaskNetworkFactory":

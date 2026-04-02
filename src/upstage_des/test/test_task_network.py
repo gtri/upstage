@@ -29,6 +29,7 @@ from upstage_des.api import (
     Wait,
     add_stage_variable,
 )
+from upstage_des.base import UpstageError
 from upstage_des.data_types import CartesianLocation, Location
 from upstage_des.task import process
 from upstage_des.type_help import SIMPY_GEN, TASK_GEN
@@ -912,3 +913,94 @@ def test_decision_task_hold() -> None:
         "1.0 >> Actor two in Runner",
     ]
     assert data == expected
+
+
+# ---- class-reference API and validation tests ----
+
+
+def test_class_keyed_factory() -> None:
+    class Mover(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class Planner(DecisionTask):
+        def make_decision(self, *, actor: Actor) -> None:
+            pass
+
+    factory = TaskNetworkFactory(
+        "ClassNet",
+        task_links={
+            Mover: TaskLinks(default=Planner, allowed=[Planner]),
+            Planner: TaskLinks(default=Mover, allowed=[Mover]),
+        },
+    )
+    assert "Mover" in factory.task_classes
+    assert "Planner" in factory.task_classes
+    assert factory.task_links["Mover"].default == "Planner"
+    assert factory.task_links["Planner"].allowed == ["Mover"]
+
+    with EnvironmentContext() as env:
+        a = Actor(name="test")
+        net = factory.make_network()
+        a.add_task_network(net)
+        a.start_network_loop(net.name, "Mover")
+        env.run(until=3)
+
+
+def test_class_keyed_single_arg() -> None:
+    """Class-keyed map passed as the *first* positional arg (task_classes slot)."""
+
+    class Ping(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    links: dict[type[Task], TaskLinks] = {Ping: TaskLinks(default=Ping, allowed=[Ping])}
+    factory = TaskNetworkFactory(
+        "PingNet",
+        links,
+    )
+    assert "Ping" in factory.task_classes
+
+
+def test_validation_catches_bad_reference() -> None:
+    class Good(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    bad_links: dict[type[Task], TaskLinks] = {
+        Good: TaskLinks(default="Nonexistent", allowed=["Nonexistent"]),
+    }
+    with pytest.raises(UpstageError, match="unknown task name"):
+        TaskNetworkFactory("Bad", task_links=bad_links)
+
+
+def test_validation_warns_unlinked_task() -> None:
+    class A(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class B(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    with pytest.warns(UserWarning, match="no entry in task_links"):
+        TaskNetworkFactory(
+            "Partial",
+            task_classes={"A": A, "B": B},
+            task_links={"A": TaskLinks(default="A", allowed=["A"])},
+        )
+
+
+def test_string_api_still_works() -> None:
+    """Existing string-keyed API is unchanged."""
+
+    class X(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    factory = TaskNetworkFactory(
+        "Compat",
+        task_classes={"X": X},
+        task_links={"X": TaskLinks(default="X", allowed=["X"])},
+    )
+    assert factory.task_classes["X"] is X
