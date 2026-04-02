@@ -115,6 +115,25 @@ class Task(SettableEnv):
         """Define the process this task follows."""
         raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
+    def on_enter(self, *, actor: Any) -> None:
+        """Zero-time hook called before ``task()`` runs.
+
+        Use this for setup that would otherwise require a ``DecisionTask``:
+        setting knowledge, acquiring resources, initializing state.
+
+        Args:
+            actor: The actor about to execute this task.
+        """
+
+    def on_exit(self, *, actor: Any) -> None:
+        """Zero-time hook called after ``task()`` completes (before guards).
+
+        Use this for cleanup: clearing knowledge, recording results.
+
+        Args:
+            actor: The actor that just finished this task.
+        """
+
     def on_interrupt(self, *, actor: Any, cause: Any) -> InterruptStates:
         """Define any actions to take on the actor if this task is interrupted.
 

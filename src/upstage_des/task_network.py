@@ -5,8 +5,8 @@
 
 """The task network class, and factory classes."""
 
-from collections.abc import Generator, Mapping, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Generator, Mapping, Sequence
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, TypeVar
 from warnings import warn
 
@@ -21,23 +21,56 @@ from upstage_des.task import DecisionTask, Task, TerminalTask, process
 REH_ACTOR = TypeVar("REH_ACTOR", bound="Actor")
 
 
+GUARD_FUNC = Callable[..., bool]
+TRANSITION = tuple[str | type[Task], GUARD_FUNC | None]
+
+
 @dataclass
 class TaskLinks:
     """Describes the transitions from one task to others in a network.
 
-    Both ``default`` and ``allowed`` accept task class references or string
-    names.  Class references are resolved to their ``__name__`` when the
-    network is constructed.
+    There are two styles for defining transitions:
+
+    **Legacy style** (``default`` + ``allowed``)::
+
+        TaskLinks(default="B", allowed=["B", "C"])
+
+    **Guard style** (``transitions``) — an ordered list of
+    ``(target, guard_or_None)`` tuples.  The first guard that returns
+    ``True`` (or is ``None``, meaning unconditional) wins::
+
+        TaskLinks(transitions=[
+            (Break, lambda actor: actor.needs_break),
+            (DoCheckout, None),  # fallback
+        ])
+
+    Both ``default``/``allowed`` and ``transitions`` accept task class
+    references or string names.  Class references are resolved to their
+    ``__name__`` when the network is constructed.
     """
 
-    default: str | type[Task] | None
-    allowed: Sequence[str | type[Task]]
+    default: str | type[Task] | None = None
+    allowed: Sequence[str | type[Task]] = field(default_factory=list)
+    transitions: list[TRANSITION] = field(default_factory=list)
 
     def _resolve(self) -> "TaskLinks":
         """Return a copy with all class references replaced by ``__name__`` strings."""
         default = self.default.__name__ if isinstance(self.default, type) else self.default
         allowed = [a.__name__ if isinstance(a, type) else a for a in self.allowed]
-        return TaskLinks(default=default, allowed=allowed)
+        resolved_trans: list[TRANSITION] = [
+            (t.__name__ if isinstance(t, type) else t, g) for t, g in self.transitions
+        ]
+        return TaskLinks(default=default, allowed=allowed, transitions=resolved_trans)
+
+    def _all_targets(self) -> list[str | type[Task]]:
+        """Return every target referenced by this link (for validation/viz)."""
+        targets: list[str | type[Task]] = list(self.allowed)
+        if self.default is not None and self.default not in targets:
+            targets.append(self.default)
+        for target, _ in self.transitions:
+            if target not in targets:
+                targets.append(target)
+        return targets
 
 
 def _validate_network(
@@ -56,11 +89,9 @@ def _validate_network(
     known = set(task_classes.keys())
     missing: set[str] = set()
     for src, links in task_links.items():
-        if isinstance(links.default, str) and links.default and links.default not in known:
-            missing.add(links.default)
-        for name in links.allowed:
-            if isinstance(name, str) and name not in known:
-                missing.add(name)
+        for target in links._all_targets():
+            if isinstance(target, str) and target and target not in known:
+                missing.add(target)
     if missing:
         raise UpstageError(
             f"Task link(s) reference unknown task name(s): {sorted(missing)}. "
@@ -73,6 +104,19 @@ def _validate_network(
             UserWarning,
             stacklevel=3,
         )
+
+
+def _guard_label(guard: GUARD_FUNC | None) -> str:
+    """Extract a human-readable label from a guard function."""
+    if guard is None:
+        return ""
+    name: str = getattr(guard, "__name__", "")
+    if name and name != "<lambda>":
+        return name
+    qualname: str = getattr(guard, "__qualname__", "")
+    if qualname and "<lambda>" not in qualname:
+        return qualname
+    return "guard"
 
 
 class TaskNetwork:
@@ -121,24 +165,37 @@ class TaskNetwork:
     ) -> str:
         """Get the next task name.
 
+        Priority:
+        1. Actor's task queue (imperative override from interrupts etc.)
+        2. Guard-based transitions (first ``True`` guard wins)
+        3. ``default`` fallback
+
         Returns:
             str: Task name
         """
+        # 1. Check the queue first (imperative override)
         task_from_queue = actor.get_next_task(self.name)
-        default_next_task = self.task_links[curr_task_name].default
-        if task_from_queue is None:
-            if default_next_task is None:
-                raise SimulationError(  # pramga: no cover
-                    f"No default task set for after {curr_task_name} on {actor}."
-                )
-            assert isinstance(default_next_task, str)
-            next_name = default_next_task
-        else:
-            next_name = task_from_queue
-            # once we have the name, pop it from the queue
+        if task_from_queue is not None:
             if clear_queue:
                 actor._clear_task(self.name)
-        return next_name
+            return task_from_queue
+
+        links = self.task_links[curr_task_name]
+
+        # 2. Evaluate guards
+        for target, guard in links.transitions:
+            assert isinstance(target, str)
+            if guard is None or guard(actor):
+                return target
+
+        # 3. Fall back to default
+        default_next_task = links.default
+        if default_next_task is None:
+            raise SimulationError(
+                f"No default task set for after {curr_task_name} on {actor} and no guard matched."
+            )
+        assert isinstance(default_next_task, str)
+        return default_next_task
 
     @process
     def loop(
@@ -174,6 +231,8 @@ class TaskNetwork:
             self._current_task_inst._set_network_name(self.name)
             self._current_task_inst._set_network_ref(self)
 
+            task_instance.on_enter(actor=actor)
+
             if (
                 isinstance(self._current_task_inst, DecisionTask)
                 and self._current_task_inst.DO_NOT_HOLD
@@ -182,6 +241,8 @@ class TaskNetwork:
             else:
                 self._current_task_proc = self._current_task_inst.run(actor=actor)
                 yield self._current_task_proc
+
+            task_instance.on_exit(actor=actor)
 
             next_name = self._next_task_name(task_name, actor)
             self._current_task_name = next_name
@@ -243,6 +304,73 @@ class TaskNetwork:
         self._current_task_inst = _old_inst
         self._current_task_proc = _old_proc
         return new_actor
+
+    def to_mermaid(self) -> str:
+        """Return a Mermaid graph diagram of the task network.
+
+        Renders in Jupyter, GitHub Markdown, and any Mermaid-compatible viewer.
+
+        Returns:
+            str: Mermaid diagram source.
+        """
+        lines = ["graph TD"]
+        for src, links in self.task_links.items():
+            src_id = src.replace(" ", "_")
+            for target, guard in links.transitions:
+                assert isinstance(target, str)
+                tgt_id = target.replace(" ", "_")
+                label = _guard_label(guard)
+                if label:
+                    lines.append(f"    {src_id} -->|{label}| {tgt_id}")
+                else:
+                    lines.append(f"    {src_id} --> {tgt_id}")
+            if links.default is not None:
+                assert isinstance(links.default, str)
+                def_id = links.default.replace(" ", "_")
+                trans_targets = {t for t, _ in links.transitions}
+                if links.default not in trans_targets:
+                    lines.append(f"    {src_id} --> {def_id}")
+            for a in links.allowed:
+                assert isinstance(a, str)
+                a_id = a.replace(" ", "_")
+                trans_targets = {t for t, _ in links.transitions}
+                if a not in trans_targets and a != links.default:
+                    lines.append(f"    {src_id} -.->|allowed| {a_id}")
+        return "\n".join(lines)
+
+    def to_dot(self) -> str:
+        """Return a Graphviz DOT diagram of the task network.
+
+        Returns:
+            str: DOT source string.
+        """
+        lines = [
+            f"digraph {self.name.replace(' ', '_')} {{",
+            "    rankdir=TB;",
+            '    node [shape=box, style=rounded, fontname="Helvetica"];',
+            '    edge [fontname="Helvetica", fontsize=10];',
+            "",
+        ]
+        for src, links in self.task_links.items():
+            for target, guard in links.transitions:
+                assert isinstance(target, str)
+                label = _guard_label(guard)
+                if label:
+                    lines.append(f'    "{src}" -> "{target}" [label="{label}"];')
+                else:
+                    lines.append(f'    "{src}" -> "{target}";')
+            if links.default is not None:
+                assert isinstance(links.default, str)
+                trans_targets = {t for t, _ in links.transitions}
+                if links.default not in trans_targets:
+                    lines.append(f'    "{src}" -> "{links.default}";')
+            for a in links.allowed:
+                assert isinstance(a, str)
+                trans_targets = {t for t, _ in links.transitions}
+                if a not in trans_targets and a != links.default:
+                    lines.append(f'    "{src}" -> "{a}" [style=dashed, label="allowed"];')
+        lines.append("}")
+        return "\n".join(lines)
 
     def __repr__(self) -> str:
         return f"Task network: {self.name}"
@@ -323,12 +451,10 @@ class TaskNetworkFactory:
             out_classes[task_name] = cls
             resolved = links._resolve()
             out_links[task_name] = resolved
-            # Also collect classes referenced in defaults / allowed
-            if isinstance(links.default, type):
-                out_classes.setdefault(links.default.__name__, links.default)
-            for entry in links.allowed:
-                if isinstance(entry, type):
-                    out_classes.setdefault(entry.__name__, entry)
+            # Also collect classes referenced in defaults / allowed / transitions
+            for target in links._all_targets():
+                if isinstance(target, type):
+                    out_classes.setdefault(target.__name__, target)
 
         return out_classes, out_links
 
@@ -442,6 +568,14 @@ class TaskNetworkFactory:
             nxt_name = nxt.__name__
             task_links[the_name] = TaskLinks(default=nxt_name, allowed=[nxt_name])
         return TaskNetworkFactory(name, task_class, task_links)
+
+    def to_mermaid(self) -> str:
+        """Convenience passthrough to :meth:`TaskNetwork.to_mermaid`."""
+        return self.make_network().to_mermaid()
+
+    def to_dot(self) -> str:
+        """Convenience passthrough to :meth:`TaskNetwork.to_dot`."""
+        return self.make_network().to_dot()
 
     def make_network(self, other_name: str | None = None) -> TaskNetwork:
         """Create an instance of the task network.

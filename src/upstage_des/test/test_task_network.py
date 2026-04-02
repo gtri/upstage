@@ -1004,3 +1004,140 @@ def test_string_api_still_works() -> None:
         task_links={"X": TaskLinks(default="X", allowed=["X"])},
     )
     assert factory.task_classes["X"] is X
+
+
+# ---- guard-based transitions, on_enter/on_exit, and visualization tests ----
+
+
+def test_guard_transitions() -> None:
+    """Guards determine the next task when the current one finishes."""
+    trace: list[str] = []
+
+    class Bot(Actor):
+        status = State[int]()
+
+    class StepA(Task):
+        def task(self, *, actor: Bot) -> TASK_GEN:
+            trace.append("A")
+            yield Wait(1.0)
+            actor.status += 1
+
+    class StepB(Task):
+        def task(self, *, actor: Bot) -> TASK_GEN:
+            trace.append("B")
+            yield Wait(1.0)
+
+    class StepC(Task):
+        def task(self, *, actor: Bot) -> TASK_GEN:
+            trace.append("C")
+            yield Wait(1.0)
+
+    def go_to_c(actor: Bot) -> bool:
+        return actor.status >= 2
+
+    factory = TaskNetworkFactory(
+        "GuardNet",
+        task_links={
+            StepA: TaskLinks(
+                transitions=[
+                    (StepC, go_to_c),
+                    (StepB, None),  # fallback
+                ]
+            ),
+            StepB: TaskLinks(transitions=[(StepA, None)]),
+            StepC: TaskLinks(transitions=[(StepA, None)]),
+        },
+    )
+
+    with EnvironmentContext() as env:
+        bot = Bot(name="bot", status=0)
+        net = factory.make_network()
+        bot.add_task_network(net)
+        bot.start_network_loop(net.name, "StepA")
+        env.run(until=10)
+
+    # status increments each time StepA runs (at the end of the task)
+    # A(status 0→1): guard false → B, A(status 1→2): guard true → C, A(2→3) → C ...
+    assert trace[:6] == ["A", "B", "A", "C", "A", "C"]
+
+
+def test_on_enter_on_exit() -> None:
+    """on_enter runs before task(), on_exit runs after."""
+    trace: list[str] = []
+
+    class Greeter(Task):
+        def on_enter(self, *, actor: Actor) -> None:
+            trace.append("enter")
+
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            trace.append("task")
+            yield Wait(1.0)
+
+        def on_exit(self, *, actor: Actor) -> None:
+            trace.append("exit")
+
+    factory = TaskNetworkFactory.from_single_looping("Loop", Greeter)
+    with EnvironmentContext() as env:
+        a = Actor(name="a")
+        net = factory.make_network()
+        a.add_task_network(net)
+        a.start_network_loop(net.name, "Greeter")
+        env.run(until=2.5)
+
+    # Two full cycles (enter/task/exit) + a third enter/task in-flight at t=2.5
+    assert trace == ["enter", "task", "exit", "enter", "task", "exit", "enter", "task"]
+
+
+def test_to_mermaid() -> None:
+    class A(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class B(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    factory = TaskNetworkFactory(
+        "Viz",
+        task_links={
+            A: TaskLinks(
+                transitions=[
+                    (B, lambda actor: True),
+                    (A, None),
+                ]
+            ),
+            B: TaskLinks(transitions=[(A, None)]),
+        },
+    )
+    net = factory.make_network()
+    mermaid = net.to_mermaid()
+    assert "graph TD" in mermaid
+    assert "A" in mermaid
+    assert "B" in mermaid
+    # Factory passthrough also works
+    assert factory.to_mermaid() == mermaid
+
+
+def test_to_dot() -> None:
+    class X(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class Y(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    factory = TaskNetworkFactory(
+        "DotViz",
+        task_links={
+            X: TaskLinks(default=Y, allowed=[Y]),
+            Y: TaskLinks(default=X, allowed=[X]),
+        },
+    )
+    net = factory.make_network()
+    dot = net.to_dot()
+    assert "digraph" in dot
+    assert '"X"' in dot
+    assert '"Y"' in dot
+    # Factory passthrough also works
+    assert factory.to_dot() == dot
