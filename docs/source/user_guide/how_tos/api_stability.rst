@@ -216,11 +216,18 @@ arguments.  Formatting is deferred — when the log level is disabled and
 
 Two independent sinks are driven by every ``log`` call:
 
-* The per-actor in-memory list (``actor.get_log()`` /
-  ``actor._debug_log``) — controlled by the ``debug_log`` flag set at
+* The per-actor in-memory list (``actor.logs`` /
+  ``actor.get_log()``) — controlled by the ``debug_log`` flag set at
   actor construction.  Use this for post-run analysis in notebooks.
 * Python's ``logging`` — controlled by the standard level hierarchy.
   Use this for structured sinks (files, JSON, stdout during dev).
+
+.. note::
+
+   ``actor.log()`` is now write-only.  Calling it with no arguments to
+   read the in-memory list still works but raises
+   ``DeprecationWarning`` — switch to ``actor.logs`` (property) or
+   ``actor.get_log()``.
 
 Deprecation policy
 ==================

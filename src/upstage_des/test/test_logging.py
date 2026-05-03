@@ -14,16 +14,34 @@ class Bot(UP.Actor):
     """Minimal actor for logging tests."""
 
 
-def test_log_read_returns_list() -> None:
-    """`actor.log()` with no args returns the in-memory list."""
+def test_logs_property_returns_list() -> None:
+    """`actor.logs` returns the in-memory list."""
     with UP.EnvironmentContext():
         bot = Bot(name="b")
-        assert bot.log() == []
+        assert bot.logs == []
         bot.log("hello")
-        result = bot.log()
+        assert len(bot.logs) == 1
+        assert "hello" in bot.logs[0][1]
+
+
+def test_get_log_still_works() -> None:
+    """`actor.get_log()` continues to return the in-memory list."""
+    with UP.EnvironmentContext():
+        bot = Bot(name="b")
+        bot.log("one")
+        assert bot.get_log() is bot.logs
+        assert len(bot.get_log()) == 1
+
+
+def test_log_no_args_is_deprecated() -> None:
+    """Calling `log()` with no args warns and still returns the list."""
+    with UP.EnvironmentContext():
+        bot = Bot(name="b")
+        bot.log("hi")
+        with pytest.warns(DeprecationWarning, match="actor.logs or actor.get_log"):
+            result = bot.log()
         assert result is not None
         assert len(result) == 1
-        assert "hello" in result[0][1]
 
 
 def test_debug_log_list_still_populates() -> None:

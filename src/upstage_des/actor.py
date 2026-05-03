@@ -12,6 +12,7 @@ from copy import copy, deepcopy
 from dataclasses import dataclass
 from inspect import Parameter, signature
 from typing import TYPE_CHECKING, Any, Self, Union, dataclass_transform
+from warnings import warn
 
 from simpy import Process
 
@@ -1060,19 +1061,17 @@ Args:
         *args: Any,
         level: int = logging.INFO,
     ) -> list[tuple[float | int, str]] | None:
-        """Append to the actor's event log, and/or emit through ``logging``.
+        """Record an event on the actor.
 
-        Call with no arguments to retrieve the in-memory log list.
+        Formatting is deferred: the ``msg % args`` interpolation only runs
+        when at least one sink will consume the record, so heavy
+        ``repr``/``str`` calls cost nothing when logging is off.
 
-        Call with a message (and optional printf-style ``args``) to record
-        an event.  Formatting is deferred: the ``msg % args`` interpolation
-        only runs when at least one sink will consume the record, so
-        heavy ``repr``/``str`` calls cost nothing when logging is off.
-
-        Two independent sinks are available:
+        Two independent sinks are driven:
 
         * ``_debug_log`` — an in-memory ``list[(time, str)]``.  Gated by
-          the per-actor ``debug_log`` flag set at ``__init__`` time.
+          the per-actor ``debug_log`` flag set at ``__init__`` time.  Read
+          via :attr:`logs` or :meth:`get_log`.
         * Python's ``logging`` — records go to
           ``upstage_des.actor.<name>`` (``.rehearsal`` suffix during
           rehearsal).  Gated by the standard logger-level hierarchy;
@@ -1080,15 +1079,23 @@ Args:
 
         Args:
             msg: Message string, or printf-style template when ``args`` is
-                provided.  ``None`` returns the in-memory log.
+                provided.
             *args: Values for printf-style interpolation.
             level: ``logging`` level for the record.  Defaults to
                 ``logging.INFO``.
 
-        Returns:
-            The log list when ``msg`` is ``None``; otherwise ``None``.
+        Deprecated:
+            Calling ``log()`` with no arguments to *read* the in-memory
+            list is deprecated — use :attr:`logs` or :meth:`get_log`
+            instead.  The read path will be removed in a future release.
         """
         if msg is None:
+            warn(
+                "Actor.log() with no arguments is deprecated; "
+                "use actor.logs or actor.get_log() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             return self._debug_log
 
         logger = self._logger
@@ -1106,11 +1113,20 @@ Args:
             self._debug_log.append((self.env.now, entry))
         return None
 
-    def get_log(self) -> list[tuple[float | int, str]]:
-        """Get the debug log.
+    @property
+    def logs(self) -> list[tuple[float | int, str]]:
+        """Read-only view of the in-memory event log.
 
-        Returns:
-            list[str]: List of log messages.
+        Returns a live reference to ``_debug_log``; treat as read-only.
+        Empty when ``debug_log=False`` was passed at construction.
+        """
+        return self._debug_log
+
+    def get_log(self) -> list[tuple[float | int, str]]:
+        """Return the in-memory event log.
+
+        Equivalent to :attr:`logs`.  Kept as a method for callers that
+        prefer the explicit shape.
         """
         return self._debug_log
 
