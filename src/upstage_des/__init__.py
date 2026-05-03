@@ -11,6 +11,9 @@ development process for complex simulations.
 
 """
 
+from ._logging import _install_null_handler
 from ._version import __authors__, __version__
+
+_install_null_handler()
 
 __all__ = ("__authors__", "__version__")

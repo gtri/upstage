@@ -146,7 +146,7 @@ class Task(SettableEnv):
             actor (Actor): the actor using the task
             cause (Any): Optional data for the interrupt
         """
-        actor.log(f"Interrupted while performing {self}. Reasons: {cause}")
+        actor.log("Interrupted while performing %s. Reasons: %s", self, cause)
         return self._interrupt_action
 
     def set_marker(
@@ -463,7 +463,7 @@ class Task(SettableEnv):
             raise SimulationError("No interrupt behavior returned from `on_interrupt`")
 
         if _interrupt_action in (InterruptStates.END, InterruptStates.RESTART):
-            actor.log(f"Interrupted by {interrupt}.")
+            actor.log("Interrupted by %s.", interrupt)
             actor.deactivate_all_states(task=self)
             actor.deactivate_all_mimic_states(task=self)
             if isinstance(next_event, BaseEvent):

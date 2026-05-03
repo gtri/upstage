@@ -5,6 +5,7 @@
 
 """This file contains the fundamental Actor class for UPSTAGE."""
 
+import logging
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable
 from copy import copy, deepcopy
@@ -14,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Self, Union, dataclass_transform
 
 from simpy import Process
 
+from upstage_des._logging import get_actor_logger
 from upstage_des.events import Event
 
 from .base import (
@@ -153,6 +155,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
         self._debug_logging: bool = debug_log
         self._debug_log_time = debug_log_time
         self._debug_log: list[tuple[float | int, str]] = []
+        self._logger: logging.Logger = get_actor_logger(self)
 
         self._state_histories: dict[str, list[tuple[float, Any]]] = {}
 
@@ -619,11 +622,13 @@ Args:
             caller_level (int, optional): Level to look up for the caller. Defaults to 1.
             caller_name (Optional[str], optional): Name of the caller. Defaults to None.
         """
+        if not self._debug_logging and not self._logger.isEnabledFor(logging.INFO):
+            return
         if caller_name is None:
             info = get_caller_info(caller_level=caller_level + 1)
         else:
             info = caller_name
-        self.log(f"method '{method_name}' called by '{info}'")
+        self.log("method '%s' called by '%s'", method_name, info)
 
     def set_knowledge(
         self,
@@ -819,7 +824,7 @@ Args:
             )
         elif not queue:
             self.set_task_queue(network_name, [task_name])
-        self.log(f"begin_next_task: Starting {task_name} task")
+        self.log("begin_next_task: Starting %s task", task_name)
         self._task_queue[network_name].pop(0)
 
     def start_network_loop(
@@ -1046,28 +1051,59 @@ Args:
             clone._debug_log = list(self._debug_log)
 
         clone._is_rehearsing = True
+        clone._logger = get_actor_logger(clone)
         return clone
 
-    def log(self, msg: str | None = None) -> list[tuple[float | int, str]] | None:
-        """Add to the log or return it.
+    def log(
+        self,
+        msg: str | None = None,
+        *args: Any,
+        level: int = logging.INFO,
+    ) -> list[tuple[float | int, str]] | None:
+        """Append to the actor's event log, and/or emit through ``logging``.
 
-        Only adds to log if debug_logging is True.
+        Call with no arguments to retrieve the in-memory log list.
+
+        Call with a message (and optional printf-style ``args``) to record
+        an event.  Formatting is deferred: the ``msg % args`` interpolation
+        only runs when at least one sink will consume the record, so
+        heavy ``repr``/``str`` calls cost nothing when logging is off.
+
+        Two independent sinks are available:
+
+        * ``_debug_log`` — an in-memory ``list[(time, str)]``.  Gated by
+          the per-actor ``debug_log`` flag set at ``__init__`` time.
+        * Python's ``logging`` — records go to
+          ``upstage_des.actor.<name>`` (``.rehearsal`` suffix during
+          rehearsal).  Gated by the standard logger-level hierarchy;
+          silent by default.
 
         Args:
-            msg (str, Optional): The message to log.
+            msg: Message string, or printf-style template when ``args`` is
+                provided.  ``None`` returns the in-memory log.
+            *args: Values for printf-style interpolation.
+            level: ``logging`` level for the record.  Defaults to
+                ``logging.INFO``.
 
         Returns:
-            list[str] | None: The log if no message is given. None otherwise.
+            The log list when ``msg`` is ``None``; otherwise ``None``.
         """
         if msg is None:
             return self._debug_log
-        elif self._debug_logging:
+
+        logger = self._logger
+        logger_wants = logger.isEnabledFor(level)
+        if not self._debug_logging and not logger_wants:
+            return None
+
+        formatted = msg % args if args else msg
+        if logger_wants:
+            logger.log(level, formatted)
+        if self._debug_logging:
             dlt = self._debug_log_time
             do_time = dlt if dlt is not None else self.stage.get("debug_log_time", True)
-            if do_time:
-                ts = self.pretty_now
-                msg = f"{ts} {msg}"
-            self._debug_log += [(self.env.now, msg)]
+            entry = f"{self.pretty_now} {formatted}" if do_time else formatted
+            self._debug_log.append((self.env.now, entry))
         return None
 
     def get_log(self) -> list[tuple[float | int, str]]:

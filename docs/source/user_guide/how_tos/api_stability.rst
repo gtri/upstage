@@ -183,6 +183,45 @@ yourself reaching for an internal, please `open an issue
 <https://github.com/gtri/upstage/issues>`_ so we can discuss promoting
 the symbol.
 
+Logging
+=======
+
+UPSTAGE exposes a :mod:`logging` hierarchy rooted at ``upstage_des``.  The
+library is silent by default — a ``NullHandler`` is attached on import and
+the package logger defaults to ``WARNING``.  Opt in at your application
+entry point::
+
+    import logging
+
+    logging.basicConfig(level=logging.INFO, format="%(name)s: %(message)s")
+    logging.getLogger("upstage_des").setLevel(logging.INFO)
+
+Actor events go to ``upstage_des.actor.<actor.name>``.  Rehearsal clones
+emit under ``upstage_des.actor.<actor.name>.rehearsal`` so you can filter
+rehearsal output independently::
+
+    logging.getLogger("upstage_des.actor").setLevel(logging.INFO)
+    logging.getLogger("upstage_des.actor").addFilter(
+        lambda rec: ".rehearsal" not in rec.name
+    )
+
+Inside a custom :class:`Task`, call ``actor.log`` with printf-style
+arguments.  Formatting is deferred — when the log level is disabled and
+``debug_log=False`` on the actor, the interpolation never runs, so
+``repr``/``str`` cost on your arguments is avoided in hot loops::
+
+    def task(self, *, actor):
+        actor.log("picked up %s (qty=%d)", item, qty)        # INFO
+        actor.log("low fuel: %.1f%%", remaining, level=logging.WARNING)
+
+Two independent sinks are driven by every ``log`` call:
+
+* The per-actor in-memory list (``actor.get_log()`` /
+  ``actor._debug_log``) — controlled by the ``debug_log`` flag set at
+  actor construction.  Use this for post-run analysis in notebooks.
+* Python's ``logging`` — controlled by the standard level hierarchy.
+  Use this for structured sinks (files, JSON, stdout during dev).
+
 Deprecation policy
 ==================
 

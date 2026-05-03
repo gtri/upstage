@@ -34,7 +34,7 @@ class TaskNetworkNucleus:
 
     def _attach(self) -> None:
         """Attach the nucleus to an actor."""
-        self._actor.log(f"Attaching {self} as a state listener!")
+        self._actor.log("Attaching %s as a state listener!", self)
         if self._actor._state_listener is not None:
             raise UpstageError(f"{self._actor} already has a nucleus attached.")
         self._actor._state_listener = self

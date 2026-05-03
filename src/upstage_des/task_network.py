@@ -257,7 +257,7 @@ class TaskNetwork:
         while True:
             task_name = self._current_task_name
             assert isinstance(task_name, str)
-            actor.log(f"Outer: starting {task_name}")
+            actor.log("Outer: starting %s", task_name)
             actor._begin_next_task(self.name, task_name)
             task_cls = self.task_classes[task_name]
             task_instance: Task = task_cls()
