@@ -57,6 +57,8 @@ The original string-keyed API still works:
 The task ordering needs to know the default task (can be None) and the allowed tasks.
 If no default is given, an error will be thrown if no task ordering is given when a new task is selected.
 
+.. _guard-based transitions:
+
 Guard-Based Transitions
 -----------------------
 

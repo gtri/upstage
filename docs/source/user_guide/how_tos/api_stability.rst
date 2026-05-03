@@ -42,35 +42,34 @@ Stable surface
 Core
 ----
 
-+---------------------------------+---------------------------------------------+
-| Symbol                          | Purpose                                     |
-+=================================+=============================================+
-| ``UP.Actor``                    | Base class for actors.                      |
-+---------------------------------+---------------------------------------------+
-| ``UP.State``                    | Descriptor for actor state.                 |
-+---------------------------------+---------------------------------------------+
-| ``UP.Task``                     | Base class for tasks.                       |
-+---------------------------------+---------------------------------------------+
-| ``UP.TaskNetwork``              | Runtime task-network instance.              |
-+---------------------------------+---------------------------------------------+
-| ``UP.TaskNetworkFactory``       | Factory for task-network instances.         |
-+---------------------------------+---------------------------------------------+
-| ``UP.TaskLinks``                | Link/transition declarations.               |
-+---------------------------------+---------------------------------------------+
-| ``UP.EnvironmentContext``       | Context manager for the simulation env.     |
-+---------------------------------+---------------------------------------------+
-| ``UP.Wait``, ``UP.Get``,        | Event wrappers used inside ``Task.task``.   |
-| ``UP.Put``, ``UP.Any``,         |                                             |
-| ``UP.All``, ``UP.FilterGet``,   |                                             |
-| ``UP.ResourceHold``, ``UP.Event``|                                            |
-+---------------------------------+---------------------------------------------+
-| ``UP.process``                  | Decorator for simpy process generators.     |
-+---------------------------------+---------------------------------------------+
-| ``UP.UpstageError``,            | Exception hierarchy.                        |
-| ``UP.SimulationError``,         |                                             |
-| ``UP.RulesError``,              |                                             |
-| ``UP.MotionAndDetectionError``  |                                             |
-+---------------------------------+---------------------------------------------+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Symbol
+     - Purpose
+   * - ``UP.Actor``
+     - Base class for actors.
+   * - ``UP.State``
+     - Descriptor for actor state.
+   * - ``UP.Task``
+     - Base class for tasks.
+   * - ``UP.TaskNetwork``
+     - Runtime task-network instance.
+   * - ``UP.TaskNetworkFactory``
+     - Factory for task-network instances.
+   * - ``UP.TaskLinks``
+     - Link/transition declarations.
+   * - ``UP.EnvironmentContext``
+     - Context manager for the simulation env.
+   * - ``UP.Wait``, ``UP.Get``, ``UP.Put``, ``UP.Any``, ``UP.All``,
+       ``UP.FilterGet``, ``UP.ResourceHold``, ``UP.Event``
+     - Event wrappers used inside ``Task.task``.
+   * - ``UP.process``
+     - Decorator for simpy process generators.
+   * - ``UP.UpstageError``, ``UP.SimulationError``, ``UP.RulesError``,
+       ``UP.MotionAndDetectionError``
+     - Exception hierarchy.
 
 States (stable)
 ---------------
@@ -117,46 +116,41 @@ These APIs are **working today** but may change as we iterate.  Build on
 them, but pin your UPSTAGE version if your production code depends on
 details beyond the top-level names.
 
-+------------------------------------+----------------------------------------+
-| Symbol                             | Why experimental                       |
-+====================================+========================================+
-| ``UP.Transition``                  | The normalised form for task-network   |
-|                                    | transitions.  User-level tuple input   |
-|                                    | remains stable; the ``Transition``     |
-|                                    | shape itself may gain fields.          |
-+------------------------------------+----------------------------------------+
-| ``TaskLinks(transitions=[...])``   | Guard-based transitions are new.  Tuple|
-|                                    | input ``(target, guard)`` /            |
-|                                    | ``(target, guard, label)`` is stable,  |
-|                                    | but priority/metadata fields may grow. |
-+------------------------------------+----------------------------------------+
-| ``Task.on_enter`` / ``on_exit``    | Zero-time hooks.  Signature is stable; |
-|                                    | the call site inside the network loop  |
-|                                    | may gain guarantees (e.g., ordering    |
-|                                    | with nucleus interrupts).              |
-+------------------------------------+----------------------------------------+
-| ``TaskNetwork.to_mermaid`` /       | Output *format* is not stable — the    |
-| ``to_dot``                         | layout, styling, and legend may        |
-|                                    | evolve.  The method signatures are     |
-|                                    | stable.                                |
-+------------------------------------+----------------------------------------+
-| Class-keyed                        | The ``{TaskCls: TaskLinks(...)}`` form |
-| ``TaskNetworkFactory``             | is stable.  Validation messages and    |
-|                                    | inferred-name heuristics may change.   |
-+------------------------------------+----------------------------------------+
-| ``UP.TaskNetworkNucleus``,         | Nucleus integration is stable at the   |
-| ``UP.NucleusInterrupt``            | import level but its interrupt-cause   |
-|                                    | payload shape is not frozen.           |
-+------------------------------------+----------------------------------------+
-| ``UP.SensorMotionManager``,        | Motion managers: public API is stable, |
-| ``UP.SteppedMotionManager``        | internals are still evolving.          |
-+------------------------------------+----------------------------------------+
-| ``UP.PointToPointCommsManager``,   | Comms managers: message routing        |
-| ``UP.RoutingTableCommsManager``,   | semantics may change.                  |
-| ``UP.Message``, ``UP.MessageContent``|                                     |
-+------------------------------------+----------------------------------------+
-| ``UP.Routine``, ``UP.WindowedGet`` | Routine base class and builders.       |
-+------------------------------------+----------------------------------------+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Symbol
+     - Why experimental
+   * - ``UP.Transition``
+     - The normalised form for task-network transitions.  User-level
+       tuple input remains stable; the ``Transition`` shape itself may
+       gain fields.
+   * - ``TaskLinks(transitions=[...])``
+     - Guard-based transitions are new.  Tuple input ``(target, guard)``
+       / ``(target, guard, label)`` is stable, but priority/metadata
+       fields may grow.
+   * - ``Task.on_enter`` / ``on_exit``
+     - Zero-time hooks.  Signature is stable; the call site inside the
+       network loop may gain guarantees (e.g., ordering with nucleus
+       interrupts).
+   * - ``TaskNetwork.to_mermaid`` / ``to_dot``
+     - Output *format* is not stable — the layout, styling, and legend
+       may evolve.  The method signatures are stable.
+   * - Class-keyed ``TaskNetworkFactory``
+     - The ``{TaskCls: TaskLinks(...)}`` form is stable.  Validation
+       messages and inferred-name heuristics may change.
+   * - ``UP.TaskNetworkNucleus``, ``UP.NucleusInterrupt``
+     - Nucleus integration is stable at the import level but its
+       interrupt-cause payload shape is not frozen.
+   * - ``UP.SensorMotionManager``, ``UP.SteppedMotionManager``
+     - Motion managers: public API is stable, internals are still
+       evolving.
+   * - ``UP.PointToPointCommsManager``, ``UP.RoutingTableCommsManager``,
+       ``UP.Message``, ``UP.MessageContent``
+     - Comms managers: message routing semantics may change.
+   * - ``UP.Routine``, ``UP.WindowedGet``
+     - Routine base class and builders.
 
 Internal — do not rely on
 =========================
