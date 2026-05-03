@@ -22,7 +22,9 @@ REH_ACTOR = TypeVar("REH_ACTOR", bound="Actor")
 
 
 GUARD_FUNC = Callable[..., bool]
-TRANSITION = tuple[str | type[Task], GUARD_FUNC | None]
+TRANSITION = (
+    tuple[str | type[Task], GUARD_FUNC | None] | tuple[str | type[Task], GUARD_FUNC | None, str]
+)
 
 
 @dataclass
@@ -36,11 +38,13 @@ class TaskLinks:
         TaskLinks(default="B", allowed=["B", "C"])
 
     **Guard style** (``transitions``) — an ordered list of
-    ``(target, guard_or_None)`` tuples.  The first guard that returns
-    ``True`` (or is ``None``, meaning unconditional) wins::
+    ``(target, guard_or_None)`` or ``(target, guard, label)`` tuples.
+    The first guard that returns ``True`` (or is ``None``, meaning
+    unconditional) wins.  An optional third element provides a
+    human-readable label for diagrams::
 
         TaskLinks(transitions=[
-            (Break, lambda actor: actor.needs_break),
+            (Break, lambda actor: actor.needs_break, "needs break"),
             (DoCheckout, None),  # fallback
         ])
 
@@ -57,9 +61,14 @@ class TaskLinks:
         """Return a copy with all class references replaced by ``__name__`` strings."""
         default = self.default.__name__ if isinstance(self.default, type) else self.default
         allowed = [a.__name__ if isinstance(a, type) else a for a in self.allowed]
-        resolved_trans: list[TRANSITION] = [
-            (t.__name__ if isinstance(t, type) else t, g) for t, g in self.transitions
-        ]
+        resolved_trans: list[TRANSITION] = []
+        for tr in self.transitions:
+            target = tr[0].__name__ if isinstance(tr[0], type) else tr[0]
+            guard = tr[1]
+            if len(tr) == 3:
+                resolved_trans.append((target, guard, tr[2]))
+            else:
+                resolved_trans.append((target, guard))
         return TaskLinks(default=default, allowed=allowed, transitions=resolved_trans)
 
     def _all_targets(self) -> list[str | type[Task]]:
@@ -67,9 +76,9 @@ class TaskLinks:
         targets: list[str | type[Task]] = list(self.allowed)
         if self.default is not None and self.default not in targets:
             targets.append(self.default)
-        for target, _ in self.transitions:
-            if target not in targets:
-                targets.append(target)
+        for tr in self.transitions:
+            if tr[0] not in targets:
+                targets.append(tr[0])
         return targets
 
 
@@ -183,7 +192,8 @@ class TaskNetwork:
         links = self.task_links[curr_task_name]
 
         # 2. Evaluate guards
-        for target, guard in links.transitions:
+        for tr in links.transitions:
+            target, guard = tr[0], tr[1]
             assert isinstance(target, str)
             if guard is None or guard(actor):
                 return target
@@ -305,21 +315,50 @@ class TaskNetwork:
         self._current_task_proc = _old_proc
         return new_actor
 
-    def to_mermaid(self) -> str:
+    def _hook_suffix(self, task_name: str) -> str:
+        """Return a parenthesized hook list, or empty string."""
+        cls = self.task_classes.get(task_name)
+        if cls is None:
+            return ""
+        hooks: list[str] = []
+        if "on_enter" in cls.__dict__:
+            hooks.append("on_enter")
+        if "on_exit" in cls.__dict__:
+            hooks.append("on_exit")
+        if not hooks:
+            return ""
+        return f"({', '.join(hooks)})"
+
+    def to_mermaid(self, *, legend: bool = True) -> str:
         """Return a Mermaid graph diagram of the task network.
 
         Renders in Jupyter, GitHub Markdown, and any Mermaid-compatible viewer.
+        Tasks with ``on_enter`` or ``on_exit`` hooks are annotated.
+
+        Args:
+            legend: Show a legend distinguishing solid (transition) and
+                dashed (allowed/queue) edges.  Defaults to True; only
+                rendered when dashed edges are present.
 
         Returns:
             str: Mermaid diagram source.
         """
+        has_allowed = False
         lines = ["graph TD"]
+        # Declare nodes with labels (hooks annotated)
+        for task_name in self.task_classes:
+            node_id = task_name.replace(" ", "_")
+            suffix = self._hook_suffix(task_name)
+            if suffix:
+                lines.append(f'    {node_id}["{task_name}<br/><sub><i>{suffix}</i></sub>"]')
+        # Edges
         for src, links in self.task_links.items():
             src_id = src.replace(" ", "_")
-            for target, guard in links.transitions:
+            for tr in links.transitions:
+                target, guard = tr[0], tr[1]
+                label = tr[2] if len(tr) == 3 else _guard_label(guard)
                 assert isinstance(target, str)
                 tgt_id = target.replace(" ", "_")
-                label = _guard_label(guard)
                 if label:
                     lines.append(f"    {src_id} -->|{label}| {tgt_id}")
                 else:
@@ -327,19 +366,35 @@ class TaskNetwork:
             if links.default is not None:
                 assert isinstance(links.default, str)
                 def_id = links.default.replace(" ", "_")
-                trans_targets = {t for t, _ in links.transitions}
+                trans_targets = {tr[0] for tr in links.transitions}
                 if links.default not in trans_targets:
                     lines.append(f"    {src_id} --> {def_id}")
             for a in links.allowed:
                 assert isinstance(a, str)
                 a_id = a.replace(" ", "_")
-                trans_targets = {t for t, _ in links.transitions}
+                trans_targets = {tr[0] for tr in links.transitions}
                 if a not in trans_targets and a != links.default:
-                    lines.append(f"    {src_id} -.->|allowed| {a_id}")
+                    has_allowed = True
+                    lines.append(f"    {src_id} -.-> {a_id}")
+        # Legend
+        if legend and has_allowed:
+            lines.append("")
+            lines.append("    subgraph Legend[ ]")
+            lines.append("        direction LR")
+            lines.append("        L1[ ] -->|transition| L2[ ]")
+            lines.append("        L3[ ] -.->|via queue| L4[ ]")
+            lines.append("    end")
+            lines.append("    style Legend fill:none,stroke:#ccc")
+            lines.append("    style L1 fill:none,stroke:none,width:0px")
+            lines.append("    style L2 fill:none,stroke:none,width:0px")
+            lines.append("    style L3 fill:none,stroke:none,width:0px")
+            lines.append("    style L4 fill:none,stroke:none,width:0px")
         return "\n".join(lines)
 
     def to_dot(self) -> str:
         """Return a Graphviz DOT diagram of the task network.
+
+        Tasks with ``on_enter`` or ``on_exit`` hooks are annotated.
 
         Returns:
             str: DOT source string.
@@ -351,24 +406,35 @@ class TaskNetwork:
             '    edge [fontname="Helvetica", fontsize=10];',
             "",
         ]
+        # Nodes with hook annotations (HTML-like label for font control)
+        for task_name in self.task_classes:
+            suffix = self._hook_suffix(task_name)
+            if suffix:
+                lines.append(
+                    f'    "{task_name}" [label=<{task_name}<br/>'
+                    f'<font point-size="10"><i>{suffix}</i></font>>];'
+                )
+        lines.append("")
+        # Edges
         for src, links in self.task_links.items():
-            for target, guard in links.transitions:
+            for tr in links.transitions:
+                target, guard = tr[0], tr[1]
+                label = tr[2] if len(tr) == 3 else _guard_label(guard)
                 assert isinstance(target, str)
-                label = _guard_label(guard)
                 if label:
                     lines.append(f'    "{src}" -> "{target}" [label="{label}"];')
                 else:
                     lines.append(f'    "{src}" -> "{target}";')
             if links.default is not None:
                 assert isinstance(links.default, str)
-                trans_targets = {t for t, _ in links.transitions}
+                trans_targets = {tr[0] for tr in links.transitions}
                 if links.default not in trans_targets:
                     lines.append(f'    "{src}" -> "{links.default}";')
             for a in links.allowed:
                 assert isinstance(a, str)
-                trans_targets = {t for t, _ in links.transitions}
+                trans_targets = {tr[0] for tr in links.transitions}
                 if a not in trans_targets and a != links.default:
-                    lines.append(f'    "{src}" -> "{a}" [style=dashed, label="allowed"];')
+                    lines.append(f'    "{src}" -> "{a}" [style=dashed];')
         lines.append("}")
         return "\n".join(lines)
 
@@ -569,9 +635,9 @@ class TaskNetworkFactory:
             task_links[the_name] = TaskLinks(default=nxt_name, allowed=[nxt_name])
         return TaskNetworkFactory(name, task_class, task_links)
 
-    def to_mermaid(self) -> str:
+    def to_mermaid(self, *, legend: bool = True) -> str:
         """Convenience passthrough to :meth:`TaskNetwork.to_mermaid`."""
-        return self.make_network().to_mermaid()
+        return self.make_network().to_mermaid(legend=legend)
 
     def to_dot(self) -> str:
         """Convenience passthrough to :meth:`TaskNetwork.to_dot`."""

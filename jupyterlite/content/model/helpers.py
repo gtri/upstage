@@ -1,8 +1,12 @@
 # Helper functions for processing state data
-import pandas as pd
 from datetime import datetime, timedelta
 
-def to_changes(data: list[tuple[datetime, str]], excess=10.0) -> list[tuple[str, datetime, datetime]]:
+import pandas as pd
+
+
+def to_changes(
+    data: list[tuple[datetime, str]], excess=10.0
+) -> list[tuple[str, datetime, datetime]]:
     start_stop_data = []
     for i in range(len(data) - 1):
         start_time, start_value = data[i]
@@ -12,7 +16,9 @@ def to_changes(data: list[tuple[datetime, str]], excess=10.0) -> list[tuple[str,
     return start_stop_data
 
 
-def to_step(data: list[tuple[float, float | int]], last_time=None) -> list[tuple[float, float | int]]:
+def to_step(
+    data: list[tuple[float, float | int]], last_time=None
+) -> list[tuple[float, float | int]]:
     """Return data as (time, value) pairs that accounts for step-like nature of DES data."""
     step_data = []
     for i in range(len(data) - 1):
@@ -29,7 +35,7 @@ def to_step(data: list[tuple[float, float | int]], last_time=None) -> list[tuple
 
 
 def doing_to_gantt(df: pd.DataFrame, actor: str, state: str) -> pd.DataFrame:
-    use =  df[(df["Entity Name"] == actor) & (df["State Name"]==state)].sort_values("Time")
+    use = df[(df["Entity Name"] == actor) & (df["State Name"] == state)].sort_values("Time")
     the_data = [(row["Time"], row["Value"]) for _, row in use.iterrows()]
     formatted_data = to_changes(the_data)
     _times = [

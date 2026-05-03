@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.5.0 (Unreleased)
+
+* `@dataclass_transform()` on `Actor` for IDE type-checking support (PEP 681)
+  * Pylance, mypy, and pyright now auto-generate `__init__` signatures for Actor subclasses
+  * No `.pyi` stubs needed for user-defined models
+* State `no_init` parameter replaced with `init` (inverted, PEP 681 compatible)
+* Task Network improvements:
+  * Class-reference API for `TaskNetworkFactory` — use Task classes as keys instead of strings
+  * Construction-time validation of task link references
+  * Guard-based transitions on `TaskLinks` — declarative branching without `DecisionTask`
+  * `on_enter()` / `on_exit()` hooks on `Task` — zero-time setup/teardown
+  * `to_mermaid()` and `to_dot()` visualization on `TaskNetwork`
+
 ## v0.4.0
 
 * State default and default_factory improvements (#82)

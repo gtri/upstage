@@ -38,6 +38,36 @@ task is interrupted, the yielded process will receive an interrupt as well.
 Tasks only allow one actor, so use :doc:`Knowledge </user_guide/how_tos/knowledge>` to help
 manage interactions or other information. For more complex interactions, see :doc:`State Sharing </user_guide/how_tos/state_sharing>`.
 
+on_enter / on_exit Hooks
+------------------------
+
+Tasks have two optional zero-time hooks called by the task network loop:
+
+* ``on_enter(self, *, actor)`` — called **before** ``task()`` runs.
+* ``on_exit(self, *, actor)`` — called **after** ``task()`` completes.
+
+These are ideal for setup and teardown that would otherwise require a separate
+:py:class:`~upstage_des.task.DecisionTask`:
+
+.. code-block:: python
+
+    class WaitInLane(UP.Task):
+        def on_enter(self, *, actor: Cashier) -> None:
+            lane = actor.stage.boss.get_lane(actor)
+            actor.set_knowledge("checkout_lane", lane)
+
+        def task(self, *, actor: Cashier) -> TASK_GEN:
+            lane = actor.get_knowledge("checkout_lane", must_exist=True)
+            customer = UP.Get(lane.customer_queue)
+            yield customer
+            ...
+
+        def on_exit(self, *, actor: Cashier) -> None:
+            actor.clear_knowledge("checkout_lane")
+
+When combined with :doc:`guard-based transitions </user_guide/how_tos/task_networks>`,
+``on_enter``/``on_exit`` can replace most uses of ``DecisionTask``.
+
 Interrupts
 ----------
 
@@ -58,6 +88,13 @@ proceeds on to the next yield statement.
 Subclass and implement ``make_decision`` to use the class. The ``rehearse_decision`` method can also be implemented
 to provide rehearsal decision making. That is useful for separating planning and action code when the simpy clock
 will not be advancing.
+
+.. note::
+
+   For new models, consider using :ref:`guard-based transitions <Guard-Based Transitions>`
+   and ``on_enter``/``on_exit`` hooks instead of ``DecisionTask``.  Guards handle branching
+   declaratively, and hooks handle the zero-time setup/teardown that ``DecisionTask`` was
+   typically used for.
 
 See :doc:`Decision Tasks </user_guide/how_tos/decision_tasks>` for more.
 

@@ -9,39 +9,90 @@ In general, once an Actor has received a Task Network instance, all introspectio
 Defining a Network
 ==================
 
-Define a network by mapping a task name (string) to a task class, then by mapping those task names to the tasks that are allowed to take place after the key task has been performed, with an
-optional default. 
+Class-Reference Style (Recommended)
+------------------------------------
+
+The preferred way to define a network is with class references directly.
+``task_classes`` is derived automatically from the keys and values:
 
 .. code-block:: python
 
     class MoveTask(UP.Task):
-        # Assume states change and that the next task is defined in the queue
         ...
-    
+
     class ReadTask(UP.Task):
-        # Assume states change and that the next task is defined in the queue
         ...
-    
+
+    move_and_read_factory = UP.TaskNetworkFactory(
+        "MoveAndRead",
+        task_links={
+            MoveTask: UP.TaskLinks(default=ReadTask, allowed=[MoveTask, ReadTask]),
+            ReadTask: UP.TaskLinks(default=MoveTask, allowed=[MoveTask, ReadTask]),
+        },
+    )
+
+Class references are resolved to their ``__name__`` strings internally, so all
+runtime APIs (task queues, ``init_task_name``, etc.) still use strings.
+
+Construction-time validation checks that all referenced task names exist and
+warns about orphaned entries.
+
+String-Keyed Style (Legacy)
+---------------------------
+
+The original string-keyed API still works:
+
+.. code-block:: python
+
     task_classes = {
         "Move": MoveTask,
         "Read": ReadTask,
     }
     task_links = {
-        "Move": {
-                "default": None,
-                "allowed":["Move", "Read"],
-            },
-        "Read": {
-                "default": "Move",
-                "allowed":["Move", "Read"],
-            },
+        "Move": UP.TaskLinks(default=None, allowed=["Move", "Read"]),
+        "Read": UP.TaskLinks(default="Move", allowed=["Move", "Read"]),
     }
     move_and_read_factory = UP.TaskNetworkFactory("MoveAndRead", task_classes, task_links)
 
+The task ordering needs to know the default task (can be None) and the allowed tasks.
+If no default is given, an error will be thrown if no task ordering is given when a new task is selected.
 
-The task classes are given names, and those strings are used to define the default and allowable task ordering. The task ordering need to know the default task (can be None) and the allowed tasks.
-Allowed tasks must be supplied. If no default is given, an error will be thrown if no task ordering is given when a new task is selected. If the default or the set task queue violates the 
-allowed rule, an error will be thrown.
+Guard-Based Transitions
+-----------------------
+
+Instead of (or in addition to) ``default`` and ``allowed``, you can define
+guard-based transitions.  Guards are functions that take the actor and return
+a boolean.  The first matching guard determines the next task:
+
+.. code-block:: python
+
+    def needs_break(actor: Cashier) -> bool:
+        return actor.time_left_to_break() <= 0
+
+    factory = UP.TaskNetworkFactory(
+        "CashierJob",
+        task_links={
+            WaitInLane: UP.TaskLinks(transitions=[
+                (Break, needs_break),
+                (DoCheckout, None),  # None = unconditional fallback
+            ]),
+            DoCheckout: UP.TaskLinks(transitions=[
+                (WaitInLane, None),
+            ]),
+            Break: UP.TaskLinks(transitions=[
+                (ShortBreak, None),
+            ]),
+            ShortBreak: UP.TaskLinks(transitions=[
+                (WaitInLane, None),
+            ]),
+        },
+    )
+
+The priority when choosing the next task is:
+
+1. The actor's task queue (imperative override from interrupts, etc.)
+2. Guards evaluated in order — first ``True`` wins
+3. The ``default`` fallback
 
 To start a task network on an actor with the factory first make an instance of the network, add it to the actor, then start the loop with or without a queue:
 
@@ -102,6 +153,27 @@ The :py:class:`~upstage_des.task_network.TaskNetworkFactory` class has some conv
 #. :py:meth:`~upstage_des.task_network.TaskNetworkFactory.from_single_looping`: A series of tasks with no branching that terminates at the end.
 
 A terminating task network contains a :py:class:`~upstage_des.task.TerminalTask` task at the end, which waits on an un-succeedable event in a rehearsal-safe manner.
+
+
+Visualizing a Network
+=====================
+
+Both :py:class:`~upstage_des.task_network.TaskNetwork` and
+:py:class:`~upstage_des.task_network.TaskNetworkFactory` provide methods to
+generate graph diagrams from the task links:
+
+* :py:meth:`~upstage_des.task_network.TaskNetwork.to_mermaid` — Mermaid format
+  (renders in Jupyter, GitHub Markdown, and any Mermaid-compatible viewer).
+* :py:meth:`~upstage_des.task_network.TaskNetwork.to_dot` — Graphviz DOT format.
+
+Guard-based transitions are labeled with the guard function name. Edges from
+``default`` are solid, ``allowed``-only edges are dashed.
+
+.. code-block:: python
+
+    net = factory.make_network()
+    print(net.to_mermaid())
+    print(net.to_dot())
 
 
 Running Multiple Networks

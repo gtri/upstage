@@ -2,6 +2,14 @@
 Decision Tasks
 ==============
 
+.. note::
+
+   For new models, consider using **guard-based transitions** and **on_enter/on_exit hooks**
+   instead of ``DecisionTask``.  Guards handle branching declaratively (see
+   :doc:`Task Networks </user_guide/how_tos/task_networks>`), and ``on_enter``/``on_exit``
+   on :py:class:`~upstage_des.task.Task` handle zero-time setup and teardown (see
+   :doc:`Tasks </user_guide/how_tos/task>`).
+
 Decision tasks are :py:class:`~upstage_des.task.Task` s that take zero time and were briefly demonstrated in
 :doc:`Rehearsal </user_guide/tutorials/rehearsal>`. The purpose of a Decision task is to allow decision making and
 :py:class:`~upstage_des.task_networks.TaskNetwork` routing without moving the simulation clock and do so

@@ -12,8 +12,8 @@ import upstage_des.api as UP
 from upstage_des.task import InterruptStates
 from upstage_des.type_help import SIMPY_GEN, TASK_GEN
 
-
 BREAK_TIME = 15.0
+
 
 class Cashier(UP.Actor):
     scan_speed = UP.State[float](
@@ -71,7 +71,9 @@ class StoreBoss(UP.UpstageBase):
 
 class CashierBreakTimer(UP.Task):
     def task(self, *, actor: Cashier) -> TASK_GEN:
-        times = [self.env.now + actor.time_until_break*b for b in range(1, actor.breaks_until_done+1)]
+        times = [
+            self.env.now + actor.time_until_break * b for b in range(1, actor.breaks_until_done + 1)
+        ]
         for t in times:
             yield UP.Wait(t - self.env.now)
             actor.interrupt_network("CashierJob", cause=dict(reason="BREAK TIME"))
@@ -79,7 +81,6 @@ class CashierBreakTimer(UP.Task):
 
 class InterruptibleTask(UP.Task):
     def on_interrupt(self, *, actor: Cashier, cause: dict[str, Any]) -> InterruptStates:
-        # We will only interrupt with a dictionary of data
         assert isinstance(cause, dict)
         job_list: list[str]
 
@@ -90,17 +91,14 @@ class InterruptibleTask(UP.Task):
         else:
             raise UP.SimulationError("Unexpected interrupt cause")
 
-        # determine time until break
         time_left = actor.time_left_to_break()
-        # if there are only five minutes left, take the break and queue the task.
         if time_left <= 5.0 and "Break" not in job_list:
             job_list = ["Break"] + job_list
 
-        # Ignore the interrupt, unless we've marked it to know otherwise
         marker = self.get_marker() or "none"
         if marker == "on break" and "Break" in job_list:
             job_list.remove("Break")
-            
+
         self.clear_actor_task_queue(actor)
         self.set_actor_task_queue(actor, job_list)
         if marker == "cancellable":
@@ -109,29 +107,37 @@ class InterruptibleTask(UP.Task):
 
 
 class GoToWork(UP.Task):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
-        """Go to work"""
+    def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Going to Work"
+
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         yield UP.Wait(15.0)
 
 
-class TalkToBoss(UP.DecisionTask):
-    def make_decision(self, *, actor: Cashier) -> None:
-        """Zero-time task to get information."""
+class TalkToBoss(UP.Task):
+    """Zero-time setup: get lane assignment and start break timer.
+
+    Uses on_enter instead of DecisionTask.
+    """
+
+    def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Talking to Boss"
         boss: StoreBoss = self.stage.boss
         lane = boss.get_lane(actor)
-        self.set_actor_knowledge(actor, "checkout_lane", lane, overwrite=False)
+        actor.set_knowledge("checkout_lane", lane, overwrite=False)
         actor.breaks_taken = 0
-        self.set_actor_knowledge(actor, "start_time", self.env.now, overwrite=True)
-        # Convenient spot to run the timer.
+        actor.set_knowledge("start_time", self.env.now, overwrite=True)
         CashierBreakTimer().run(actor=actor)
+
+    def task(self, *, actor: Cashier) -> TASK_GEN:
+        yield UP.Wait(0.0)
 
 
 class WaitInLane(InterruptibleTask):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
-        """Wait until break time, or a customer."""
+    def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Waiting for Customer"
+
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         lane: CheckoutLane = self.get_actor_knowledge(
             actor,
             "checkout_lane",
@@ -147,9 +153,10 @@ class WaitInLane(InterruptibleTask):
 
 
 class DoCheckout(InterruptibleTask):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
-        """Do the checkout"""
+    def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Checking out a Customer"
+
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         items: int = self.get_actor_knowledge(
             actor,
             "customer",
@@ -165,81 +172,87 @@ class DoCheckout(InterruptibleTask):
             yield UP.Wait(per_item_time)
             actor.items_scanned += 1
         actor.deactivate_all_states(task=self)
-        # assume 2 minutes to take payment
         yield UP.Wait(2.0)
 
 
-class Break(UP.DecisionTask):
-    def make_decision(self, *, actor: Cashier) -> None:
-        """Decide what kind of break we are taking."""
+def _is_night_break(actor: Cashier) -> bool:
+    """Guard: true when all breaks are used up."""
+    return actor.breaks_taken >= actor.breaks_until_done
+
+
+class Break(UP.Task):
+    """Zero-time break decision — guards choose ShortBreak vs NightBreak.
+
+    Uses on_enter to increment the counter instead of DecisionTask.
+    """
+
+    def on_enter(self, *, actor: Cashier) -> None:
+        actor.current_task = "Break"
         actor.breaks_taken += 1
 
-        # we might have jobs queued
-        queue = self.get_actor_task_queue(actor) or []
-        if "Break" in queue:
-            raise UP.SimulationError("Odd task network state")
-        self.clear_actor_task_queue(actor)
-
-        if actor.breaks_taken == actor.breaks_until_done:
-            self.set_actor_task_queue(actor, ["NightBreak"])
-        elif actor.breaks_taken > actor.breaks_until_done:
-            raise UP.SimulationError("Too many breaks taken")
-        else:
-            self.set_actor_task_queue(actor, ["ShortBreak"] + queue)
+    def task(self, *, actor: Cashier) -> TASK_GEN:
+        yield UP.Wait(0.0)
 
 
 class ShortBreak(InterruptibleTask):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
-        """Take a short break."""
+    def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "On Short Break"
+
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         self.set_marker("on break")
         yield UP.Wait(BREAK_TIME)
         self.set_actor_knowledge(actor, "start_time", self.env.now, overwrite=True)
 
 
 class NightBreak(UP.Task):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
-        """Go home and rest."""
+    def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Home for the Night"
-        self.clear_actor_knowledge(actor, "checkout_lane")
+
+    def on_exit(self, *, actor: Cashier) -> None:
+        actor.clear_knowledge("checkout_lane")
         self.stage.boss.clear_lane(actor)
+
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         yield UP.Wait(60 * 12.0)
 
 
 class Restock(InterruptibleTask):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
-        """Restock."""
+    def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Restock"
+
+    def task(self, *, actor: Cashier) -> TASK_GEN:
         self.set_marker("quick task")
         yield UP.Wait(10.0)
 
 
-task_classes = {
-    "GoToWork": GoToWork,
-    "TalkToBoss": TalkToBoss,
-    "WaitInLane": WaitInLane,
-    "DoCheckout": DoCheckout,
-    "Break": Break,
-    "ShortBreak": ShortBreak,
-    "NightBreak": NightBreak,
-    "Restock": Restock,
-}
-
-task_links = {
-    "GoToWork": UP.TaskLinks(default="TalkToBoss", allowed=["TalkToBoss"]),
-    "TalkToBoss": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane"]),
-    "WaitInLane": UP.TaskLinks(default="DoCheckout", allowed=["DoCheckout", "Break"]),
-    "DoCheckout": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane", "Break"]),
-    "Break": UP.TaskLinks(default="ShortBreak", allowed=["ShortBreak", "NightBreak"]),
-    "ShortBreak": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane"]),
-    "NightBreak": UP.TaskLinks(default="GoToWork", allowed=["GoToWork"]),
-    "Restock": UP.TaskLinks(default="WaitInLane", allowed=["WaitInLane", "Break"]),
-}
+# --- Task Network (class-reference API with guards) ---
 
 cashier_task_network = UP.TaskNetworkFactory(
     name="CashierJob",
-    task_classes=task_classes,
-    task_links=task_links,
+    task_links={
+        GoToWork: UP.TaskLinks(transitions=[(TalkToBoss, None, "arrived")]),
+        TalkToBoss: UP.TaskLinks(transitions=[(WaitInLane, None, "lane assigned")]),
+        WaitInLane: UP.TaskLinks(
+            transitions=[(DoCheckout, None, "customer arrived")],
+            allowed=[DoCheckout, Break],
+        ),
+        DoCheckout: UP.TaskLinks(
+            transitions=[(WaitInLane, None, "checkout done")],
+            allowed=[WaitInLane, Break],
+        ),
+        Break: UP.TaskLinks(
+            transitions=[
+                (NightBreak, _is_night_break, "all breaks used"),
+                (ShortBreak, None, "breaks remaining"),
+            ],
+        ),
+        ShortBreak: UP.TaskLinks(transitions=[(WaitInLane, None, "break over")]),
+        NightBreak: UP.TaskLinks(transitions=[(GoToWork, None, "next day")]),
+        Restock: UP.TaskLinks(
+            transitions=[(WaitInLane, None, "restocked")],
+            allowed=[WaitInLane, Break],
+        ),
+    },
 )
 
 
@@ -260,9 +273,8 @@ def customer_spawner(
     lanes: list[CheckoutLane],
     max_wait: float = 30.0,
 ) -> Generator[SIM.Event, None, None]:
-    # sneaky way to get access to stage
     stage = lanes[0].stage
-    t_until = (8*60+1) - env.now
+    t_until = (8 * 60 + 1) - env.now
     t_until = max(t_until, 0.0)
     yield env.timeout(t_until)
     while True:
@@ -270,7 +282,7 @@ def customer_spawner(
         days = hrs // 24
         time_of_day = hrs % 24
         if time_of_day >= 18.5:
-            time_at_open = 24 * (days + 1) + 8 
+            time_at_open = 24 * (days + 1) + 8
             mins_to_open = (time_at_open - hrs) * 60
             yield env.timeout(mins_to_open)
 
@@ -282,8 +294,6 @@ def customer_spawner(
 
 def manager_process(boss: StoreBoss, cashiers: list[Cashier]) -> SIMPY_GEN:
     while True:
-        # Use the random uniform feature, but convert the UPSTAGE event to simpy
-        # because this is a simpy only process
         yield UP.Wait.from_random_uniform(30.0, 90.0).as_event()
         possible = [
             cash

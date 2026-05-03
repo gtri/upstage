@@ -32,16 +32,16 @@ cmd = "pyproject-fmt pyproject.toml"
 inputs = ["pyproject.toml"]
 
 [feature.tasks-lint.tasks.fix-ssort]
-cmd = "ssort src/**/*.py"
-inputs = ["src/**/*.py"]
+cmd = "ssort src/**/*.py jupyterlite/content/model/*.py"
+inputs = ["src/**/*.py", "jupyterlite/content/model/*.py"]
 
 [feature.tasks-lint.tasks.format-ruff]
-cmd = "ruff format src src/**/*.py"
-inputs = ["src/**/*.py"]
+cmd = "ruff format src src/**/*.py jupyterlite/content/model/"
+inputs = ["src/**/*.py", "jupyterlite/content/model/*.py"]
 
 [feature.tasks-lint.tasks.fix-ruff]
-cmd = "ruff check src/ --fix"
-inputs = ["src/**/*.py"]
+cmd = "ruff check src/ jupyterlite/content/model/ --fix"
+inputs = ["src/**/*.py", "jupyterlite/content/model/*.py"]
 
 [feature.tasks-lint.tasks.mypy]
 cmd = "mypy --show-error-codes -p upstage_des"
@@ -52,11 +52,11 @@ cmd = "pyproject-fmt pyproject.toml --check"
 inputs = ["pyproject.toml"]
 
 [feature.tasks-lint.tasks.check-ssort]
-cmd = "ssort --check src/**/*.py"
-inputs = ["src/**/*.py"]
+cmd = "ssort --check src/**/*.py jupyterlite/content/model/*.py"
+inputs = ["src/**/*.py", "jupyterlite/content/model/*.py"]
 
 [feature.tasks-lint.tasks.check-ruff]
-cmd = "ruff check src/"
+cmd = "ruff check src/ jupyterlite/content/model/"
 inputs = ["src/**/*.py"]
 
 [feature.tasks-docs.tasks.autogen]
@@ -82,11 +82,13 @@ features = [
   "deps-test",
   "deps-docs",
   "deps-jlite",
+  "deps-examples",
   "tasks-lint",
   "tasks-test",
   "tasks-docs",
   "tasks-start",
   "tasks-jlite",
+  "tasks-examples",
 ]
 
 [environments.py311]
@@ -154,3 +156,12 @@ sphinx = ">=7"
 jupyterlite-core = "==0.6.1"
 jupyterlite-pyodide-kernel = "==0.6.1"
 jupyterlab = "~=4.4.3"
+
+[feature.deps-examples.dependencies]
+jupyterlab = "~=4.4.3"
+pandas = "*"
+plotly = "*"
+
+[feature.tasks-examples.tasks.examples]
+description = "Launch JupyterLab with the example notebooks"
+cmd = "jupyter lab --notebook-dir=jupyterlite/content"
