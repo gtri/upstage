@@ -1141,3 +1141,199 @@ def test_to_dot() -> None:
     assert '"Y"' in dot
     # Factory passthrough also works
     assert factory.to_dot() == dot
+
+
+# Snapshot tests for the diagram generators.  These are golden-file tests:
+# they pin the exact string output so that format changes are caught and
+# have to be updated explicitly.  If you are deliberately changing the
+# Mermaid or DOT output, update the expected strings below to match.
+
+
+def test_to_mermaid_snapshot_guards_and_labels() -> None:
+    """Full Mermaid output with guard labels and uniform node declarations."""
+
+    class A(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class B(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    def needs_b(actor: Actor) -> bool:
+        return True
+
+    factory = TaskNetworkFactory(
+        "Snap",
+        task_links={
+            A: TaskLinks(
+                transitions=[
+                    (B, needs_b, "go to B"),
+                    (A, None),
+                ]
+            ),
+            B: TaskLinks(transitions=[(A, None)]),
+        },
+    )
+    expected = "\n".join(
+        [
+            "graph TD",
+            '    A["A"]',
+            '    B["B"]',
+            "    A -->|go to B| B",
+            "    A --> A",
+            "    B --> A",
+        ]
+    )
+    assert factory.make_network().to_mermaid() == expected
+
+
+def test_to_mermaid_snapshot_allowed_edges_and_legend() -> None:
+    """Allowed-only edges produce dashed lines and a legend."""
+
+    class A(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class B(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    factory = TaskNetworkFactory(
+        "SnapAllowed",
+        task_links={
+            A: TaskLinks(default=A, allowed=[A, B]),
+            B: TaskLinks(default=A, allowed=[A]),
+        },
+    )
+    mermaid = factory.make_network().to_mermaid()
+    # Uniform nodes
+    assert '    A["A"]' in mermaid
+    assert '    B["B"]' in mermaid
+    # Default edges
+    assert "    A --> A" in mermaid
+    assert "    B --> A" in mermaid
+    # Allowed-only (dashed) edge
+    assert "    A -.-> B" in mermaid
+    # Legend triggered by dashed edges
+    assert "subgraph Legend" in mermaid
+    assert "|transition|" in mermaid
+    assert "|via queue|" in mermaid
+
+
+def test_to_mermaid_snapshot_legend_off() -> None:
+    """`legend=False` suppresses the legend even when dashed edges exist."""
+
+    class A(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class B(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    factory = TaskNetworkFactory(
+        "SnapNoLegend",
+        task_links={
+            A: TaskLinks(default=A, allowed=[A, B]),
+            B: TaskLinks(default=A, allowed=[A]),
+        },
+    )
+    mermaid = factory.make_network().to_mermaid(legend=False)
+    assert "subgraph Legend" not in mermaid
+    assert "    A -.-> B" in mermaid
+
+
+def test_to_mermaid_snapshot_with_hooks() -> None:
+    """Tasks defining on_enter/on_exit get annotated nodes."""
+
+    class Hooked(Task):
+        def on_enter(self, *, actor: Actor) -> None:
+            pass
+
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    factory = TaskNetworkFactory.from_single_looping("Hook", Hooked)
+    mermaid = factory.make_network().to_mermaid()
+    assert '    Hooked["Hooked<br/><sub><i>(on_enter)</i></sub>"]' in mermaid
+
+
+def test_to_dot_snapshot_uniform_nodes() -> None:
+    """DOT output declares every task node, hooked or not."""
+
+    class X(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class Y(Task):
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    factory = TaskNetworkFactory(
+        "DotSnap",
+        task_links={
+            X: TaskLinks(default=Y, allowed=[Y]),
+            Y: TaskLinks(default=X, allowed=[X]),
+        },
+    )
+    expected = "\n".join(
+        [
+            "digraph DotSnap {",
+            "    rankdir=TB;",
+            '    node [shape=box, style=rounded, fontname="Helvetica"];',
+            '    edge [fontname="Helvetica", fontsize=10];',
+            "",
+            '    "X";',
+            '    "Y";',
+            "",
+            '    "X" -> "Y";',
+            '    "Y" -> "X";',
+            "}",
+        ]
+    )
+    assert factory.make_network().to_dot() == expected
+
+
+def test_to_dot_snapshot_with_hooks_and_labels() -> None:
+    """DOT output with hooks, guard labels, and dashed (allowed-only) edges."""
+
+    class Enter(Task):
+        def on_enter(self, *, actor: Actor) -> None:
+            pass
+
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    class Exit(Task):
+        def on_exit(self, *, actor: Actor) -> None:
+            pass
+
+        def task(self, *, actor: Actor) -> TASK_GEN:
+            yield Wait(1.0)
+
+    def done(actor: Actor) -> bool:
+        return True
+
+    factory = TaskNetworkFactory(
+        "DotFull",
+        task_links={
+            Enter: TaskLinks(
+                transitions=[(Exit, done, "ready")],
+                allowed=[Enter],
+            ),
+            Exit: TaskLinks(default=Enter, allowed=[Enter]),
+        },
+    )
+    dot = factory.make_network().to_dot()
+    assert (
+        '    "Enter" [label=<Enter<br/><font point-size="10"><i>(on_enter)</i></font>>];'
+        in dot
+    )
+    assert (
+        '    "Exit" [label=<Exit<br/><font point-size="10"><i>(on_exit)</i></font>>];'
+        in dot
+    )
+    assert '    "Enter" -> "Exit" [label="ready"];' in dot
+    assert '    "Enter" -> "Enter" [style=dashed];' in dot
+    assert '    "Exit" -> "Enter";' in dot

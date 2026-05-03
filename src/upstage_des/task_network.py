@@ -7,7 +7,7 @@
 
 from collections.abc import Callable, Generator, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, NamedTuple, TypeVar
 from warnings import warn
 
 if TYPE_CHECKING:
@@ -22,6 +22,20 @@ REH_ACTOR = TypeVar("REH_ACTOR", bound="Actor")
 
 
 GUARD_FUNC = Callable[..., bool]
+
+
+class Transition(NamedTuple):
+    """A resolved transition in a task network.
+
+    Users typically pass raw tuples to :class:`TaskLinks`; those are
+    normalised to :class:`Transition` when the network is constructed.
+    """
+
+    target: str
+    guard: GUARD_FUNC | None
+    label: str | None = None
+
+
 TRANSITION = (
     tuple[str | type[Task], GUARD_FUNC | None] | tuple[str | type[Task], GUARD_FUNC | None, str]
 )
@@ -55,20 +69,17 @@ class TaskLinks:
 
     default: str | type[Task] | None = None
     allowed: Sequence[str | type[Task]] = field(default_factory=list)
-    transitions: list[TRANSITION] = field(default_factory=list)
+    transitions: Sequence[TRANSITION | Transition] = field(default_factory=list)
 
     def _resolve(self) -> "TaskLinks":
         """Return a copy with all class references replaced by ``__name__`` strings."""
         default = self.default.__name__ if isinstance(self.default, type) else self.default
         allowed = [a.__name__ if isinstance(a, type) else a for a in self.allowed]
-        resolved_trans: list[TRANSITION] = []
+        resolved_trans: list[Transition] = []
         for tr in self.transitions:
             target = tr[0].__name__ if isinstance(tr[0], type) else tr[0]
-            guard = tr[1]
-            if len(tr) == 3:
-                resolved_trans.append((target, guard, tr[2]))
-            else:
-                resolved_trans.append((target, guard))
+            label = tr[2] if len(tr) == 3 else None
+            resolved_trans.append(Transition(target=target, guard=tr[1], label=label))
         return TaskLinks(default=default, allowed=allowed, transitions=resolved_trans)
 
     def _all_targets(self) -> list[str | type[Task]]:
@@ -113,6 +124,21 @@ def _validate_network(
             UserWarning,
             stacklevel=3,
         )
+
+
+def _as_transitions(
+    transitions: Sequence[TRANSITION | Transition],
+) -> list[Transition]:
+    """Normalise raw-tuple and :class:`Transition` inputs to a list of ``Transition``."""
+    out: list[Transition] = []
+    for tr in transitions:
+        if isinstance(tr, Transition):
+            out.append(tr)
+            continue
+        target = tr[0].__name__ if isinstance(tr[0], type) else tr[0]
+        label = tr[2] if len(tr) == 3 else None
+        out.append(Transition(target=target, guard=tr[1], label=label))
+    return out
 
 
 def _guard_label(guard: GUARD_FUNC | None) -> str:
@@ -192,11 +218,9 @@ class TaskNetwork:
         links = self.task_links[curr_task_name]
 
         # 2. Evaluate guards
-        for tr in links.transitions:
-            target, guard = tr[0], tr[1]
-            assert isinstance(target, str)
-            if guard is None or guard(actor):
-                return target
+        for tr in _as_transitions(links.transitions):
+            if tr.guard is None or tr.guard(actor):
+                return tr.target
 
         # 3. Fall back to default
         default_next_task = links.default
@@ -345,20 +369,23 @@ class TaskNetwork:
         """
         has_allowed = False
         lines = ["graph TD"]
-        # Declare nodes with labels (hooks annotated)
+        # Declare every task node so rendering is consistent whether or not
+        # a task defines on_enter/on_exit hooks.
         for task_name in self.task_classes:
             node_id = task_name.replace(" ", "_")
             suffix = self._hook_suffix(task_name)
             if suffix:
                 lines.append(f'    {node_id}["{task_name}<br/><sub><i>{suffix}</i></sub>"]')
+            else:
+                lines.append(f'    {node_id}["{task_name}"]')
         # Edges
         for src, links in self.task_links.items():
             src_id = src.replace(" ", "_")
-            for tr in links.transitions:
-                target, guard = tr[0], tr[1]
-                label = tr[2] if len(tr) == 3 else _guard_label(guard)
-                assert isinstance(target, str)
-                tgt_id = target.replace(" ", "_")
+            transitions = _as_transitions(links.transitions)
+            trans_targets = {tr.target for tr in transitions}
+            for tr in transitions:
+                label = tr.label if tr.label is not None else _guard_label(tr.guard)
+                tgt_id = tr.target.replace(" ", "_")
                 if label:
                     lines.append(f"    {src_id} -->|{label}| {tgt_id}")
                 else:
@@ -366,13 +393,11 @@ class TaskNetwork:
             if links.default is not None:
                 assert isinstance(links.default, str)
                 def_id = links.default.replace(" ", "_")
-                trans_targets = {tr[0] for tr in links.transitions}
                 if links.default not in trans_targets:
                     lines.append(f"    {src_id} --> {def_id}")
             for a in links.allowed:
                 assert isinstance(a, str)
                 a_id = a.replace(" ", "_")
-                trans_targets = {tr[0] for tr in links.transitions}
                 if a not in trans_targets and a != links.default:
                     has_allowed = True
                     lines.append(f"    {src_id} -.-> {a_id}")
@@ -406,7 +431,8 @@ class TaskNetwork:
             '    edge [fontname="Helvetica", fontsize=10];',
             "",
         ]
-        # Nodes with hook annotations (HTML-like label for font control)
+        # Declare every task node so rendering is consistent whether or not
+        # a task defines on_enter/on_exit hooks.
         for task_name in self.task_classes:
             suffix = self._hook_suffix(task_name)
             if suffix:
@@ -414,25 +440,25 @@ class TaskNetwork:
                     f'    "{task_name}" [label=<{task_name}<br/>'
                     f'<font point-size="10"><i>{suffix}</i></font>>];'
                 )
+            else:
+                lines.append(f'    "{task_name}";')
         lines.append("")
         # Edges
         for src, links in self.task_links.items():
-            for tr in links.transitions:
-                target, guard = tr[0], tr[1]
-                label = tr[2] if len(tr) == 3 else _guard_label(guard)
-                assert isinstance(target, str)
+            transitions = _as_transitions(links.transitions)
+            trans_targets = {tr.target for tr in transitions}
+            for tr in transitions:
+                label = tr.label if tr.label is not None else _guard_label(tr.guard)
                 if label:
-                    lines.append(f'    "{src}" -> "{target}" [label="{label}"];')
+                    lines.append(f'    "{src}" -> "{tr.target}" [label="{label}"];')
                 else:
-                    lines.append(f'    "{src}" -> "{target}";')
+                    lines.append(f'    "{src}" -> "{tr.target}";')
             if links.default is not None:
                 assert isinstance(links.default, str)
-                trans_targets = {tr[0] for tr in links.transitions}
                 if links.default not in trans_targets:
                     lines.append(f'    "{src}" -> "{links.default}";')
             for a in links.allowed:
                 assert isinstance(a, str)
-                trans_targets = {tr[0] for tr in links.transitions}
                 if a not in trans_targets and a != links.default:
                     lines.append(f'    "{src}" -> "{a}" [style=dashed];')
         lines.append("}")

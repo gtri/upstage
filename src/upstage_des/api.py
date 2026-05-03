@@ -89,7 +89,10 @@ from upstage_des.states import (
 from upstage_des.task import DecisionTask, InterruptStates, Task, TerminalTask, process
 
 # Task Networks
-from upstage_des.task_network import TaskLinks, TaskNetwork, TaskNetworkFactory
+from upstage_des.task_network import TaskLinks, TaskNetwork, TaskNetworkFactory, Transition
+
+# Typing helpers
+from upstage_des.type_help import ROUTINE_GEN, SIMPY_GEN, TASK_GEN
 
 # Conversion
 from upstage_des.units import unit_convert
@@ -151,7 +154,11 @@ __all__ = [
     "TaskNetwork",
     "TaskNetworkFactory",
     "TaskLinks",
+    "Transition",
     "TaskNetworkNucleus",
+    "TASK_GEN",
+    "SIMPY_GEN",
+    "ROUTINE_GEN",
     "NucleusInterrupt",
     "SharedLinearChangingState",
     "PointToPointCommsManager",

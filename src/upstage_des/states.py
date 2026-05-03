@@ -144,8 +144,8 @@ class State(Generic[ST]):
             raise UpstageError("State needs to only use default or default factory.")
         any_def = self._default is not None or self._default_factory is not None
 
-        self._no_init = not init
-        if self._no_init and not any_def:
+        self._init = init
+        if not self._init and not any_def:
             raise SimulationError("State needs a default when init=False")
         self._frozen = frozen
         self._recording = recording

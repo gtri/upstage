@@ -76,7 +76,7 @@ class Actor(SettableEnv, NamedUpstageEntity):
             if state in self._state_defs:
                 seen.add(state)
                 st = self._state_defs[state]
-                if st._no_init:
+                if not st._init:
                     raise SimulationError(
                         f"State {state} on {self} has init=False. "
                         "Initializing an init=False state is disallowed."
@@ -242,7 +242,7 @@ Args:
         if state_parameter:
             params.remove(state_parameter[0])
         for state, value in all_states.items():
-            if value._no_init:
+            if not value._init:
                 continue
             typ = Any if not value._types else Union[*value._types]
             default_str = "No Default"

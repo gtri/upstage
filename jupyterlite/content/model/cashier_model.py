@@ -9,8 +9,6 @@ from typing import Any
 import simpy as SIM
 
 import upstage_des.api as UP
-from upstage_des.task import InterruptStates
-from upstage_des.type_help import SIMPY_GEN, TASK_GEN
 
 BREAK_TIME = 15.0
 
@@ -70,7 +68,7 @@ class StoreBoss(UP.UpstageBase):
 
 
 class CashierBreakTimer(UP.Task):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         times = [
             self.env.now + actor.time_until_break * b for b in range(1, actor.breaks_until_done + 1)
         ]
@@ -80,7 +78,7 @@ class CashierBreakTimer(UP.Task):
 
 
 class InterruptibleTask(UP.Task):
-    def on_interrupt(self, *, actor: Cashier, cause: dict[str, Any]) -> InterruptStates:
+    def on_interrupt(self, *, actor: Cashier, cause: dict[str, Any]) -> UP.InterruptStates:
         assert isinstance(cause, dict)
         job_list: list[str]
 
@@ -110,7 +108,7 @@ class GoToWork(UP.Task):
     def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Going to Work"
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         yield UP.Wait(15.0)
 
 
@@ -129,7 +127,7 @@ class TalkToBoss(UP.Task):
         actor.set_knowledge("start_time", self.env.now, overwrite=True)
         CashierBreakTimer().run(actor=actor)
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         yield UP.Wait(0.0)
 
 
@@ -137,7 +135,7 @@ class WaitInLane(InterruptibleTask):
     def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Waiting for Customer"
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         lane: CheckoutLane = self.get_actor_knowledge(
             actor,
             "checkout_lane",
@@ -156,7 +154,7 @@ class DoCheckout(InterruptibleTask):
     def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Checking out a Customer"
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         items: int = self.get_actor_knowledge(
             actor,
             "customer",
@@ -190,7 +188,7 @@ class Break(UP.Task):
         actor.current_task = "Break"
         actor.breaks_taken += 1
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         yield UP.Wait(0.0)
 
 
@@ -198,7 +196,7 @@ class ShortBreak(InterruptibleTask):
     def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "On Short Break"
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         self.set_marker("on break")
         yield UP.Wait(BREAK_TIME)
         self.set_actor_knowledge(actor, "start_time", self.env.now, overwrite=True)
@@ -212,7 +210,7 @@ class NightBreak(UP.Task):
         actor.clear_knowledge("checkout_lane")
         self.stage.boss.clear_lane(actor)
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         yield UP.Wait(60 * 12.0)
 
 
@@ -220,7 +218,7 @@ class Restock(InterruptibleTask):
     def on_enter(self, *, actor: Cashier) -> None:
         actor.current_task = "Restock"
 
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         self.set_marker("quick task")
         yield UP.Wait(10.0)
 
@@ -257,7 +255,7 @@ cashier_task_network = UP.TaskNetworkFactory(
 
 
 class CashierMessages(UP.Task):
-    def task(self, *, actor: Cashier) -> TASK_GEN:
+    def task(self, *, actor: Cashier) -> UP.TASK_GEN:
         getter = UP.Get(actor.messages)
         yield getter
         tasks_needed: list[str] | str = getter.get_value()
@@ -292,7 +290,7 @@ def customer_spawner(
         yield UP.Wait.from_random_uniform(5.0, max_wait).as_event()
 
 
-def manager_process(boss: StoreBoss, cashiers: list[Cashier]) -> SIMPY_GEN:
+def manager_process(boss: StoreBoss, cashiers: list[Cashier]) -> UP.SIMPY_GEN:
     while True:
         yield UP.Wait.from_random_uniform(30.0, 90.0).as_event()
         possible = [
