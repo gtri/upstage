@@ -93,6 +93,25 @@ lint.per-file-ignores."tests/test*.py" = [
 ]
 lint.pydocstyle.convention = "google"
 
+[tool.mypy]
+# broken by ipywidgetsplugins = "pydantic.mypy"
+cache_dir = "build/.mypy_cache"
+sqlite_cache = true
+python_version = "3.12"
+allow_redefinition = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+show_error_codes = true
+warn_return_any = true
+warn_unused_ignores = true
+disable_error_code = "type-abstract"
+overrides = [
+  { module = [
+    "importlib.metadata",
+  ], ignore_missing_imports = true },
+]
+
 [tool.pytest]
 ini_options.junit_family = "xunit2"
 ini_options.cache_dir = "build/.pytest_cache"
@@ -141,22 +160,3 @@ report.exclude_also = [
   "raise UpstageError*",
 ]
 html.show_contexts = true
-
-[tool.mypy]
-# broken by ipywidgetsplugins = "pydantic.mypy"
-cache_dir = "build/.mypy_cache"
-sqlite_cache = true
-python_version = "3.12"
-allow_redefinition = true
-check_untyped_defs = true
-disallow_untyped_defs = true
-no_implicit_optional = true
-show_error_codes = true
-warn_return_any = true
-warn_unused_ignores = true
-disable_error_code = "type-abstract"
-overrides = [
-  { module = [
-    "importlib.metadata",
-  ], ignore_missing_imports = true },
-]

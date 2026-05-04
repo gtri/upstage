@@ -22,7 +22,7 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from upstage_des.actor import Actor # pragma: no cover
+    from upstage_des.actor import Actor  # pragma: no cover
 
 ROOT_LOGGER_NAME = "upstage_des"
 ACTOR_LOGGER_PREFIX = f"{ROOT_LOGGER_NAME}.actor"
