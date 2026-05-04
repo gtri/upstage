@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name = "upstage-des"
-version = "0.4.0"
+version = "1.0.0"
 description = "A library for behavior-driven discrete event simulation."
 readme = "README.md"
 keywords = [
@@ -23,7 +23,7 @@ license = { file = "LICENSE" }
 authors = [
   { name = "James Arruda", email = "James.Arruda@gtri.gatech.edu" },
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -33,7 +33,6 @@ classifiers = [
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
@@ -62,17 +61,16 @@ optional-dependencies.test = [
 ]
 urls."Bug Tracker" = "https://github.com/gtri/upstage/issues"
 urls.Documentation = "https://gtri.github.io/upstage"
-urls."Source" = "https://github.com/gtri/upstage"
+urls.Source = "https://github.com/gtri/upstage"
 
-[tool.flit.sdist]
-exclude = [
+[tool.flit]
+sdist.exclude = [
   ".gitignore",
 ]
 
 [tool.ruff]
 line-length = 100
 cache-dir = "build/.ruff_cache"
-
 format.docstring-code-line-length = 100
 lint.select = [
   "D",
@@ -86,20 +84,19 @@ lint.select = [
 lint.ignore = [
   "D105",
 ]
-lint.per-file-ignores."src/upstage_des/test/__*.py" = [
+lint.per-file-ignores."tests/__*.py" = [
   "D",
 ]
-lint.per-file-ignores."src/upstage_des/test/test*.py" = [
+lint.per-file-ignores."tests/test*.py" = [
   "D",
 ]
 lint.pydocstyle.convention = "google"
 
-[tool.pytest.ini_options]
-junit_family = "xunit2"
-cache_dir = "build/.pytest_cache"
-addopts = [
-  "--pyargs",
-  "upstage_des",
+[tool.pytest]
+ini_options.junit_family = "xunit2"
+ini_options.cache_dir = "build/.pytest_cache"
+ini_options.testpaths = [ "tests/" ]
+ini_options.addopts = [
   # for contributors
   "--cov-report=term-missing:skip-covered",
   "--color=yes",
@@ -120,42 +117,35 @@ addopts = [
   "--ff",
 ]
 
-[tool.coverage.run]
-data_file = "build/reports/.coverage"
-omit = [
-  "*/test/test*.py",
-  "*/test/test_nucleus_state_share/*.py",
+[tool.coverage]
+run.data_file = "build/reports/.coverage"
+run.omit = [
   "*/upstage_des/utils.py",
+  "tests/test*.py",
 ]
-
-[tool.coverage.html]
-show_contexts = true
-
-[tool.coverage.paths]
-upstage_des = [
+paths.upstage_des = [
   "src/upstage_des",
   "*/src/upstage_des",
 ]
-
-[tool.coverage.report]
-exclude_also = [
-  "raise UpstageError*",
-  "raise SimulationError*",
-  "raise NotImplementedError*",
+report.exclude_also = [
   "except LookupError",
+  "except MotionAndDetectionError",
   "except RuntimeError",
   "except SimulationError",
-  "raise TypeError",
   "except TypeError",
   "raise MotionAndDetectionError",
-  "except MotionAndDetectionError",
+  "raise NotImplementedError*",
+  "raise SimulationError*",
+  "raise TypeError",
+  "raise UpstageError*",
 ]
+html.show_contexts = true
 
 [tool.mypy]
 # broken by ipywidgetsplugins = "pydantic.mypy"
 cache_dir = "build/.mypy_cache"
 sqlite_cache = true
-python_version = "3.11"
+python_version = "3.12"
 allow_redefinition = true
 check_untyped_defs = true
 disallow_untyped_defs = true
@@ -164,13 +154,8 @@ show_error_codes = true
 warn_return_any = true
 warn_unused_ignores = true
 disable_error_code = "type-abstract"
-# disallow_any_unimported = true
-#exclude = [
-#  "^.+/upstage_des/test.+\\.py$",
-#]
-
-[[tool.mypy.overrides]]
-module = [
-  "importlib.metadata",
+overrides = [
+  { module = [
+    "importlib.metadata",
+  ], ignore_missing_imports = true },
 ]
-ignore_missing_imports = true
