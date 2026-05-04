@@ -5,7 +5,7 @@ library is silent by default — a ``NullHandler`` is attached on import and
 the package logger defaults to ``WARNING``.  Opt in at your application
 entry point
 
-```{python}
+```{code-block} python
     import logging
 
     logging.basicConfig(level=logging.INFO, format="%(name)s: %(message)s")
@@ -14,7 +14,7 @@ entry point
 
 Actor events go to ``upstage_des.actor.<actor.name>``.
 
-```{python}
+```{code-block} python
     logging.getLogger("upstage_des.actor").setLevel(logging.INFO)
     # Filter only for actors with certain values in the name
     logging.getLogger("upstage_des.actor").addFilter(
@@ -27,7 +27,7 @@ arguments.  Formatting is deferred — when the log level is disabled and
 ``debug_logging=False`` on the actor, the interpolation never runs, so
 ``repr``/``str`` cost on your arguments is avoided in hot loops.
 
-```{python}
+```{code-block} python
     def task(self, *, actor):
         actor.log("picked up %s (qty=%d)", item, qty)        # INFO
         actor.log("low fuel: %.1f%%", remaining, level=logging.WARNING)

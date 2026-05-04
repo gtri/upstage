@@ -36,6 +36,16 @@ You can download UPSTAGE and install it manually. Clone, or download the archive
 
 (or just `pip install .`)
 
+## Features
+
+```{toctree}
+:caption: Features
+:maxdepth: 2
+
+features/logging.md
+```
+
+
 ## Contributing
 
 To contribute to UPSTAGE, or to learn the steps for building documentation, running tests, and putting
