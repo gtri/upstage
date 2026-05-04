@@ -7,7 +7,7 @@
 
 from collections.abc import Generator
 from enum import IntFlag
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 from warnings import warn
 
 from simpy import Environment as SimpyEnv

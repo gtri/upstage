@@ -113,11 +113,25 @@ features  = [
   "tasks-test",
 ]
 
+[environments.py314]
+features  = [
+  "py314",
+  "deps-lint",
+  "deps-test",
+  "deps-docs",
+  "tasks-lint",
+  "tasks-test",
+]
+
+
 [feature.py312.dependencies]
 python = "3.12.*"
 
 [feature.py313.dependencies]
 python = "3.13.*"
+
+[feature.py314.dependencies]
+python = "3.14.*"
 
 [feature.deps-lint.dependencies]
 mypy = "*"

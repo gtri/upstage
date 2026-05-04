@@ -7,12 +7,14 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Union, cast, get_args, get_origin
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, get_args, get_origin
 
 from upstage_des.base import SimulationError
 
 if TYPE_CHECKING:
     from upstage_des.actor import _BaseActor as Actor
+
+T = TypeVar("T")
 
 
 def check_type(value: Any, annotation: Any) -> bool:

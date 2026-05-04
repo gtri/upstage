@@ -16,7 +16,6 @@ from simpy import Process
 from upstage_des.base import (
     SimulationError,
     UpstageBase,
-    UpstageError,
 )
 from upstage_des.root_types import StateDataDict
 from upstage_des.states import LinearChangingState, State, _ActiveState
