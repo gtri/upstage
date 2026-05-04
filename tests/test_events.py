@@ -11,7 +11,7 @@ from simpy.resources import base
 from simpy.resources.container import ContainerGet, ContainerPut
 from simpy.resources.store import StoreGet, StorePut
 
-from upstage_des import (
+from upstage_des.api import (
     EnvironmentContext,
     SimulationError,
 )

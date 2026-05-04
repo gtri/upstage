@@ -5,7 +5,7 @@
 
 """Test cloning actors."""
 
-from upstage_des import Actor, EnvironmentContext, get_entities_by_class
+from upstage_des.api import Actor, EnvironmentContext, get_entities_by_class
 
 
 def test_actor_clone_basic() -> None:
@@ -18,7 +18,7 @@ def test_actor_clone_basic() -> None:
         
         cloned = vehicle.clone()
         
-        assert cloned.name == "car1"
+        assert cloned.name == "car1.clone"
         assert cloned.fuel == 50.0
         assert cloned.position == 10
         assert cloned.is_clone is True
@@ -97,7 +97,7 @@ def test_actor_clone_inheritance() -> None:
         
         cloned = car.clone()
         
-        assert cloned.name == "sedan"
+        assert cloned.name == "sedan.clone"
         assert cloned.fuel == 75.0
         assert cloned.passengers == 3
         assert cloned.is_clone is True

@@ -5,6 +5,7 @@
 
 """Actor system with dataclass-like field transformation and State descriptors."""
 
+import logging
 from collections import OrderedDict, defaultdict, deque
 from collections.abc import Iterable
 from copy import deepcopy
@@ -13,6 +14,7 @@ from typing import Any, Self, dataclass_transform
 
 from simpy import Process
 
+from upstage_des._logging import get_actor_logger
 from upstage_des.base import (
     SimulationError,
     UpstageBase,
@@ -93,6 +95,9 @@ def _process_model_class(cls: type[Any]) -> None:
         if hasattr(cls, "__post_init__"):
             cls.__post_init__(self)
 
+        # logging need `name`, so it comes later.
+        self._logger = get_actor_logger(self)
+
     cls.__init__ = __init__
 
 
@@ -124,6 +129,7 @@ class _BaseActor(UpstageBase):
     """
 
     name: str
+    debug_logging: bool
     knowledge: dict[str, Any]
 
     _is_clone: bool
@@ -133,6 +139,7 @@ class _BaseActor(UpstageBase):
     __model_fields__: dict[str, State]
     _states_by_cause: dict[Any, set[str]]
     _causes_by_state: dict[str, Any]
+    _logger: logging.Logger
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -155,13 +162,24 @@ class _BaseActor(UpstageBase):
 
     ###########################################################
     ### Logging ##############################################
-    def write_to_log(self, to_write: str) -> None:
+    def write_to_log(self, to_write: str, *args: Any, level: int = logging.INFO) -> None:
         """Write to the log.
 
         Args:
             to_write (str): The text to write
+            args (Any): Objects to formate into the `to_write` string.
+            level (int): Logging library level. Defaults to INFO.
         """
-        self._log.append((self.env.now, to_write))
+        logger = self._logger
+        logger_wants = logger.isEnabledFor(level)
+
+        if not self.debug_logging and not logger_wants:
+            return None
+        formatted = to_write % args if args else to_write
+        if self.debug_logging:
+            self._log.append((self.env.now, formatted))
+        if logger_wants:
+            logger.log(level, formatted)
 
     def get_log(self) -> deque[tuple[float, str]]:
         """Retrieve the log.
@@ -393,14 +411,14 @@ class _BaseActor(UpstageBase):
         Returns:
             Self: A cloned actor with the same state values
         """
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         for field_name, field_obj in self.__model_fields__.items():
             current_value = getattr(self, field_name)
             if isinstance(current_value, Actor):
                 kwargs[field_name] = current_value
             else:
                 kwargs[field_name] = deepcopy(current_value)
-
+        kwargs["name"] = kwargs["name"] + ".clone"
         cloned = type(self)(**kwargs)
         cloned._state_histories = {}
         cloned._is_clone = True
