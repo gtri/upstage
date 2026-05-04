@@ -408,3 +408,7 @@ def test_terminal_task_run(
         task._final_interrupt = True
         proc.interrupt(cause="FINAL")
         env.run()
+
+
+def test_markers() -> None:
+    assert False
