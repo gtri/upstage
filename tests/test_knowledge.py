@@ -51,8 +51,9 @@ def test_knowledge() -> None:
         v = ma.get_knowledge("number")
         assert v is EMPTY_KNOWLEDGE
         ma.set_knowledge("number", 12.0, caller="The Test")
-        assert ma.get_knowledge("number", must_exist=True) == 12.0
-        assert len(ma.get_log()) == 2
+        assert ma.get_and_clear_knowledge("number") == 12.0
+        assert len(ma.get_log()) == 3
+        assert "number" not in ma.knowledge
 
 
 test_knowledge()

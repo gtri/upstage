@@ -32,6 +32,7 @@ from upstage_des.events import (
     Put,
     ResourceHold,
     Wait,
+    WaitUntil,
 )
 from upstage_des.states import (
     LinearChangingState,
@@ -76,4 +77,5 @@ __all__ = [
     "Task",
     "TASK_GEN",
     "SIMPY_GEN",
+    "WaitUntil",
 ]

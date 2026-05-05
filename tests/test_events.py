@@ -26,6 +26,7 @@ from upstage_des.events import (
     Put,
     ResourceHold,
     Wait,
+    WaitUntil,
 )
 from upstage_des.base import SIMPY_GEN, Stage
 
@@ -57,7 +58,7 @@ def test_wait_event() -> None:
 
     stage = Stage(time_unit="minutes")
     with EnvironmentContext(stage=stage) as env:
-        wait = Wait(timeout=1.1, timeout_unit="hours")
+        wait = Wait(timeout=1.1, time_unit="hours")
         assert wait.timeout == pytest.approx(66)
 
     with EnvironmentContext(initial_time=init_time) as env:
@@ -78,6 +79,26 @@ def test_wait_event() -> None:
 
         with pytest.raises(SimulationError):
             Wait(timeout=[1, 2, 3])  # type: ignore [arg-type]
+
+
+def test_wait_until_event() -> None:
+    init_time = 1.23
+    with EnvironmentContext(initial_time=init_time) as env:
+        timeout = 1
+        until = init_time+timeout
+        wait = WaitUntil(until=until)
+        assert wait.created_at == init_time, "Problem in environment time being stored in event"
+        assert wait.env is env, "Problem in environment being stored in event"
+        assert wait.timeout == timeout
+
+        ret = wait.as_event()
+        assert isinstance(ret, SIM.Timeout), "Wait doesn't return a simpy timeout"
+        assert ret._delay == timeout, "Incorrect timeout time"
+
+    stage = Stage(time_unit="minutes")
+    with EnvironmentContext(stage=stage) as env:
+        wait = WaitUntil(until=1.1, time_unit="hours")
+        assert wait.timeout == pytest.approx(66)
 
 
 def test_base_request_event() -> None:
