@@ -38,6 +38,12 @@ from upstage_des.states import (
     LinearChangingState,
     State,
 )
+from upstage_des.task_networks import (
+    TaskLinks,
+    TaskNetwork,
+    TaskNetworkFactory,
+    TaskTransition,
+)
 from upstage_des.tasks import (
     TASK_GEN,
     DecisionTask,
@@ -78,4 +84,8 @@ __all__ = [
     "TASK_GEN",
     "SIMPY_GEN",
     "WaitUntil",
+    "TaskLinks",
+    "TaskNetwork",
+    "TaskNetworkFactory",
+    "TaskTransition",
 ]

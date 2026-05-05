@@ -13,11 +13,12 @@ from warnings import warn
 from simpy import Event as SimpyEvent
 from simpy import Interrupt, Process
 
-from upstage_des.actor import Actor, ActorHelper
+from upstage_des.actor import ActorHelper
 from upstage_des.base import SimulationError, UpstageBase, process
 from upstage_des.events import BaseEvent, Event
 
 if TYPE_CHECKING:
+    from upstage_des.actor import Actor
     from upstage_des.task_networks import TaskNetwork
 
 __all__ = ("DecisionTask", "Task", "process", "TerminalTask", "InterruptStates")
@@ -56,11 +57,11 @@ class Task(UpstageBase, ActorHelper):
         self._network_ref: TaskNetwork | None = None
         self._network_name: str | None = None
 
-    def task(self, *, actor: Actor) -> TASK_GEN:
+    def task(self, *, actor: "Actor") -> TASK_GEN:
         """Define the process this task follows."""
         raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
-    def on_enter(self, *, actor: Actor) -> None:
+    def on_enter(self, *, actor: "Actor") -> None:
         """Zero-time hook called before ``task()`` runs.
 
         Use this for setup that would otherwise require a ``DecisionTask``:
@@ -71,7 +72,7 @@ class Task(UpstageBase, ActorHelper):
         """
         ...
 
-    def on_exit(self, *, actor: Actor) -> None:
+    def on_exit(self, *, actor: "Actor") -> None:
         """Zero-time hook called after ``task()`` completes (before guards).
 
         Use this for cleanup: clearing knowledge, recording results.
@@ -81,7 +82,7 @@ class Task(UpstageBase, ActorHelper):
         """
         ...
 
-    def on_interrupt(self, *, actor: Actor, cause: Any) -> InterruptStates:
+    def on_interrupt(self, *, actor: "Actor", cause: Any) -> InterruptStates:
         """Define any actions to take on the actor if this task is interrupted.
 
         Note:
@@ -156,8 +157,50 @@ class Task(UpstageBase, ActorHelper):
             raise SimulationError("Setting task network name on task that already has a network")
         self._network_name = network_name
 
+    def clear_actor_task_queue(self, actor: "Actor") -> None:
+        """Clear out the task queue on the network.
+
+        Args:
+            actor (Actor): The actor whose queue will be cleared
+        """
+        assert self._network_name is not None
+        actor.clear_task_queue(self._network_name)
+
+    def set_actor_task_queue(self, actor: "Actor", task_list: list[str]) -> None:
+        """Set the task queue on the actor.
+
+        This assumes an empty queue.
+
+        Args:
+            actor (Actor): The actor to modify the task queue of
+            task_list (list[str]): The list of task names to queue.
+        """
+        assert self._network_name is not None
+        actor.set_task_queue(self._network_name, task_list)
+
+    def get_actor_task_queue(self, actor: "Actor") -> list[str]:
+        """Get the task queue on the actor.
+
+        Args:
+            actor (Actor): The actor to modify the task queue of
+        """
+        assert self._network_name is not None
+        return actor.get_task_queue(self._network_name)
+
+    def get_actor_next_task(self, actor: "Actor") -> str | None:
+        """Get the next queued task.
+
+        Args:
+            actor (Actor): The actor to get the next task from
+
+        Returns:
+            str | None: The next task name (or None if no task)
+        """
+        assert self._network_name is not None
+        return actor.get_next_task(self._network_name)
+
     def _handle_interruption(
-        self, actor: Actor, interrupt: Interrupt, next_event: BaseEvent | Process
+        self, actor: "Actor", interrupt: Interrupt, next_event: BaseEvent | Process
     ) -> InterruptStates:
         """Clean up after an interrupt and perform interrupt checks/actions.
 
@@ -200,7 +243,7 @@ class Task(UpstageBase, ActorHelper):
         return _interrupt_action
 
     @process
-    def run(self, *, actor: Actor) -> Generator[SimpyEvent | Process, Any, None]:
+    def run(self, *, actor: "Actor") -> Generator[SimpyEvent | Process, Any, None]:
         """Execute the task.
 
         Args:
@@ -279,16 +322,16 @@ class DecisionTask(Task):
 
     DO_NOT_HOLD: bool = False
 
-    def task(self, *, actor: Actor) -> TASK_GEN:
+    def task(self, *, actor: "Actor") -> TASK_GEN:
         """Define the process this task follows."""
         raise SimulationError("No need to call `task` on a DecisionTask")
 
-    def make_decision(self, *, actor: Actor) -> None:
+    def make_decision(self, *, actor: "Actor") -> None:
         """Define the process this task follows."""
         raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
     @process
-    def run(self, *, actor: Actor) -> Generator[SimpyEvent, None, None]:
+    def run(self, *, actor: "Actor") -> Generator[SimpyEvent, None, None]:
         """Run the decision task.
 
         Args:
@@ -322,7 +365,7 @@ class TerminalTask(Task):
 
     _time_to_complete: float = 1e24
 
-    def log_message(self, *, actor: Actor) -> str:
+    def log_message(self, *, actor: "Actor") -> str:
         """A message to save to a log when this task is reached.
 
         Args:
@@ -333,7 +376,7 @@ class TerminalTask(Task):
         """
         return f"Entering terminal task: {self}"
 
-    def on_interrupt(self, *, actor: Actor, cause: Any) -> InterruptStates:
+    def on_interrupt(self, *, actor: "Actor", cause: Any) -> InterruptStates:
         """Special case interrupt for terminal task.
 
         Args:
@@ -346,7 +389,7 @@ class TerminalTask(Task):
             )
         return InterruptStates.END
 
-    def task(self, *, actor: Actor) -> TASK_GEN:
+    def task(self, *, actor: "Actor") -> TASK_GEN:
         """The terminal task.
 
         It's just a long wait.

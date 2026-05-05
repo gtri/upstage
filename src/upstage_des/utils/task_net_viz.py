@@ -5,7 +5,7 @@
 
 """Visualization builders for task networks."""
 
-from upstage_des.task_networks import GUARD_FUNC, TaskNetwork
+from upstage_des.task_networks import GUARD_FUNC, TaskNetwork, TaskNetworkFactory
 
 
 def _guard_label(guard: GUARD_FUNC | None) -> str:
@@ -21,14 +21,14 @@ def _guard_label(guard: GUARD_FUNC | None) -> str:
     return "guard"
 
 
-def to_mermaid(net: TaskNetwork, *, legend: bool = True) -> str:
+def to_mermaid(net: TaskNetwork | TaskNetworkFactory, *, legend: bool = True) -> str:
     """Return a Mermaid graph diagram of the task network.
 
     Renders in Jupyter, GitHub Markdown, and any Mermaid-compatible viewer.
     Tasks with ``on_enter`` or ``on_exit`` hooks are annotated.
 
     Args:
-        net (TaskNetwork): The network to visualize
+        net (TaskNetwork | TaskNetworkFactory): The network to visualize
         legend: Show a legend distinguishing solid (transition) and
             dashed (allowed/queue) edges.  Defaults to True; only
             rendered when dashed edges are present.
@@ -36,6 +36,8 @@ def to_mermaid(net: TaskNetwork, *, legend: bool = True) -> str:
     Returns:
         str: Mermaid diagram source.
     """
+    if isinstance(net, TaskNetworkFactory):
+        net = net.make_network()
     has_allowed = False
     lines = ["graph TD"]
     # Declare every task node so rendering is consistent whether or not
@@ -87,17 +89,19 @@ def to_mermaid(net: TaskNetwork, *, legend: bool = True) -> str:
     return "\n".join(lines)
 
 
-def to_dot(net: TaskNetwork) -> str:
+def to_dot(net: TaskNetwork | TaskNetworkFactory) -> str:
     """Return a Graphviz DOT diagram of the task network.
 
     Tasks with ``on_enter`` or ``on_exit`` hooks are annotated.
 
     Args:
-        net (TaskNetwork): The network to visualize
+        net (TaskNetwork | TaskNetworkFactory): The network to visualize
 
     Returns:
         str: DOT source string.
     """
+    if isinstance(net, TaskNetworkFactory):
+        net = net.make_network()
     lines = [
         f"digraph {net.name.replace(' ', '_')} {{",
         "    rankdir=TB;",

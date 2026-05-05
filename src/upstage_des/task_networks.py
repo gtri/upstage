@@ -12,11 +12,12 @@ from warnings import warn
 
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
-    from upstage_des.tasks import DecisionTask, Task, TerminalTask
+    from upstage_des.tasks import Task, TerminalTask
 
 from simpy import Process
 
 from upstage_des.base import SimulationError, UpstageError, process
+from upstage_des.tasks import DecisionTask
 
 GUARD_FUNC = Callable[..., bool]
 

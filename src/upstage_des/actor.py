@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict, deque
 from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Self, dataclass_transform
+from typing import TYPE_CHECKING, Any, Self, dataclass_transform
 
 from simpy import Process
 
@@ -22,7 +22,9 @@ from upstage_des.base import (
 )
 from upstage_des.root_types import StateDataDict
 from upstage_des.states import LinearChangingState, State, _ActiveState
-from upstage_des.task_networks import TaskNetwork, TaskNetworkFactory
+
+if TYPE_CHECKING:
+    from upstage_des.task_networks import TaskNetwork, TaskNetworkFactory
 
 EMPTY_KNOWLEDGE = object()
 
@@ -83,7 +85,7 @@ def _process_model_class(cls: type[Any]) -> None:
         self._states_by_cause = defaultdict(set)
         self._causes_by_state = {}
         self._task_networks = {}
-        self._task_queue = []
+        self._task_queue = {}
 
         for name in model_fields.keys():
             value = kwargs.pop(name, ...)
@@ -144,7 +146,7 @@ class _BaseActor(UpstageBase):
     _states_by_cause: dict[Any, set[str]]
     _causes_by_state: dict[str, Any]
     _logger: logging.Logger
-    _task_networks: dict[str, TaskNetwork]
+    _task_networks: dict[str, "TaskNetwork"]
     _task_queue: dict[str, list[str]]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
@@ -405,7 +407,7 @@ class _BaseActor(UpstageBase):
         ###########################################################
 
     ### Tasks and Networks ####################################
-    def add_task_network(self, network: TaskNetwork) -> None:
+    def add_task_network(self, network: "TaskNetwork") -> None:
         """Add a task network to the actor.
 
         Args:
@@ -581,7 +583,7 @@ class _BaseActor(UpstageBase):
         """
         return network_id in self._task_networks
 
-    def suggest_network_name(self, factory: TaskNetworkFactory) -> str:
+    def suggest_network_name(self, factory: "TaskNetworkFactory") -> str:
         """Deconflict names of task networks by suggesting a new name.
 
         Used for creating multiple parallel task networks.
