@@ -95,7 +95,6 @@ class SimulationError(UpstageError):
 ENV_CONTEXT_VAR: ContextVar[SimpyEnv] = ContextVar("Environment")
 STAGE_CONTEXT_VAR: ContextVar[Stage] = ContextVar("Stage")
 ENTITY_REGISTRY_CONTEXT_VAR: ContextVar[dict[str, list[Any]]] = ContextVar("EntityRegistry")
-REHEARSAL_CONTEXT_VAR: ContextVar[bool] = ContextVar("Rehearsing")
 
 
 class UpstageBase:
@@ -229,7 +228,6 @@ class EnvironmentContext:
         self.env_ctx = ENV_CONTEXT_VAR
         self.stage_ctx = STAGE_CONTEXT_VAR
         self.entity_registry_ctx = ENTITY_REGISTRY_CONTEXT_VAR
-        self.rehearsal_ctx = REHEARSAL_CONTEXT_VAR
         self.env_token: Token[SimpyEnv]
         self.stage_token: Token[Stage]
         self.entity_registry_token: Token[dict[str, list[Any]]]
@@ -269,8 +267,6 @@ class EnvironmentContext:
         entity_registry: dict[str, list[Any]] = {}
         self.entity_registry_token = self.entity_registry_ctx.set(entity_registry)
 
-        self.rehearsal_token = self.rehearsal_ctx.set(False)
-
         return self._env
 
     def __exit__(self, *_: Any) -> None:
@@ -278,7 +274,6 @@ class EnvironmentContext:
         self.env_ctx.reset(self.env_token)
         self.stage_ctx.reset(self.stage_token)
         self.entity_registry_ctx.reset(self.entity_registry_token)
-        self.rehearsal_ctx.reset(self.rehearsal_token)
         self._env = None
 
 
@@ -394,23 +389,12 @@ def get_entities_by_class(class_name: str) -> list[Any]:
     return registry.get(class_name, [])
 
 
-def set_rehearsing(value: bool) -> None:
-    """Set the rehearsal context var.
-
-    When True, it prevents @process from going to simpy.
-
-    Args:
-        value (bool): The rehearsal value to set.
-    """
-    REHEARSAL_CONTEXT_VAR.set(value)
-
-
 PROC = Generator[SimpyEvent, Any, None]
 
 
 def process(
     func: Callable[..., PROC],
-) -> Callable[..., Process | PROC]:
+) -> Callable[..., Process]:
     """Decorate a ``simpy`` process to schedule it as a callable.
 
     Allows users to decorate a generator, and when they want to schedule them
@@ -449,20 +433,13 @@ def process(
     """
 
     @wraps(func)
-    def wrapped_generator(*args: Any, **kwargs: Any) -> Process | PROC:
+    def wrapped_generator(*args: Any, **kwargs: Any) -> Process:
         """Wrap the generator with a function that calls it as a process."""
         try:
             environment = ENV_CONTEXT_VAR.get()
         except LookupError:
             raise SimulationError("No environment found on process call")
-        try:
-            rehearsing = REHEARSAL_CONTEXT_VAR.get()
-        except LookupError:
-            rehearsing = False
         f = func(*args, **kwargs)
-        if not rehearsing:
-            return environment.process(f)
-        else:
-            return f
+        return environment.process(f)
 
     return wrapped_generator

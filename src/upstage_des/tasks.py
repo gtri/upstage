@@ -7,7 +7,7 @@
 
 from collections.abc import Generator
 from enum import IntFlag
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 from warnings import warn
 
 from simpy import Event as SimpyEvent
@@ -16,6 +16,9 @@ from simpy import Interrupt, Process
 from upstage_des.actor import Actor, ActorHelper
 from upstage_des.base import SimulationError, UpstageBase, process
 from upstage_des.events import BaseEvent, Event
+
+if TYPE_CHECKING:
+    from upstage_des.task_networks import TaskNetwork
 
 __all__ = ("DecisionTask", "Task", "process", "TerminalTask", "InterruptStates")
 
@@ -50,10 +53,33 @@ class Task(UpstageBase, ActorHelper):
         self._marked_time: float | None = None
         self._interrupt_action: InterruptStates = InterruptStates.END
         self._final_interrupt: bool = False
+        self._network_ref: TaskNetwork | None = None
+        self._network_name: str | None = None
 
     def task(self, *, actor: Actor) -> TASK_GEN:
         """Define the process this task follows."""
         raise NotImplementedError(NOT_IMPLEMENTED_MSG)
+
+    def on_enter(self, *, actor: Actor) -> None:
+        """Zero-time hook called before ``task()`` runs.
+
+        Use this for setup that would otherwise require a ``DecisionTask``:
+        setting knowledge, acquiring resources, initializing state.
+
+        Args:
+            actor: The actor about to execute this task.
+        """
+        ...
+
+    def on_exit(self, *, actor: Actor) -> None:
+        """Zero-time hook called after ``task()`` completes (before guards).
+
+        Use this for cleanup: clearing knowledge, recording results.
+
+        Args:
+            actor: The actor that just finished this task.
+        """
+        ...
 
     def on_interrupt(self, *, actor: Actor, cause: Any) -> InterruptStates:
         """Define any actions to take on the actor if this task is interrupted.
@@ -107,6 +133,28 @@ class Task(UpstageBase, ActorHelper):
         self._marker = None
         self._marked_time = None
         self._interrupt_action = InterruptStates.END
+
+    def _set_network_ref(self, network: "TaskNetwork") -> None:
+        """Set the reference to the task network object.
+
+        Args:
+            network (TaskNetwork): The network
+        """
+        if self._network_ref is not None:
+            raise SimulationError(
+                "Setting task network reference on task that already has a network"
+            )
+        self._network_ref = network
+
+    def _set_network_name(self, network_name: str) -> None:
+        """Set the name of the network this task is in.
+
+        Args:
+            network_name (str): Network name
+        """
+        if self._network_name is not None:
+            raise SimulationError("Setting task network name on task that already has a network")
+        self._network_name = network_name
 
     def _handle_interruption(
         self, actor: Actor, interrupt: Interrupt, next_event: BaseEvent | Process

@@ -29,8 +29,8 @@ arguments.  Formatting is deferred — when the log level is disabled and
 
 ```{code-block} python
     def task(self, *, actor):
-        actor.log("picked up %s (qty=%d)", item, qty)        # INFO
-        actor.log("low fuel: %.1f%%", remaining, level=logging.WARNING)
+        actor.write_to_log("picked up %s (qty=%d)", item, qty)        # INFO
+        actor.write_to_log("low fuel: %.1f%%", remaining, level=logging.WARNING)
 ```
 
 Two independent sinks are driven by every ``write_to_log`` call:

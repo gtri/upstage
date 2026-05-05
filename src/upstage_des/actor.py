@@ -18,9 +18,11 @@ from upstage_des._logging import get_actor_logger
 from upstage_des.base import (
     SimulationError,
     UpstageBase,
+    UpstageError,
 )
 from upstage_des.root_types import StateDataDict
 from upstage_des.states import LinearChangingState, State, _ActiveState
+from upstage_des.task_networks import TaskNetwork, TaskNetworkFactory
 
 EMPTY_KNOWLEDGE = object()
 
@@ -80,6 +82,8 @@ def _process_model_class(cls: type[Any]) -> None:
         self._state_data = {}
         self._states_by_cause = defaultdict(set)
         self._causes_by_state = {}
+        self._task_networks = {}
+        self._task_queue = []
 
         for name in model_fields.keys():
             value = kwargs.pop(name, ...)
@@ -140,6 +144,8 @@ class _BaseActor(UpstageBase):
     _states_by_cause: dict[Any, set[str]]
     _causes_by_state: dict[str, Any]
     _logger: logging.Logger
+    _task_networks: dict[str, TaskNetwork]
+    _task_queue: dict[str, list[str]]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -395,6 +401,219 @@ class _BaseActor(UpstageBase):
             return result  # type: ignore[no-any-return]
         except Exception:
             return None
+
+        ###########################################################
+
+    ### Tasks and Networks ####################################
+    def add_task_network(self, network: TaskNetwork) -> None:
+        """Add a task network to the actor.
+
+        Args:
+            network (TaskNetwork): The task network to add to the actor.
+        """
+        network_name = network.name
+        if network_name in self._task_networks:
+            raise SimulationError(f"Task network{network_name} already in {self}")
+        self._task_networks[network_name] = network
+        self._task_queue[network_name] = []
+
+    def clear_task_queue(self, network_name: str) -> None:
+        """Empty the actor's task queue.
+
+        This will cause the task network to be used for task flow.
+
+        Args:
+            network_name (str): The name of the network to clear the task queue.
+        """
+        self.write_to_log(f"Clearing task queue on {network_name}")
+        self._task_queue[network_name] = []
+
+    def set_task_queue(self, network_name: str, task_list: list[str]) -> None:
+        """Initialize an actor's empty task queue.
+
+        Args:
+            network_name (str): Task Network name
+            task_list (list[str]): List of task names to queue.
+
+        Raises:
+            SimulationError: _description_
+        """
+        self.write_to_log(f"Clearing task queue on {network_name} to {task_list}")
+        if self._task_queue[network_name]:
+            raise SimulationError(f"Task queue on {self.name} is already set. Use append or clear.")
+        self._task_queue[network_name] = list(task_list)
+
+    def get_task_queue(self, network_name: str) -> list[str]:
+        """Get the actor's task queue on a single network.
+
+        Args:
+            network_name (str): The network name
+
+        Returns:
+            list[str]: List of task names in the queue
+        """
+        return self._task_queue[network_name]
+
+    def get_all_task_queues(self) -> dict[str, list[str]]:
+        """Get the task queues for all running networks.
+
+        Returns:
+            dict[str, list[str]]: Task names, keyed on task network name.
+        """
+        queues: dict[str, list[str]] = {}
+        for name in self._task_networks.keys():
+            queues[name] = self.get_task_queue(name)
+        return queues
+
+    def get_next_task(self, network_name: str) -> None | str:
+        """Return the next task the actor has been told if there is one.
+
+        This does not clear the task, it's information only.
+
+        Args:
+            network_name (str): The name of the network
+
+        Returns:
+            None | str: The name of the next task, None if no next task.
+        """
+        queue = self._task_queue[network_name]
+        queue_length = len(queue)
+        return None if queue_length == 0 else queue[0]
+
+    def _clear_task(self, network_name: str) -> None:
+        """Clear a task from the queue.
+
+        Useful for rehearsal.
+        """
+        self._task_queue[network_name].pop(0)
+
+    def _begin_next_task(self, network_name: str, task_name: str) -> None:
+        """Clear the first task in the task queue.
+
+        The task name is required to check that the next task follows the actor's plan.
+
+        Args:
+            network_name (str): The task network name
+            task_name (str): The name of the task to start
+        """
+        queue = self._task_queue.get(network_name)
+        if queue and queue[0] != task_name:
+            raise SimulationError(
+                f"Actor {self.name} commanded to perform '{task_name}' but '{queue[0]}' is expected"
+            )
+        elif not queue:
+            self.set_task_queue(network_name, [task_name])
+        self.write_to_log(f"begin_next_task: Starting {task_name} task on {network_name} network.")
+        self._task_queue[network_name].pop(0)
+
+    def start_network_loop(
+        self,
+        network_name: str,
+        init_task_name: str | None = None,
+    ) -> None:
+        """Start a task network looping/running on an actor.
+
+        If no task name is given, it will default to following the queue.
+
+        Args:
+            network_name (str): Network name.
+            init_task_name (str, optional): Task to start with. Defaults to None.
+        """
+        network = self._task_networks[network_name]
+        network.loop(actor=self, init_task_name=init_task_name)
+
+    def get_running_task(self, network_name: str) -> TaskData | None:
+        """Return name and process reference of a task on this Actor's task network.
+
+        Useful for finding a process to call interrupt() on.
+
+        Args:
+            network_name (str): Network name.
+
+        Returns:
+            TaskData: Dataclass of name and process for the current task.
+                {"name": Name, "process": the Process simpy is holding.}
+        """
+        if network_name not in self._task_networks:
+            raise SimulationError(f"{self} does not have a task networked named {network_name}")
+        net = self._task_networks[network_name]
+        if net._current_task_proc is not None:
+            assert net._current_task_name is not None
+            assert net._current_task_proc is not None
+            task_data = TaskData(name=net._current_task_name, process=net._current_task_proc)
+            return task_data
+        return None
+
+    def get_running_tasks(self) -> dict[str, TaskData]:
+        """Get all running task data.
+
+        Returns:
+            dict[str, dict[str, TaskData]]: Dictionary of all running tasks.
+                Keyed on network name, then {"name": Name, "process": ...}
+        """
+        tasks: dict[str, TaskData] = {}
+        for name, net in self._task_networks.items():
+            if net._current_task_proc is not None:
+                assert net._current_task_name is not None
+                tasks[name] = TaskData(name=net._current_task_name, process=net._current_task_proc)
+        return tasks
+
+    def interrupt_network(self, network_name: str, **interrupt_kwargs: Any) -> None:
+        """Interrupt a running task network.
+
+        Args:
+            network_name (str): The name of the network.
+            interrupt_kwargs (Any): kwargs to pass to the interrupt.
+        """
+        data = self.get_running_task(network_name)
+        if data is None:
+            raise UpstageError(f"No processes named {network_name} is running.")
+        data.process.interrupt(**interrupt_kwargs)
+
+    def has_task_network(self, network_id: Any) -> bool:
+        """Test if a network id exists.
+
+        Args:
+            network_id (Any): Typically a string for the network name.
+
+        Returns:
+            bool: If the task network is on this actor.
+        """
+        return network_id in self._task_networks
+
+    def suggest_network_name(self, factory: TaskNetworkFactory) -> str:
+        """Deconflict names of task networks by suggesting a new name.
+
+        Used for creating multiple parallel task networks.
+
+        Args:
+            factory (TaskNetworkFactory): The factory from which you will create the network.
+
+        Returns:
+            str: The network name to use
+        """
+        new_name = factory.name
+        if new_name not in self._task_networks:
+            return new_name
+        i = 0
+        while new_name in self._task_networks:
+            i += 1
+            new_name = f"{factory.name}_{i}"
+        return new_name
+
+    def delete_task_network(self, network_id: Any) -> None:
+        """Deletes a task network reference.
+
+        Be careful, the network may still be running!
+
+        Do any interruptions on your own.
+
+        Args:
+            network_id (Any): Typically a string for the network name.
+        """
+        if not self.has_task_network(network_id):
+            raise SimulationError(f"No networked with id: {network_id} to delete")
+        del self._task_networks[network_id]
 
     ###########################################################
     ### Cloning ###############################################
