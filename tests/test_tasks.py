@@ -9,13 +9,13 @@ from inspect import isgeneratorfunction
 from typing import Any, TypedDict, cast
 
 import pytest
-from simpy import Environment, Process
+from simpy import Environment, Interrupt, Process
 
 from upstage_des.actor import Actor
 from upstage_des.base import SIMPY_GEN, EnvironmentContext, SimulationError
 from upstage_des.events import Wait
 from upstage_des.states import LinearChangingState, State
-from upstage_des.tasks import InterruptStates, Task, TASK_GEN, TerminalTask
+from upstage_des.tasks import DecisionTask, InterruptStates, Task, TASK_GEN, TerminalTask
 
 class Know(TypedDict):
     thing1: str
@@ -408,3 +408,136 @@ def test_terminal_task_run(
         task._final_interrupt = True
         proc.interrupt(cause="FINAL")
         env.run()
+
+
+def test_markers() -> None:
+    class MarkedTask(Task):
+        def task(self, *, actor: Actor):
+            self.set_marker("First", InterruptStates.IGNORE)
+            yield Wait(1.0)
+            self.clear_marker()
+            self.set_marker("Second", InterruptStates.RESTART)
+            yield Wait(3.0)
+            self.set_marker("Third", InterruptStates.END)
+            yield Wait(3.0)
+
+    with EnvironmentContext(initial_time=0.1) as env:
+        act = Actor(name="test")
+        t = MarkedTask()
+        proc = t.run(actor=act)
+        marker = t.get_marker()
+        assert marker is None
+        env.run(until=0.4)
+        marker = t.get_marker()
+        assert marker == "First"
+        time = t.get_marker_time()
+        assert time == 0.1
+        assert t._interrupt_action is InterruptStates.IGNORE
+        # Interrupt!
+        proc.interrupt()
+        env.run(until=1.2)
+        assert t.get_marker() == "Second"
+        assert t.get_marker_time() == 1.1
+        assert t._interrupt_action is InterruptStates.RESTART
+        # Interrupt!
+        proc.interrupt()
+        env.run(until=1.3)
+        assert t.get_marker() == "First"
+        assert t.get_marker_time() == 1.2
+        env.run(until=2.3)
+        assert t.get_marker() == "Second"
+        env.run(until=5.3)
+        assert t.get_marker() == "Third"
+
+
+def test_interrupt_process() -> None:
+    data = []
+    def proc(env, t: float):
+        data.append("start")
+        try:
+            yield env.timeout(t)
+            data.append("done")
+        except Interrupt as e:
+            data.append(e.cause)
+
+    def proc_bad(env, t: float):
+        data.append("start")
+        yield env.timeout(t)
+        data.append("done")
+
+    class ProcTask(Task):
+        def task(self, *, actor: Actor):
+            _p = self.env.process(proc(self.env, 2.1))
+            yield _p
+
+    class ProcTaskBad(Task):
+        def task(self, *, actor: Actor):
+            _p = self.env.process(proc_bad(self.env, 2.1))
+            yield _p
+
+    with EnvironmentContext() as env:
+        act = Actor(name="example")
+        t = ProcTask()
+        p = t.run(actor=act)
+        env.run(until=1.3)
+        assert data[0] == "start"
+        p.interrupt(cause="CAUSE")
+        env.run()
+        assert data[-1] == "CAUSE"
+
+    with EnvironmentContext() as env:
+        act = Actor(name="example")
+        t = ProcTaskBad()
+        p = t.run(actor=act)
+        env.run(until=1.3)
+        assert data[0] == "start"
+        p.interrupt(cause="CAUSE")
+        with pytest.raises(Interrupt):
+            env.run()
+
+
+def test_decision_task() -> None:
+    class DT(DecisionTask):
+        def make_decision(self, *, actor: Actor):
+            self.set_actor_knowledge(
+                actor,
+                "exam",
+                "HERE",
+            )
+    
+    with EnvironmentContext() as env:
+        act = Actor(name="Example")
+        dt = DT()
+        dt.run(actor=act)
+        env.run()
+        assert env.now == 0
+        assert act.get_and_clear_knowledge("exam") == "HERE"
+
+
+def test_task_knowledge() -> None:
+    class KnowTask2(Task):
+        def task(self, *, actor: Actor):
+            self.set_actor_bulk_knowledge(
+                actor=actor,
+                know={"ONE": 1, "TWO": 2.0}
+            )
+            yield Wait(1.0)
+            z = self.get_and_clear_actor_knowledge(actor, "ONE")
+            assert z == 1
+            yield Wait(1.0)
+            ans = self.get_and_clear_actor_bulk_knowledge(actor, names=["TWO"])
+            assert ans == {"TWO": 2}
+
+    with EnvironmentContext() as env:
+        act = Actor(name="Example")
+        kt2 = KnowTask2()
+        kt2.run(actor=act)
+        env.run(until=0.8)
+        assert "ONE" in act.knowledge
+        assert "TWO" in act.knowledge
+        env.run(until=1.2)
+        assert "ONE" not in act.knowledge
+        assert "TWO" in act.knowledge
+        env.run(until=2.2)
+        assert "ONE" not in act.knowledge
+        assert "TWO" not in act.knowledge
