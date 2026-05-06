@@ -59,18 +59,9 @@ inputs = ["src/**/*.py"]
 cmd = "ruff check src/"
 inputs = ["src/**/*.py"]
 
-[feature.tasks-docs.tasks.autogen]
-description = "Autobuild the code documentation"
-cmd = "sphinx-apidoc -f -o ./docs/source/auto ./src/upstage_des"
-
-[feature.tasks-docs.tasks.build_html_docs]
-description = "Build the documentation"
-cmd = "sphinx-build -a -E -b html ./docs/source ./build/docs"
-depends-on = ["autogen"]
-
 [feature.tasks-start.tasks.first]
 description = "Set up and test"
-depends-on = ["lint-check", "test", "build_html_docs"]
+depends-on = ["lint-check", "test"]
 
 [feature.tasks-jlite.tasks.build_jl]
 description = "Create jupyterlite page"
@@ -84,7 +75,6 @@ features = [
   "deps-jlite",
   "tasks-lint",
   "tasks-test",
-  "tasks-docs",
   "tasks-start",
   "tasks-jlite",
 ]
@@ -99,7 +89,6 @@ features  = [
   "deps-jlite",
   "tasks-lint",
   "tasks-test",
-  "tasks-docs",
   "tasks-jlite",
 ]
 
@@ -148,9 +137,8 @@ pytest-xdist = "*"
 pytest-json-report = "*"
 
 [feature.deps-docs.dependencies]
-myst-parser = "*"
-pydata-sphinx-theme = "*"
-sphinx = ">=7"
+sphinx-autodoc2 = "*"
+mystmd = "*"
 
 [feature.deps-jlite.dependencies]
 jupyterlite-core = "==0.6.1"

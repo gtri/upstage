@@ -1,0 +1,18 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: 60efd887-52a5-48c5-be80-9d157fd60295
+  title: UPSTAGE DES Framework
+  description: A framework for hybrid DES/Agent Based Simulation
+  # keywords: []
+  # authors: []
+  github: https://github.com/gtri/upstage
+  toc:
+    - file: docs/source/index.md
+
+site:
+  template: book-theme
+  options:
+    folders: true
+  #   favicon: favicon.ico
+  #   logo: site_logo.png
