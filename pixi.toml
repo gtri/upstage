@@ -44,8 +44,8 @@ cmd = "ruff check src/ --fix"
 inputs = ["src/**/*.py"]
 
 [feature.tasks-lint.tasks.mypy]
-cmd = "mypy --show-error-codes -p upstage_des"
-inputs = ["src/**/*.py"]
+cmd = "mypy --show-error-codes"
+inputs = ["src/**/*.py", "tests/**/*.py"]
 
 [feature.tasks-lint.tasks.check-pyproject]
 cmd = "pyproject-fmt pyproject.toml --check"

@@ -36,7 +36,7 @@ arguments.  Formatting is deferred — when the log level is disabled and
 Two independent sinks are driven by every ``write_to_log`` call:
 
 * The per-actor in-memory list (``actor.write_to_log()`` /
-  ``actor.get_log()``) — controlled by the ``debug_loging`` flag set at
+  ``actor.get_log()``) — controlled by the ``debug_logging`` flag set at
   actor construction.  Use this for post-run analysis in notebooks.
 * Python's ``logging`` — controlled by the standard level hierarchy.
   Use this for structured sinks (files, JSON, stdout during dev).

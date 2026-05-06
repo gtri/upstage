@@ -165,6 +165,24 @@ class State[T]:
         """
         self.name = name
 
+    def create(self) -> T:
+        """Create the state in a way that mypy likes.
+
+        This is optional, but if you are using `mypy` to check your simulation
+        build, then:
+
+        class Mover(Actor):
+            distance_traveled: float = State(default=0.0)
+
+        will fail. Using
+
+        class Mover(Actor):
+            distance_traveled: float = State(default=0.0).create()
+
+        will make mypy happy.
+        """
+        return self  # type: ignore[return-value]
+
     def _add_type(self, typing: Any) -> None:
         self._given_type = typing
 

@@ -158,7 +158,7 @@ class TaskNetwork:
         Returns:
             bool: If the new task can follow the current.
         """
-        value = self.task_links[curr].allowed
+        value = [x if isinstance(x, str) else x.__name__ for x in self.task_links[curr].allowed]
         return new in value
 
     def _next_task_name(

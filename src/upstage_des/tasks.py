@@ -57,11 +57,11 @@ class Task(UpstageBase, ActorHelper):
         self._network_ref: TaskNetwork | None = None
         self._network_name: str | None = None
 
-    def task(self, *, actor: "Actor") -> TASK_GEN:
+    def task(self, *, actor: Any) -> TASK_GEN:
         """Define the process this task follows."""
         raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 
-    def on_enter(self, *, actor: "Actor") -> None:
+    def on_enter(self, *, actor: Any) -> None:
         """Zero-time hook called before ``task()`` runs.
 
         Use this for setup that would otherwise require a ``DecisionTask``:
@@ -72,7 +72,7 @@ class Task(UpstageBase, ActorHelper):
         """
         ...
 
-    def on_exit(self, *, actor: "Actor") -> None:
+    def on_exit(self, *, actor: Any) -> None:
         """Zero-time hook called after ``task()`` completes (before guards).
 
         Use this for cleanup: clearing knowledge, recording results.
@@ -82,7 +82,7 @@ class Task(UpstageBase, ActorHelper):
         """
         ...
 
-    def on_interrupt(self, *, actor: "Actor", cause: Any) -> InterruptStates:
+    def on_interrupt(self, *, actor: Any, cause: Any) -> InterruptStates:
         """Define any actions to take on the actor if this task is interrupted.
 
         Note:
@@ -225,7 +225,7 @@ class Task(UpstageBase, ActorHelper):
             or self._final_interrupt
         ):
             actor.write_to_log(f"Interrupted by {interrupt}.")
-            actor.deactivate_all_states(cause=self)
+            actor.deactivate_all_states(task=self)
             if isinstance(next_event, BaseEvent):
                 names = list(actor.knowledge.keys())
                 for name in names:
@@ -322,11 +322,11 @@ class DecisionTask(Task):
 
     DO_NOT_HOLD: bool = False
 
-    def task(self, *, actor: "Actor") -> TASK_GEN:
+    def task(self, *, actor: Any) -> TASK_GEN:
         """Define the process this task follows."""
         raise SimulationError("No need to call `task` on a DecisionTask")
 
-    def make_decision(self, *, actor: "Actor") -> None:
+    def make_decision(self, *, actor: Any) -> None:
         """Define the process this task follows."""
         raise NotImplementedError(NOT_IMPLEMENTED_MSG)
 

@@ -4,18 +4,7 @@
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
 """Test task networks."""
-
-# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
-
-# Licensed under the BSD 3-Clause License.
-# See the LICENSE file in the project root for complete license terms and disclaimers.
-
-from collections.abc import Sequence
-
 import pytest
-from simpy import Environment
-from simpy import Resource as sp_resource
-from simpy import Store as sp_store
 
 from upstage_des.api import (
     Actor,
@@ -33,14 +22,156 @@ from upstage_des.api import (
     TaskLinks,
     TaskNetworkFactory,
     Wait,
+    WaitUntil,
     add_stage_variable,
     TASK_GEN,
     SIMPY_GEN,
+    SimulationError,
     UpstageError,
-    TaskTransition
+    TaskTransition,
+    TerminalTask,
+    get_entities_by_class,
+    get_stage,
+    SimulationEnd,
 )
 from upstage_des.utils.task_net_viz import to_dot, to_mermaid
 
+
+class Insect(Actor):
+    hunger: float = LinearChangingState(default=1.0, recording=True).create()
+
+
+class InsectInterrupt(Task):
+    def on_interrupt(self, *, actor: Insect, cause: str) -> InterruptStates:
+        if cause == "attack":
+            self.clear_actor_task_queue(actor)
+            self.set_actor_task_queue(actor, ["Defend"])
+            return InterruptStates.END
+        raise SimulationError(f"Unexpected cause: {cause}")
+
+
+class Search(InsectInterrupt):
+    def task(self, *, actor: Insect) -> TASK_GEN:
+        # activate hunger to change over time
+        actor.activate_linear_state(
+            "hunger",
+            rate=-0.01,
+            task=self, # This has to be the task object
+        )
+        no_food_time = actor.get_time_for_state_goal("hunger", 0.0)
+        assert no_food_time is not None
+        no_food_event = WaitUntil(no_food_time)
+        search_event = Wait.from_random_uniform(0.5, 2.0)
+        yield Any(no_food_event, search_event)
+        actor.deactivate_all_states(task=self)
+        if no_food_event.is_complete():
+            self.set_actor_task_queue(actor, ["End"])
+        else:
+            self.set_actor_task_queue(actor, ["Eat"])
+        
+
+class Eat(InsectInterrupt):
+    def task(self, *, actor: Insect) -> TASK_GEN:
+        actor.activate_linear_state(
+            "hunger",
+            rate=0.1,
+            task=self,
+        )
+        satiated_time = actor.get_time_for_state_goal("hunger", 1.0)
+        assert satiated_time is not None
+        yield WaitUntil(satiated_time)
+        actor.deactivate_linear_state("hunger", task=self)
+
+
+class Sleep(InsectInterrupt):
+    def task(self, *, actor: Insect) -> TASK_GEN:
+        yield Wait(3.0)
+        actor.hunger -= 0.3
+
+
+class Defend(Task):
+    def task(self, *, actor: Insect) -> TASK_GEN:
+        yield Wait(0.2)
+        if actor.hunger < 0.3:
+            actor.hunger = 0.0
+            self.set_actor_task_queue(actor, ["End"])
+        else:
+            # Lose hunger, but win
+            actor.hunger -= 0.2
+
+
+class Think(DecisionTask):
+    def make_decision(self, *, actor: Insect) -> None:
+        if actor.hunger > 0.7:
+            # we can sleep!
+            self.set_actor_task_queue(actor, ["Sleep"])
+        else:
+            self.set_actor_task_queue(actor, ["Search"])
+
+class End(TerminalTask):...
+
+
+class Swatter(Actor): ...
+
+
+class SwatInsects(Task):
+    def task(self, *, actor: Swatter) -> TASK_GEN:
+        # Looping task for swatting insects
+        yield Wait.from_random_uniform(2.1, 4.3)
+        insects: list[Insect] = get_entities_by_class("Insect")
+        insects = [x for x in insects if x.hunger > 0]
+        if not insects:
+            raise SimulationEnd("No more insects")
+        choice = get_stage().random.choice(insects)
+        choice.interrupt_network("InsectLife", cause="attack")
+
+
+def _make_sim(n_insects: int) -> tuple[list[Insect], Swatter]:
+    """Make a sim once inside a context."""
+    tnf = TaskNetworkFactory(
+        name="InsectLife",
+        task_links={
+            Think: TaskLinks(None, [Search, Sleep]),
+            Eat: TaskLinks(Think, [Think, Defend]),
+            Sleep: TaskLinks(Think, [Think]),
+            End: TaskLinks(None, []),
+            Search: TaskLinks(None, [Eat, Defend, End]),
+            Defend: TaskLinks(Think, [Think, End]),
+        }
+    )
+
+    tnfs = TaskNetworkFactory.from_single_looping(
+        "SwatThatInsect", SwatInsects,
+    )
+
+    insects = [
+        Insect(
+            name=f"Ant {i}",            
+        )
+        for i in range(n_insects)
+    ]
+    for ins in insects:
+        net = tnf.make_network()
+        ins.add_task_network(net)
+        ins.start_network_loop(net.name, "Think")
+    
+    swatter = Swatter(name="Swat")
+    net = tnfs.make_network()
+    swatter.add_task_network(net)
+    swatter.start_network_loop(net.name, "SwatInsects")
+    return insects, swatter
+
+
+def test_building_network() -> None:
+    with EnvironmentContext() as env:
+        insects, swatter = _make_sim(2)
+        try:
+            env.run()
+        except SimulationEnd:
+            ...
+        print(env.now)
+
+test_building_network()
 
 # def test_running_simple_network() -> None:
 #     with EnvironmentContext() as env:
@@ -247,8 +378,8 @@ def test_decision_task_hold() -> None:
         },
     )
     with EnvironmentContext() as env:
-        a = Actor(name="Actor one", debug_log=True)
-        b = Actor(name="Actor two", debug_log=True)
+        a = Actor(name="Actor one", debug_logging=True)
+        b = Actor(name="Actor two", debug_logging=True)
 
         for actor in [a, b]:
             n = net.make_network()
@@ -272,8 +403,8 @@ def test_decision_task_hold() -> None:
 
     Thinker.DO_NOT_HOLD = False
     with EnvironmentContext() as env:
-        a = Actor(name="Actor one", debug_log=True)
-        b = Actor(name="Actor two", debug_log=True)
+        a = Actor(name="Actor one", debug_logging=True)
+        b = Actor(name="Actor two", debug_logging=True)
 
         for actor in [a, b]:
             n = net.make_network()
@@ -391,7 +522,7 @@ def test_guard_transitions() -> None:
     trace: list[str] = []
 
     class Bot(Actor):
-        status: int = State()
+        status: int = State().create()
 
     class StepA(Task):
         def task(self, *, actor: Bot) -> TASK_GEN:

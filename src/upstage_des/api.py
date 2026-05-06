@@ -5,13 +5,14 @@
 
 """API for standard usage of upstage-des."""
 
-from upstage_des.actor import EMPTY_KNOWLEDGE, Actor
+from upstage_des.actor import EMPTY_KNOWLEDGE, Actor, Knowledge
 from upstage_des.base import (
     ENTITY_REGISTRY_CONTEXT_VAR,
     ENV_CONTEXT_VAR,
     SIMPY_GEN,
     STAGE_CONTEXT_VAR,
     EnvironmentContext,
+    SimulationEnd,
     SimulationError,
     Stage,
     UpstageBase,
@@ -49,10 +50,12 @@ from upstage_des.tasks import (
     DecisionTask,
     InterruptStates,
     Task,
+    TerminalTask,
 )
 
 __all__ = [
     "Actor",
+    "Knowledge",
     "EMPTY_KNOWLEDGE",
     "ENTITY_REGISTRY_CONTEXT_VAR",
     "ENV_CONTEXT_VAR",
@@ -88,4 +91,6 @@ __all__ = [
     "TaskNetwork",
     "TaskNetworkFactory",
     "TaskTransition",
+    "TerminalTask",
+    "SimulationEnd",
 ]

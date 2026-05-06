@@ -5,6 +5,8 @@
 
 """Test state features."""
 
+from typing import Annotated
+
 import pytest
 
 from upstage_des.actor import Actor
@@ -79,7 +81,7 @@ def test_state_validator() -> None:
             raise ValueError("Must be positive")
 
     class MyActor(Actor):
-        fuel: float = State(default=100.0, validator=validate_positive)
+        fuel: float = State[float](default=100.0, validator=validate_positive).create()
 
     with EnvironmentContext():
         actor = MyActor(name="test")
@@ -91,7 +93,7 @@ def test_state_validator() -> None:
 
 def test_state_default_factory() -> None:
     class MyActor(Actor):
-        items: list[int] = State(default_factory=list)
+        items: list[int] = State(default_factory=list).create()
 
     with EnvironmentContext():
         actor1 = MyActor(name="test1")

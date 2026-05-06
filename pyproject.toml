@@ -95,6 +95,7 @@ lint.pydocstyle.convention = "google"
 
 [tool.mypy]
 # broken by ipywidgetsplugins = "pydantic.mypy"
+files = [ "src", "tests" ]
 cache_dir = "build/.mypy_cache"
 sqlite_cache = true
 python_version = "3.12"

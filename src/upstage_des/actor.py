@@ -9,7 +9,7 @@ import logging
 from collections import OrderedDict, defaultdict, deque
 from collections.abc import Iterable
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import MISSING, dataclass
 from typing import TYPE_CHECKING, Any, Self, dataclass_transform
 
 from simpy import Process
@@ -25,8 +25,51 @@ from upstage_des.states import LinearChangingState, State, _ActiveState
 
 if TYPE_CHECKING:
     from upstage_des.task_networks import TaskNetwork, TaskNetworkFactory
+    from upstage_des.tasks import Task
 
-EMPTY_KNOWLEDGE = object()
+
+class _EMPTY_KNOWLEDGE_TYPE:
+    pass
+
+
+EMPTY_KNOWLEDGE = _EMPTY_KNOWLEDGE_TYPE()
+
+
+@dataclass
+class Knowledge:
+    """A dataclass with dictionary-like access."""
+
+    def get(self, key: str, default: Any = None) -> Any:  # noqa: D102
+        return getattr(self, key, default)
+
+    def keys(self) -> list[str]:
+        """Get keys."""
+        return list(self.__dataclass_fields__.keys())
+
+    @classmethod
+    def make_blank(cls) -> Self:
+        """Create a blank version of ourselves."""
+        inputs: dict[str, Any] = {}
+        for k, v in cls.__dataclass_fields__.items():
+            if v.default is not MISSING:
+                inputs[k] = v.default
+            elif v.default_factory is not MISSING:
+                inputs[k] = v.default_factory()
+            else:
+                inputs[k] = EMPTY_KNOWLEDGE
+        return cls(**inputs)
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        setattr(self, key, value)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.__dataclass_fields__
+
+    def __len__(self) -> int:
+        return len(self.__dataclass_fields__)
 
 
 @dataclass
@@ -52,15 +95,18 @@ def _process_model_class(cls: type[Any]) -> None:
             # Use State if defined, else create one
             if name in base.__dict__ and isinstance(base.__dict__[name], State):
                 field_obj = base.__dict__[name]
+            elif mdata := getattr(annotations[name], "__metadata__", None):
+                field_obj = mdata[0]
+                if not isinstance(field_obj, State):
+                    raise UpstageError(f"State {name} has improper annotation. Expected a state.")
             else:
                 default = base.__dict__.get(name, ...)
                 if default is ...:
                     field_obj = State()
                     if name == "knowledge":
-                        field_obj._default_factory = dict
+                        field_obj._default_factory = annotations[name].make_blank
                 else:
                     field_obj = State(default=default)
-            # In all cases, drop the type info into the data
             field_obj._add_type(annotations[name])
 
             if not getattr(field_obj, "name", None):
@@ -136,7 +182,7 @@ class _BaseActor(UpstageBase):
 
     name: str
     debug_logging: bool
-    knowledge: dict[str, Any]
+    knowledge: Knowledge
 
     _is_clone: bool
     _state_histories: dict[str, deque[tuple[float, Any] | tuple[float, Any, Any]]]
@@ -253,7 +299,7 @@ class _BaseActor(UpstageBase):
         """
         self.write_to_log(f"Clearing {name} knowledge. Reason: {caller}")
         if name in self.knowledge:
-            del self.knowledge[name]
+            self.knowledge[name] = EMPTY_KNOWLEDGE
 
     def get_and_clear_knowledge(self, name: str, caller: Any = "") -> Any:
         """Get a knowledge value and clear it.
@@ -276,7 +322,7 @@ class _BaseActor(UpstageBase):
 
     ###########################################################
     ### Activate States #######################################
-    def _lock_state(self, *, state: str, cause: Any) -> None:
+    def _lock_state(self, *, state: str, cause: "Task") -> None:
         """Lock one of the actor's states by a given cause.
 
         Args:
@@ -293,7 +339,7 @@ class _BaseActor(UpstageBase):
         self._states_by_cause[cause].add(state)
         self._causes_by_state[state] = cause
 
-    def _unlock_state(self, *, state: str, cause: Any) -> None:
+    def _unlock_state(self, *, state: str, cause: "Task") -> None:
         """Unlock one of the actor's states by a given cause.
 
         If the cause didn't lock the state, an error is raised.
@@ -307,83 +353,85 @@ class _BaseActor(UpstageBase):
         self._states_by_cause[cause].remove(state)
         del self._causes_by_state[state]
 
-    def activate_state(self, state: str, *, cause: Any, **state_kwargs: Any) -> None:
+    def activate_state(self, state: str, *, task: "Task", **state_kwargs: Any) -> None:
         """Activate a state.
 
         Args:
             state (str): The name of the state to activate
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             state_kwargs (Any): Arguments to pass to the state activation.
         """
+        self.write_to_log("%s is activating state: %s", task, state)
         _state = self.__model_fields__[state]
         assert isinstance(_state, _ActiveState)
-        self._lock_state(state=state, cause=cause)
+        self._lock_state(state=state, cause=task)
         _state.activate(self, **state_kwargs)
 
-    def deactivate_state(self, state: str, *, cause: Any, **kwargs: Any) -> None:
+    def deactivate_state(self, state: str, *, task: "Task", **kwargs: Any) -> None:
         """Deactivate an already active state.
 
         Args:
             state (str): Name of the state
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             kwargs (Any): Arguments expected by the specific state.
         """
+        self.write_to_log("%s is deactivating state: %s", task, state)
         _state = self.__model_fields__[state]
         assert isinstance(_state, _ActiveState)
-        self._unlock_state(state=state, cause=cause)
+        self._unlock_state(state=state, cause=task)
         _state.deactivate(self, **kwargs)
 
-    def deactivate_states(self, states: Iterable[str], *, cause: Any, **kwargs: Any) -> None:
+    def deactivate_states(self, states: Iterable[str], *, task: "Task", **kwargs: Any) -> None:
         """Deactivate already active states.
 
         Args:
             states (Iterable[str]): Names of the states
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             kwargs (Any): Arguments expected by the specific state.
         """
         for name in states:
-            self.deactivate_state(name, cause=cause, **kwargs)
+            self.deactivate_state(name, task=task, **kwargs)
 
-    def deactivate_all_states(self, *, cause: Any, **kwargs: Any) -> None:
+    def deactivate_all_states(self, *, task: "Task", **kwargs: Any) -> None:
         """Deactivate all running states.
 
         This allows no states to be deactivated if none were activated by the cause.
 
         Args:
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             kwargs (Any): Arguments expected by the states to deactivate.
         """
-        if cause not in self._states_by_cause:
+        if task not in self._states_by_cause:
             return
-        state_names = list(self._states_by_cause[cause])
-        self.deactivate_states(state_names, cause=cause, **kwargs)
+        state_names = list(self._states_by_cause[task])
+        self.deactivate_states(state_names, task=task, **kwargs)
 
-    def activate_linear_state(self, state: str, rate: float, *, cause: Any) -> None:
+    def activate_linear_state(self, state: str, rate: float, *, task: "Task") -> None:
         """Activate a linear changing state.
 
         Args:
             state (str): The state name
             rate (float): The rate to change the state
-            cause (Any): Unique identifier or object for who is activating the state.
+            task (Task): Unique identifier or object for who is activating the state.
         """
         _state = self.__model_fields__[state]
         assert type(_state) is LinearChangingState
-        self.activate_state(state, rate=rate, cause=cause)
+        self.activate_state(state, rate=rate, task=task)
 
-    def deactivate_linear_state(self, state: str, *, cause: Any) -> None:
+    def deactivate_linear_state(self, state: str, *, task: "Task") -> None:
         """Deactivate a linear changing state.
 
         Exists as a pair to `activate_linear_state`.
 
         Args:
             state (str): The state name
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
         """
         _state = self.__model_fields__[state]
         assert type(_state) is LinearChangingState
-        self.deactivate_state(state, cause=cause)
+        self.deactivate_state(state, task=task)
 
-    def make_event_for_state_goal(self, state: str, goal_value: float) -> float | None:
+    def get_time_for_state_goal(self, state: str, goal_value: float) -> float | None:
         """Get the time when a linear changing state will reach a goal value.
 
         Args:
@@ -660,7 +708,7 @@ class Actor(_BaseActor):
 
     name: str
     debug_logging: bool = True
-    knowledge: dict[str, Any]
+    knowledge: Knowledge = State(default_factory=Knowledge.make_blank).create()
 
 
 class ActorHelper:

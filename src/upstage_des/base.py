@@ -27,6 +27,10 @@ class UpstageError(Exception):
     """Raised when an UPSTAGE error happens or expectation is not met."""
 
 
+class SimulationEnd(Exception):
+    """Raised when you want to end the sim, but know it was a safe end."""
+
+
 @dataclass
 class Stage:
     """Simulation stage configuration and shared state.

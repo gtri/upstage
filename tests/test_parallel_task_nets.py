@@ -1,7 +1,9 @@
-# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2026 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
+
+"""Testing for running more than one task network on an actor at a time."""
 
 import simpy as SIM
 
@@ -10,10 +12,10 @@ from upstage_des.api import Task, SIMPY_GEN, TASK_GEN
 
 
 class ParallelTest(UP.Actor):
-    comms: SIM.Store = UP.State()
-    logger: list = UP.State()
-    internal: SIM.Store = UP.State()
-    working: bool = UP.State()
+    comms: SIM.Store = UP.State().create()
+    logger: list = UP.State().create()
+    internal: SIM.Store = UP.State().create()
+    working: bool = UP.State().create()
 
 
 class TaskOne(Task):

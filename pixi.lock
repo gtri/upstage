@@ -8332,7 +8332,7 @@ packages:
 - pypi: ./
   name: upstage-des
   version: 1.0.0
-  sha256: de85b703bdf671edd1af6406d681145dddf6a82d597b23f61a643b41abd876c1
+  sha256: 2adcd114169bdfca75e1364e04b0f4ddccc437e0eed938fe5696a850f7856712
   requires_dist:
   - simpy>=4
   - myst-parser ; extra == 'docs'

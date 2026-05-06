@@ -5,37 +5,39 @@
 
 """Test knowledge."""
 
-from typing import TypedDict
+from dataclasses import dataclass
+from typing import Any, TypedDict
 
 import pytest
-from upstage_des.actor import EMPTY_KNOWLEDGE, Actor
+from upstage_des.actor import EMPTY_KNOWLEDGE, Actor, Knowledge
 from upstage_des.base import EnvironmentContext, SimulationError
+from upstage_des.states import State
 
 
 def test_knowledge() -> None:
-    class TD(TypedDict):
+    @dataclass
+    class TD(Knowledge):
         number: int
         message: float
 
     class MyActor(Actor):
         fuel: float = 120.
-        knowledge: TD
+        knowledge: TD = State(default_factory=TD.make_blank).create()
 
     class NoKnow(Actor):...
 
     with EnvironmentContext():
+        ma_blank = MyActor(name="empty")
+        assert ma_blank.knowledge.number is EMPTY_KNOWLEDGE
+        assert ma_blank.knowledge.message is EMPTY_KNOWLEDGE
+
         ma = MyActor(
             name="act",
-            knowledge={"number": 2, "message":3.0, "other":"string"}
+            knowledge=TD(number=2, message=3.0)
         )
-        assert ma.knowledge["message"] == 3.0
+        assert ma.knowledge.message == 3.0
         assert ma.knowledge["number"] == 2
-        assert ma.knowledge["other"] == "string"
         nk = NoKnow(name="no knowledge")
-        assert len(nk.knowledge) == 0
-        nk.knowledge["new data"] = 2.3
-        assert len(nk.knowledge) == 1
-
         v = ma.get_knowledge("message")
         assert v == 3.0
         v = ma.get_knowledge("number", must_exist=True)
@@ -53,7 +55,7 @@ def test_knowledge() -> None:
         ma.set_knowledge("number", 12.0, caller="The Test")
         assert ma.get_and_clear_knowledge("number") == 12.0
         assert len(ma.get_log()) == 3
-        assert "number" not in ma.knowledge
+        assert ma.knowledge.number is EMPTY_KNOWLEDGE
 
 
 test_knowledge()
