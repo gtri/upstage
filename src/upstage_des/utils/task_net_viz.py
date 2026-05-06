@@ -21,6 +21,21 @@ def _guard_label(guard: GUARD_FUNC | None) -> str:
     return "guard"
 
 
+def _hook_suffix(net: TaskNetwork, task_name: str) -> str:
+    """Return a parenthesized hook list, or empty string."""
+    cls = net.task_classes.get(task_name)
+    if cls is None:
+        return ""
+    hooks: list[str] = []
+    if "on_enter" in cls.__dict__:
+        hooks.append("on_enter")
+    if "on_exit" in cls.__dict__:
+        hooks.append("on_exit")
+    if not hooks:
+        return ""
+    return f"({', '.join(hooks)})"
+
+
 def to_mermaid(net: TaskNetwork | TaskNetworkFactory, *, legend: bool = True) -> str:
     """Return a Mermaid graph diagram of the task network.
 
@@ -44,7 +59,7 @@ def to_mermaid(net: TaskNetwork | TaskNetworkFactory, *, legend: bool = True) ->
     # a task defines on_enter/on_exit hooks.
     for task_name in net.task_classes:
         node_id = task_name.replace(" ", "_")
-        suffix = net._hook_suffix(task_name)
+        suffix = _hook_suffix(net, task_name)
         if suffix:
             lines.append(f'    {node_id}["{task_name}<br/><sub><i>{suffix}</i></sub>"]')
         else:
@@ -112,7 +127,7 @@ def to_dot(net: TaskNetwork | TaskNetworkFactory) -> str:
     # Declare every task node so rendering is consistent whether or not
     # a task defines on_enter/on_exit hooks.
     for task_name in net.task_classes:
-        suffix = net._hook_suffix(task_name)
+        suffix = _hook_suffix(net, task_name)
         if suffix:
             lines.append(
                 f'    "{task_name}" [label=<{task_name}<br/>'

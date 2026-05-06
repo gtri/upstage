@@ -12,6 +12,7 @@ import pytest
 from upstage_des.actor import EMPTY_KNOWLEDGE, Actor, Knowledge
 from upstage_des.base import EnvironmentContext, SimulationError
 from upstage_des.states import State
+from upstage_des.tasks import Task
 
 
 def test_knowledge() -> None:
@@ -56,6 +57,17 @@ def test_knowledge() -> None:
         assert ma.get_and_clear_knowledge("number") == 12.0
         assert len(ma.get_log()) == 3
         assert ma.knowledge.number is EMPTY_KNOWLEDGE
+
+        # add back knowledge
+        ma.knowledge.number = 3
+        ma.knowledge.message = 4.2
+        # Clear it all w/ a task
+        t = Task()
+        assert ma.knowledge.number is not EMPTY_KNOWLEDGE
+        assert ma.knowledge.message is not EMPTY_KNOWLEDGE
+        t.clear_actor_bulk_knowledge(ma, ["number", "message"])
+        assert ma.knowledge.number is EMPTY_KNOWLEDGE
+        assert ma.knowledge.message is EMPTY_KNOWLEDGE
 
 
 test_knowledge()

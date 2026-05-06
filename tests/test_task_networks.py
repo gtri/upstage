@@ -169,176 +169,115 @@ def test_building_network() -> None:
             env.run()
         except SimulationEnd:
             ...
-        print(env.now)
-
-test_building_network()
-
-# def test_running_simple_network() -> None:
-#     with EnvironmentContext() as env:
-#         actor = _build_test(env)
-#         task_fact = TaskNetworkFactory(
-#             "plane_net",
-#             task_classes,
-#             task_links,
-#         )
-#         net = task_fact.make_network()
-
-#         assert str(net) == "Task network: plane_net"
-
-#         # build arguments for the task list
-#         task_name_list = [
-#             "LandingLocationSelection",
-#             "LandingLocationPrep",
-#             "Fly",
-#             "LandingCheck",
-#             "Land",
-#             "MaintenanceWait",
-#         ]
-
-#         # tell the actor the queue its getting
-#         actor.add_task_network(net)
-#         actor.set_task_queue("plane_net", task_name_list)
-
-#         # run the queue with the network
-#         net.loop(actor=actor)
-#         env.run()
-
-#         base = actor.get_knowledge("base")
-#         base2 = actor.stage.world.bases[0]
-#         assert base is base2, "Wrong base selected"
-#         assert len(actor._knowledge) == 1, "Too much knowledge left"
-#         assert pytest.approx(actor.fuel, abs=0.01) == 86.199
-#         assert actor.code == 0, "Wrong MX code"
+        assert env.now > 0.0
 
 
-# def test_interrupting_network() -> None:
-#     with EnvironmentContext() as env:
-#         actor = _build_test(env)
-#         task_fact = TaskNetworkFactory(
-#             "plane_net",
-#             task_classes,
-#             task_links,
-#         )
-#         net = task_fact.make_network()
+def test_factory_builders() -> None:
 
-#         # build arguments for the task list
-#         task_name_list = [
-#             "LandingLocationSelection",
-#             "LandingLocationPrep",
-#             "Fly",
-#             "LandingCheck",
-#             "Land",
-#             "MaintenanceWait",
-#         ]
+    class AnActor(Actor):
+        data: int = 0
+    
+    class TaskA(Task):
+        def task(self, *, actor: AnActor) -> TASK_GEN:
+            actor.data += 1
+            yield Wait(1.0)
+    
+    class TaskB(Task):
+        def task(self, *, actor: AnActor) -> TASK_GEN:
+            actor.data += 3
+            yield Wait(2.0)
 
-#         # tell the actor the queue its getting
-#         actor.add_task_network(net)
-#         actor.set_task_queue("plane_net", task_name_list)
+    net_single_term_A = TaskNetworkFactory.from_single_terminating(
+        "termA",
+        TaskA,
+    )
 
-#         # create a process that interrupts the plane during different times
-#         def interrupting_proc(
-#             env: Environment, actor: Aircraft, interrupt_time: float
-#         ) -> SIMPY_GEN:
-#             yield env.timeout(interrupt_time)
-#             # get the process
-#             network = actor._task_networks["plane_net"]
-#             assert network._current_task_proc is not None
-#             network._current_task_proc.interrupt(cause="a reason")
+    net_single_term_B = TaskNetworkFactory.from_single_terminating(
+        "termB",
+        TaskB,
+    )
 
-#         # run the queue with the network
-#         net.loop(actor=actor)
-#         env.process(interrupting_proc(env, actor, 1.0))
-#         env.run()
+    net_looping = TaskNetworkFactory.from_ordered_loop(
+        "Loop",
+        [TaskA, TaskB],
+    )
 
-#         # the plane should land still
-#         assert actor._task_queue["plane_net"] == [], "Actor had tasks left"
-#         assert actor.code == 0, "Actor didn't get maintained"
+    net_order_term = TaskNetworkFactory.from_ordered_terminating(
+        "OrderTerm",
+        [TaskA, TaskB],
+    )
+
+    # Test the singles
+    with EnvironmentContext() as env:
+        act = AnActor(name="example")
+        net = net_single_term_A.make_network()
+        act.add_task_network(net)
+        act.start_network_loop(net.name, "TaskA")
+        env.run()
+        assert env.now == 1
+        assert act.data == 1
+
+    with EnvironmentContext() as env:
+        act = AnActor(name="example")
+        net = net_single_term_B.make_network()
+        act.add_task_network(net)
+        act.start_network_loop(net.name, "TaskB")
+        env.run()
+        assert env.now == 2
+        assert act.data == 3
+
+    # Test the loops
+    with EnvironmentContext() as env:
+        act = AnActor(name="example")
+        net = net_looping.make_network()
+        act.add_task_network(net)
+        act.start_network_loop(net.name, "TaskA")
+        env.run(until=4.1)
+        # 1 adds 2, 2 adds 3, 1 adds 1, then 3 added again before yield
+        assert act.data == 8
+
+    # Test the loops, but it starts on a different one
+    with EnvironmentContext() as env:
+        act = AnActor(name="example")
+        net = net_looping.make_network()
+        act.add_task_network(net)
+        act.start_network_loop(net.name, "TaskB")
+        env.run(until=4.1)
+        # 2 adds 3, 1 adds 1, 2 adds 3
+        assert act.data == 7
+
+    # Test ordered terminating
+    with EnvironmentContext() as env:
+        act = AnActor(name="example")
+        net = net_order_term.make_network()
+        act.add_task_network(net)
+        act.start_network_loop(net.name, "TaskA")
+        env.run()
+        assert env.now == 3
+        assert act.data == 4
 
 
-# def test_interrupting_network_with_cause() -> None:
-#     with EnvironmentContext() as env:
-#         actor = _build_test(env)
-#         task_fact = TaskNetworkFactory(
-#             "plane_net",
-#             task_classes,
-#             task_links,
-#         )
-#         net = task_fact.make_network()
+def test_network_naming() -> None:
+    class AnActor(Actor):
+        data: int = 0
+    
+    class TaskA(Task):
+        def task(self, *, actor: AnActor) -> TASK_GEN:
+            actor.data += 1
+            yield Wait(1.0)
+    
+    netfact = TaskNetworkFactory.from_single_looping("TASKA", TaskA)
 
-#         # build arguments for the task list
-#         task_name_list = [
-#             "LandingLocationSelection",
-#             "LandingLocationPrep",
-#             "Fly",
-#             "LandingCheck",
-#             "Land",
-#             "MaintenanceWait",
-#         ]
-
-#         # tell the actor the queue its getting
-#         actor.add_task_network(net)
-#         actor.set_task_queue("plane_net", task_name_list)
-
-#         # create a process that interrupts the plane during different times
-#         def interrupting_proc(
-#             env: Environment, actor: Aircraft, interrupt_time: float
-#         ) -> SIMPY_GEN:
-#             yield env.timeout(interrupt_time)
-#             # get the process
-#             # network = actor._task_networks["plane_net"]
-#             # network._current_task_proc.interrupt(cause="Code 4")
-#             actor.interrupt_network("plane_net", cause="Code 4")
-
-#         # run the queue with the network
-#         net.loop(actor=actor)
-#         env.process(interrupting_proc(env, actor, 1.0))
-#         env.run()
-
-
-# def test_interrupting_network_with_restart() -> None:
-#     with EnvironmentContext() as env:
-#         actor = _build_test(env)
-#         task_fact = TaskNetworkFactory(
-#             "plane_net",
-#             task_classes,
-#             task_links,
-#         )
-#         net = task_fact.make_network()
-
-#         # build arguments for the task list
-#         task_name_list = [
-#             "LandingLocationSelection",
-#             "LandingLocationPrep",
-#             "Fly",
-#             "LandingCheck",
-#             "Land",
-#             "MaintenanceWait",
-#         ]
-
-#         # tell the actor the queue its getting
-#         actor.add_task_network(net)
-#         actor.set_task_queue("plane_net", task_name_list)
-
-#         # create a process that interrupts the plane during different times
-#         def interrupting_proc(
-#             env: Environment, actor: Aircraft, interrupt_time: float
-#         ) -> SIMPY_GEN:
-#             yield env.timeout(interrupt_time)
-#             # get the process
-#             network = actor._task_networks["plane_net"]
-#             assert network._current_task_name is not None and network._current_task_name == "Fly"
-#             assert network._current_task_proc is not None
-#             network._current_task_proc.interrupt(cause="restart")
-
-#         # run the queue with the network
-#         net.loop(actor=actor)
-#         env.process(interrupting_proc(env, actor, 0.1))
-#         env.run()
-#         # the plane should land still
-#         assert actor._task_queue["plane_net"] == [], "Actor had tasks left"
-#         assert actor.code == 0, "Actor didn't get maintained"
-#         # it should take longer than the cancelled version
-#         assert pytest.approx(env.now, abs=0.0001) == 21.464767
+    with EnvironmentContext() as env:
+        act = AnActor(name="example")
+        net_name = act.suggest_network_name(netfact)
+        assert net_name == "TASKA"
+        act.add_task_network(netfact.make_network())
+        net_name2 = act.suggest_network_name(netfact)
+        assert net_name2 == "TASKA_1"
+        act.delete_task_network(net_name)
+        net_name3 = act.suggest_network_name(netfact)
+        assert net_name3 == "TASKA"
 
 
 def test_decision_task_hold() -> None:

@@ -12,12 +12,11 @@ from warnings import warn
 
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
-    from upstage_des.tasks import Task, TerminalTask
 
 from simpy import Process
 
 from upstage_des.base import SimulationError, UpstageError, process
-from upstage_des.tasks import DecisionTask
+from upstage_des.tasks import DecisionTask, Task, TerminalTask
 
 GUARD_FUNC = Callable[..., bool]
 
@@ -148,19 +147,6 @@ class TaskNetwork:
         self._current_task_proc: Process | None = None
         _validate_network(task_classes, task_links)
 
-    def is_feasible(self, curr: str, new: str) -> bool:
-        """Determine if a task can follow another one.
-
-        Args:
-            curr (str): Current task name
-            new (str): Potential next task name
-
-        Returns:
-            bool: If the new task can follow the current.
-        """
-        value = [x if isinstance(x, str) else x.__name__ for x in self.task_links[curr].allowed]
-        return new in value
-
     def _next_task_name(
         self, curr_task_name: str, actor: "Actor", clear_queue: bool = False
     ) -> str:
@@ -246,20 +232,6 @@ class TaskNetwork:
 
             next_name = self._next_task_name(task_name, actor)
             self._current_task_name = next_name
-
-    def _hook_suffix(self, task_name: str) -> str:
-        """Return a parenthesized hook list, or empty string."""
-        cls = self.task_classes.get(task_name)
-        if cls is None:
-            return ""
-        hooks: list[str] = []
-        if "on_enter" in cls.__dict__:
-            hooks.append("on_enter")
-        if "on_exit" in cls.__dict__:
-            hooks.append("on_exit")
-        if not hooks:
-            return ""
-        return f"({', '.join(hooks)})"
 
     def __repr__(self) -> str:
         return f"Task network: {self.name}"

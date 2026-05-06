@@ -8,7 +8,6 @@
 import logging
 from collections import OrderedDict, defaultdict, deque
 from collections.abc import Iterable
-from copy import deepcopy
 from dataclasses import MISSING, dataclass
 from typing import TYPE_CHECKING, Any, Self, dataclass_transform
 
@@ -126,7 +125,6 @@ def _process_model_class(cls: type[Any]) -> None:
         # Set up the data storage
         self._state_histories = {}
         self._log = deque()
-        self._is_clone = False
         self._state_data = {}
         self._states_by_cause = defaultdict(set)
         self._causes_by_state = {}
@@ -168,7 +166,6 @@ class _BaseActor(UpstageBase):
     Attributes:
         name: The actor's name
         debug_logging: Whether to enable debug logging
-        is_clone: Whether this actor is a clone (set by clone() method)
 
     Example:
         >>> class MyActor(BaseAct):
@@ -184,7 +181,6 @@ class _BaseActor(UpstageBase):
     debug_logging: bool
     knowledge: Knowledge
 
-    _is_clone: bool
     _state_histories: dict[str, deque[tuple[float, Any] | tuple[float, Any, Any]]]
     _log: deque[tuple[float, str]]
     _state_data: dict[str, StateDataDict]
@@ -200,13 +196,8 @@ class _BaseActor(UpstageBase):
         # Apply the model transformation to every subclass
         _process_model_class(cls)
 
-    @property
-    def is_clone(self) -> bool:
-        """Return whether this actor is a clone."""
-        return getattr(self, "_is_clone", False)
-
     def _record_state_change(self, name: str, value: Any, extra: Any | None = None) -> None:
-        if name in ["name", "debug_logging", "is_clone", "knowledge"]:
+        if name in ["name", "debug_logging", "knowledge"]:
             return
         time = self.env.now
         if name not in self._state_histories:
@@ -664,35 +655,6 @@ class _BaseActor(UpstageBase):
         if not self.has_task_network(network_id):
             raise SimulationError(f"No networked with id: {network_id} to delete")
         del self._task_networks[network_id]
-
-    ###########################################################
-    ### Cloning ###############################################
-    def clone(self) -> Self:
-        """Create a deep copy of this actor with current state values.
-
-        The clone:
-        - Has all state values deep-copied from the current actor
-        - Does not copy any state values that are actors
-        - Has no state history
-        - Is marked with is_clone=True
-        - Is not registered in the entity registry
-
-        Returns:
-            Self: A cloned actor with the same state values
-        """
-        kwargs: dict[str, Any] = {}
-        for field_name, field_obj in self.__model_fields__.items():
-            current_value = getattr(self, field_name)
-            if isinstance(current_value, Actor):
-                kwargs[field_name] = current_value
-            else:
-                kwargs[field_name] = deepcopy(current_value)
-        kwargs["name"] = kwargs["name"] + ".clone"
-        cloned = type(self)(**kwargs)
-        cloned._state_histories = {}
-        cloned._is_clone = True
-
-        return cloned
 
     def _clean(self) -> None:
         """Run to clean all memory from the actor."""
