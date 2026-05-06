@@ -1,718 +1,452 @@
-# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2026 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
-"""This file contains the fundamental Actor class for UPSTAGE."""
+"""Actor system with dataclass-like field transformation and State descriptors."""
 
-from collections import Counter, defaultdict
-from collections.abc import Callable, Iterable
-from copy import copy, deepcopy
-from dataclasses import dataclass
-from inspect import Parameter, signature
-from typing import TYPE_CHECKING, Any, Self, Union
+import logging
+from collections import OrderedDict, defaultdict, deque
+from collections.abc import Iterable
+from dataclasses import MISSING, dataclass
+from typing import TYPE_CHECKING, Any, Self, dataclass_transform
 
 from simpy import Process
 
-from upstage_des.events import Event
-
-from .base import (
-    SPECIAL_ENTITY_CONTEXT_VAR,
-    MockEnvironment,
-    NamedUpstageEntity,
-    SettableEnv,
+from upstage_des._logging import get_actor_logger
+from upstage_des.base import (
     SimulationError,
+    UpstageBase,
     UpstageError,
 )
-from .data_types import CartesianLocation, GeodeticLocation
-from .states import (
-    ActiveState,
-    CartesianLocationChangingState,
-    DetectabilityState,
-    GeodeticLocationChangingState,
-    ResourceState,
-    State,
-    _KeyValueBase,
-)
-from .task import Task
-from .task_network import TaskNetwork, TaskNetworkFactory
-from .utils import get_caller_info, get_caller_object
-
-__all__ = ("Actor",)
+from upstage_des.root_types import StateDataDict
+from upstage_des.states import LinearChangingState, State, _ActiveState
 
 if TYPE_CHECKING:
-    from .nucleus import TaskNetworkNucleus
+    from upstage_des.task_networks import TaskNetwork, TaskNetworkFactory
+    from upstage_des.tasks import Task
 
-LOC_STATE = GeodeticLocationChangingState | CartesianLocationChangingState
-LOCATIONS = GeodeticLocation | CartesianLocation
-LOC_LIST = list[GeodeticLocation] | list[CartesianLocation]
+
+class _EMPTY_KNOWLEDGE_TYPE:
+    pass
+
+
+EMPTY_KNOWLEDGE = _EMPTY_KNOWLEDGE_TYPE()
+
+
+@dataclass
+class Knowledge:
+    """A dataclass with dictionary-like access."""
+
+    def get(self, key: str, default: Any = None) -> Any:  # noqa: D102
+        return getattr(self, key, default)
+
+    def keys(self) -> list[str]:
+        """Get keys."""
+        return list(self.__dataclass_fields__.keys())
+
+    @classmethod
+    def make_blank(cls) -> Self:
+        """Create a blank version of ourselves."""
+        inputs: dict[str, Any] = {}
+        for k, v in cls.__dataclass_fields__.items():
+            if v.default is not MISSING:
+                inputs[k] = v.default
+            elif v.default_factory is not MISSING:
+                inputs[k] = v.default_factory()
+            else:
+                inputs[k] = EMPTY_KNOWLEDGE
+        return cls(**inputs)
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        setattr(self, key, value)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.__dataclass_fields__
+
+    def __len__(self) -> int:
+        return len(self.__dataclass_fields__)
 
 
 @dataclass
 class TaskData:
+    """Data about a task process on an Actor."""
+
     name: str
     process: Process
 
 
-class Actor(SettableEnv, NamedUpstageEntity):
-    """Actors perform tasks and are composed of states.
+def _process_model_class(cls: type[Any]) -> None:
+    """Apply dataclass-like behavior + ModelField descriptors to the class."""
+    model_fields: OrderedDict[str, State] = OrderedDict()
+    my_fields: list[str] = []
+    for base in reversed(cls.__mro__):
+        if base is object:
+            continue
+        annotations = getattr(base, "__annotations__", {})
+        for name in annotations:
+            if name.startswith("_") or name in {"__weakref__", "__dict__", "__model_fields__"}:
+                continue
 
-    You can subclass, but do not overwrite __init_subclass__. Mixins are allowed
-    but they cannot depend on __init__. Always put mixins after actor base classes.
+            # Use State if defined, else create one
+            if name in base.__dict__ and isinstance(base.__dict__[name], State):
+                field_obj = base.__dict__[name]
+            elif mdata := getattr(annotations[name], "__metadata__", None):
+                field_obj = mdata[0]
+                if not isinstance(field_obj, State):
+                    raise UpstageError(f"State {name} has improper annotation. Expected a state.")
+            else:
+                default = base.__dict__.get(name, ...)
+                if default is ...:
+                    field_obj = State()
+                    if name == "knowledge":
+                        field_obj._default_factory = annotations[name].make_blank
+                else:
+                    field_obj = State(default=default)
+            field_obj._add_type(annotations[name])
+
+            if not getattr(field_obj, "name", None):
+                field_obj.__set_name__(cls, name)
+
+            model_fields[name] = field_obj
+            if base is cls:
+                my_fields.append(name)
+    # set attrs _after_, which helps inheritence
+    model_fields_dict: dict[str, State[Any]] = {}
+    for name, field_obj in model_fields.items():
+        model_fields_dict[name] = field_obj
+        setattr(cls, name, field_obj)
+    cls.__model_fields__ = model_fields_dict
+
+    def __init__(self: Any, **kwargs: Any) -> None:
+        # Set up the data storage
+        self._state_histories = {}
+        self._log = deque()
+        self._state_data = {}
+        self._states_by_cause = defaultdict(set)
+        self._causes_by_state = {}
+        self._task_networks = {}
+        self._task_queue = {}
+
+        for name in model_fields.keys():
+            value = kwargs.pop(name, ...)
+            field = self.__model_fields__[name]
+            self._state_data[name] = {}
+            if value is ...:
+                if not field.has_default:
+                    raise ValueError(f"No input supplied for state: {name}")
+                field._set_default(self)
+            else:
+                field.__set__(self, value)
+        UpstageBase.__init__(self, **kwargs)
+        if hasattr(cls, "__post_init__"):
+            cls.__post_init__(self)
+
+        # logging need `name`, so it comes later.
+        self._logger = get_actor_logger(self)
+
+    cls.__init__ = __init__
+
+
+@dataclass_transform(
+    kw_only_default=True,
+    frozen_default=False,
+    field_specifiers=(State,),
+)
+class _BaseActor(UpstageBase):
+    """Base class for actors with automatic field processing and State support.
+
+    Actors automatically process type annotations to create descriptors:
+    - State[T] annotations become State descriptors with hooks and validation
+    - Other annotations become ModelField descriptors with default value support
+
+    Attributes:
+        name: The actor's name
+        debug_logging: Whether to enable debug logging
+
+    Example:
+        >>> class MyActor(BaseAct):
+        ...     name: str
+        ...     fuel: State[float] = State(default=100.0)
+        ...
+        >>> actor = MyActor(name="vehicle")
+        >>> actor.fuel
+        100.0
     """
 
-    def __init_states(self, **states: Any) -> None:
-        seen = set()
-        for state, value in states.items():
-            if state in self._state_defs:
-                seen.add(state)
-                st = self._state_defs[state]
-                if st._no_init:
-                    raise SimulationError(
-                        f"State {state} on {self} has set no_init=True. "
-                        "Initializing a no_init state is disallowed."
-                    )
-                setattr(self, state, value)
-            else:
-                raise UpstageError(f"Input to {self} was not expected: {state}={value}")
-        exist = set(self._state_defs.keys())
-        unseen = exist - seen
-        for state_name in unseen:
-            _state = self._state_defs[state_name]
-            if _state.has_default():
-                seen.add(state_name)
-                _state._set_default(self)
-        if len(seen) != len(exist):
-            raise UpstageError(
-                f"Missing values for states! These states need values: "
-                f"{exist - seen} to be specified for '{self.name}'."
-            )
-        if "log" in seen:
-            raise UpstageError("Do not name a state `log`")
-        # Check that we won't name clash state names and recording function names
-        recording_names: dict[str, int] = Counter()
-        for name, state_def in self._state_defs.items():
-            recording_names[name] += 1
-            for _, rec_name in state_def._recording_functions:
-                recording_names[rec_name] += 1
-        error_msg = ""
-        for k, v in recording_names.items():
-            if v > 1:
-                error_msg += f"Duplicated state or recording name: {k}\n"
-        if error_msg:
-            raise SimulationError(error_msg)
+    name: str
+    debug_logging: bool
+    knowledge: Knowledge
 
-    def __actual_init__(
-        self,
-        *,
-        name: str,
-        debug_log: bool = True,
-        debug_log_time: bool | None = None,
-        initial_knowledge: dict[str, Any] | None = None,
-        **states: Any,
-    ) -> None:
-        """Create an Actor.
+    _state_histories: dict[str, deque[tuple[float, Any] | tuple[float, Any, Any]]]
+    _log: deque[tuple[float, str]]
+    _state_data: dict[str, StateDataDict]
+    __model_fields__: dict[str, State]
+    _states_by_cause: dict[Any, set[str]]
+    _causes_by_state: dict[str, Any]
+    _logger: logging.Logger
+    _task_networks: dict[str, "TaskNetwork"]
+    _task_queue: dict[str, list[str]]
 
-        Args:
-            name (str): The name of the actor.
-            debug_log (bool, optional): Whether to write to debug log. Defaults to True.
-            debug_log_time (bool, optional): If time is logged in debug messages.
-                Defaults to None (uses Stage value), otherwise local value is used.
-            initial_knowledge (dict[str, Any], optional): A dictionary to initialize
-                knowledge with.
-            states (Any): Values for each state as kwargs.
-        """
-        self.name = name
-        super().__init__()
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # Apply the model transformation to every subclass
+        _process_model_class(cls)
 
-        self._active_states: dict[str, dict[str, Any]] = {}
-        self._num_clones: int = 0
-        self._state_defs: dict[str, State] = getattr(self.__class__, "_state_defs", {})
-
-        self._mimic_states: dict[str, tuple[Actor, str]] = {}  # has to be before other calls
-        self._mimic_states_by_task: dict[Task, set[str]] = defaultdict(set)
-
-        self._states_by_task: dict[Task, set[str]] = defaultdict(set)
-        self._tasks_by_state: dict[str, set[Task]] = defaultdict(set)
-
-        self._task_networks: dict[str, TaskNetwork] = {}
-        self._task_queue: dict[str, list[str]] = {}
-
-        self._knowledge: dict[str, Any] = {}
-        self._is_rehearsing: bool = False
-
-        self._debug_logging: bool = debug_log
-        self._debug_log_time = debug_log_time
-        self._debug_log: list[tuple[float | int, str]] = []
-
-        self._state_histories: dict[str, list[tuple[float, Any]]] = {}
-
-        # Task Network Nucleus hook-ins
-        self._state_listener: TaskNetworkNucleus | None = None
-
-        self.__init_states(**states)
-
-        if initial_knowledge is not None:
-            self.set_bulk_knowledge(initial_knowledge, overwrite=True, caller="init")
-
-    def __init__(
-        self,
-        *,
-        name: str,
-        debug_log: bool = True,
-        debug_log_time: bool | None = None,
-        initial_knowledge: dict[str, Any] | None = None,
-        **states: Any,
-    ) -> None:
-        """Create an actor.
-
-        This specific version of __init__ exists to be overriden.
-
-        Args:
-            name (str): The name of the actor.
-            debug_log (bool, optional): Whether to write to debug log. Defaults to True.
-            debug_log_time (bool, optional): If time is logged in debug messages.
-                Defaults to None (uses Stage value), otherwise local value is used.
-            initial_knowledge (dict[str, Any], optional): A dictionary to initialize
-                knowledge with.
-            states (Any): Keyword args.
-        """
-        self.__actual_init__(
-            name=name,
-            debug_log=debug_log,
-            debug_log_time=debug_log_time,
-            initial_knowledge=initial_knowledge,
-        )
-
-    def __init_subclass__(
-        cls,
-        *args: Any,
-        **kwargs: Any,
-    ) -> None:
-        super().__init_subclass__(*args, **kwargs)
-        all_states: dict[str, State] = {}
-        # This ensures that newer classes overwrite older states
-        for base_class in cls.mro()[::-1]:
-            for state_name, state in base_class.__dict__.items():
-                if isinstance(state, State):
-                    if state_name in all_states:
-                        raise ValueError(f"Duplicated state name: {state_name}")
-                    all_states[state_name] = state
-                    state.name = state_name
-        cls._state_defs = all_states
-
-        nxt = cls.mro()[1]
-        if nxt is object:
-            raise UpstageError(f"Actor has bad inheritance, MRO: {cls.mro()}")
-
-        def new_init(
-            self: Actor,
-            *,
-            name: str,
-            debug_log: bool = True,
-            debug_log_time: bool | None = None,
-            **states: Any,
-        ) -> None:
-            self.__actual_init__(
-                name=name, debug_log=debug_log, debug_log_time=debug_log_time, **states
-            )
-
-        # Update the docstring - might be helpful for active doc builds
-        docstring = f"""Create a {cls.__name__} actor.
-
-Args:
-    name (str): The name of the actor.
-    debug_log (bool, optional): Whether to write to debug log. Defaults to True.
-    debug_log_time (bool, optional): If time is logged in debug messages.
-        Defaults to None (uses Stage value), otherwise local value is used.
-"""
-        sig = signature(new_init)
-        params = list(sig.parameters.values())
-        # Find the "states=" parameter of the signature and remove it.
-        state_parameter = [x for x in params if x.name == "states"]
-        if state_parameter:
-            params.remove(state_parameter[0])
-        for state, value in all_states.items():
-            if value._no_init:
-                continue
-            typ = Any if not value._types else Union[*value._types]
-            default_str = "No Default"
-            default: Any = Parameter.empty
-            if value.has_default():
-                default = value._default if value._default is not None else value._default_factory
-                default_str = f"{default}"
-            params.insert(
-                len(params),
-                Parameter(state, Parameter.KEYWORD_ONLY, annotation=typ, default=default),
-            )
-            docstring += f"\n    {state} ({type}): Actor State. Defaults to {default_str}."
-        try:
-            setattr(new_init, "__signature__", sig.replace(parameters=params))
-        except ValueError as e:
-            e.add_note(f"Failure likely due to repeated state name in inherited actor {cls}")
-            raise e
-        new_init.__doc__ = docstring
-        setattr(cls, "__init__", new_init)
-
-    def _add_special_group(self) -> None:
-        """Add self to the actor context list.
-
-        Called by the NamedUpstageEntity on group inits.
-        """
-        ans = SPECIAL_ENTITY_CONTEXT_VAR.get().actors
-        if self in ans:
+    def _record_state_change(self, name: str, value: Any, extra: Any | None = None) -> None:
+        if name in ["name", "debug_logging", "knowledge"]:
             return
-        ans.append(self)
+        time = self.env.now
+        if name not in self._state_histories:
+            self._state_histories[name] = deque()
+        to_append = (time, value) if extra is None else (time, value, extra)
+        self._state_histories[name].append(to_append)
 
-    def _lock_state(self, *, state: str, task: Task) -> None:
-        """Lock one of the actor's states by a given task.
+    ###########################################################
+    ### Logging ##############################################
+    def write_to_log(self, to_write: str, *args: Any, level: int = logging.INFO) -> None:
+        """Write to the log.
 
         Args:
-            state (str): The name of the state to lock
-            task (Task): The task that is locking the state
+            to_write (str): The text to write
+            args (Any): Objects to formate into the `to_write` string.
+            level (int): Logging library level. Defaults to INFO.
         """
-        the_state = self._state_defs[state]
-        if not the_state.IGNORE_LOCK:
-            # single-task only, so no task should
-            # be associated with this state
-            if self._tasks_by_state[state]:
-                raise SimulationError(
-                    f"State '{state}' cannot be used by '{task}' because it is "
-                    f"locked by {self._tasks_by_state[state]}"
-                )
-        else:
-            # We can have multiple locks, but make sure we are repeating a lock
-            if task in self._tasks_by_state[state]:
-                raise SimulationError(
-                    f"State '{state}' already locked by '{task}'. "
-                    "Did you forget to unlock/deactivate it?"
-                )
-        self._states_by_task[task].add(state)
-        self._tasks_by_state[state].add(task)
+        logger = self._logger
+        logger_wants = logger.isEnabledFor(level)
 
-    def _set_active_state_data(
-        self,
-        state_name: str,
-        started_at: float | None = None,
-        **data: Any,
-    ) -> None:
-        """Set the data for an active state.
+        if not self.debug_logging and not logger_wants:
+            return None
+        formatted = to_write % args if args else to_write
+        if self.debug_logging:
+            self._log.append((self.env.now, formatted))
+        if logger_wants:
+            logger.log(level, formatted)
 
-        Args:
-            state_name (str): Name of the state
-            started_at (Optional[float], optional): Time the data is set at. Defaults to None.
-            **data (Any): key:values as kwargs for the state data.
-        """
-        # Rule: underscored active data will get remembered
-        started_at = self.env.now if started_at is None else started_at
-        old_data = self._active_states.get(state_name, {})
-        new_data = {"started_at": started_at, **data}
-        keep_old = {k: v for k, v in old_data.items() if k not in new_data and "_" == k[0]}
-        new_data.update(keep_old)
-        self._active_states[state_name] = new_data
-
-    def activate_state(
-        self,
-        *,
-        state: str,
-        task: Task,
-        **kwargs: Any,
-    ) -> None:
-        """Set a state as active.
-
-        Note:
-            This method is used by the tasks for activating states they use/modify.
-
-        TODO: on init, create `activate_<statename>` methods that type-hint the inputs
-
-        Args:
-            state (str): The name of the state to set as active.
-            task (Task): The task that is activating the state.
-            **kwargs (Any): key:values as kwargs for the state activation.
-        """
-        if state not in self._state_defs:
-            raise SimulationError(f"No state named '{state}' to activate")
-        self._lock_state(state=state, task=task)
-        self._set_active_state_data(state_name=state, started_at=self.env.now, task=task, **kwargs)
-        # any initialization in the state needs to be called via attribute access
-        getattr(self, state)
-        # The activation handles getattr
-        _state = self._state_defs[state]
-        assert isinstance(_state, ActiveState)
-        _state.activate(self, task=task)
-
-    def activate_linear_state(self, *, state: str, rate: float, task: Task) -> None:
-        """Shortcut for activating a LinearChangingState.
-
-        Args:
-            state (str): The name of the LinearChangingState to set as active.
-            rate (float): The rate of the change
-            task (Task): The task that is activating
-        """
-        self.activate_state(state=state, task=task, rate=rate)
-
-    def activate_location_state(
-        self, *, state: str, speed: float, waypoints: LOC_LIST, task: Task
-    ) -> None:
-        """Shortcut for activating a (Cartesian|Geodetic)LocationChangingState.
-
-        Args:
-            state (str): State name
-            speed (float): The speed to move at
-            waypoints (LOC_LIST): Waypoints to move over
-            task (Task): The task that the state is activated during.
-        """
-        self.activate_state(
-            state=state,
-            speed=speed,
-            waypoints=waypoints,
-            task=task,
-        )
-
-    def _unlock_state(self, *, state: str, task: Task) -> None:
-        """Release a task's lock of a state.
-
-        Args:
-            state (str): The name of the state to lock
-            task (Task): The task that is locking the state
-        """
-        the_state = self._state_defs[state]
-        if not the_state.IGNORE_LOCK:
-            # single-task only, so only one task should
-            # be associated with this state
-            if task not in self._tasks_by_state[state]:
-                raise SimulationError(
-                    f"State `{state}` isn't locked by '{task}', but it's trying to be unlocked."
-                )
-            self._states_by_task[task].remove(state)
-            self._tasks_by_state[state].remove(task)
-        elif task in self._tasks_by_state[state]:
-            self._states_by_task[task].remove(state)
-            self._tasks_by_state[state].remove(task)
-        else:
-            raise UpstageError(f"State '{state}' was not activated by '{task}', cannot deactivate")
-
-    def deactivate_states(self, *, states: str | Iterable[str], task: Task) -> None:
-        """Set a list of active states to not active.
-
-        Args:
-            states (str | Iterable[str]): The names of the states to deactivate.
-            task (Task): The task that is deactivating the states.
-        """
-        if isinstance(states, str):
-            states = [states]
-
-        for state in states:
-            self.deactivate_state(state=state, task=task)
-
-    def deactivate_state(self, *, state: str, task: Task) -> None:
-        """Deactivate a specific state.
-
-        Args:
-            state (str): The name of the state to deactivate.
-            task (Task): The task that is deactivating the state.
-        """
-        self._unlock_state(state=state, task=task)
-
-        # the deactivated state may need to be updated
-        getattr(self, state)
-        # and then deactivate it, only if it was unlocked
-        the_state = self._state_defs[state]
-        if not isinstance(the_state, ActiveState):
-            raise UpstageError(f"Stage {state} is not an active type state.")
-        ignore = the_state.deactivate(self, task=task)
-        if state in self._active_states and not ignore:
-            del self._active_states[state]
-
-    def deactivate_all_states(self, *, task: Task) -> None:
-        """Deactivate all states in the actor for a given task.
-
-        Args:
-            task (Task): The task that is deactivating the states.
-        """
-        state_names = list(self._states_by_task[task])
-        self.deactivate_states(states=state_names, task=task)
-
-    def get_active_state_data(
-        self, state_name: str, without_update: bool = False
-    ) -> dict[str, Any]:
-        """Get the data for a specific state.
-
-        Args:
-            state_name (str): The name of the state for which to retrieve the data.
-            without_update (bool): Whether or not to update the state to the current
-                sim time. Defaults to True
+    def get_log(self) -> deque[tuple[float, str]]:
+        """Retrieve the log.
 
         Returns:
-            dict[str, Any]: The state data.
+            deque[tuple[float, str]]: The log.
         """
-        if not without_update:
-            getattr(self, state_name)
-        ans: dict[str, Any] = self._active_states.get(state_name, {})
-        return ans
+        return self._log
 
-    def _mimic_state_name(self, self_state: str) -> str:
-        """Create a mimic state name.
-
-        Args:
-            self_state (str): The name of the state
-
-        Returns:
-            str: Mimic-safe name
-        """
-        return f"{id(self)}-{self_state}"
-
-    def activate_mimic_state(
-        self,
-        *,
-        self_state: str,
-        mimic_state: str,
-        mimic_actor: "Actor",
-        task: Task,
-    ) -> None:
-        """Activate a state to mimic a state on another actor.
-
-        Args:
-            self_state (str): State name to be the mimic
-            mimic_state (str): State on the other actor to be mimiced
-            mimic_actor (Actor): The other actor.
-            task (Task): The task during which the state is mimiced.
-        """
-        caller = get_caller_object()
-        if isinstance(caller, Task) and caller._rehearsing:
-            raise UpstageError("Mimic state activated on rehearsal. This is unsupported/unstable")
-        if self_state in self._mimic_states:
-            raise UpstageError(f"{self_state} already mimicked")
-
-        state = self._state_defs[self_state]
-        if isinstance(state, _KeyValueBase):
-            raise SimulationError(f"States of type {type(state)} are not mimic-able.")
-        if isinstance(mimic_actor._state_defs[mimic_state], _KeyValueBase):
-            raise SimulationError(
-                f"States of type {type(mimic_actor._state_defs[mimic_state])} are not mimic-able."
-            )
-        their_v = getattr(mimic_actor, mimic_state)
-        if not state._type_check(their_v, throw=False):
-            raise SimulationError(
-                f"Cannot mimic states of different types: {state._types} vs {type(their_v)}"
-            )
-
-        self._mimic_states[self_state] = (mimic_actor, mimic_state)
-        self._mimic_states_by_task[task].add(self_state)
-
-        self_state_name = self._mimic_state_name(self_state)
-        if state.is_recording:
-
-            def recorder(instance: Actor, value: Any) -> None:
-                if instance is mimic_actor:
-                    state._do_record(self, value)
-
-            mimic_actor._add_callback_to_state(self_state_name, recorder, mimic_state)
-
-    def deactivate_mimic_state(self, *, self_state: str, task: Task) -> None:
-        """Deactivate a mimicking state.
-
-        Args:
-            self_state (str): State name
-            task (Task): Task it's running in.
-        """
-        getattr(self, self_state)
-        mimic_actor, mimic_state = self._mimic_states[self_state]
-        state = self._state_defs[self_state]
-        self_state_name = self._mimic_state_name(self_state)
-        if state.is_recording:
-            mimic_actor._remove_callback_from_state(self_state_name, mimic_state)
-        del self._mimic_states[self_state]
-        self._mimic_states_by_task[task].remove(self_state)
-
-    def deactivate_all_mimic_states(self, *, task: Task) -> None:
-        """Deactivate all mimicking states in the actor for a given task.
-
-        Args:
-            task (Task): The task where states are mimicking others.
-        """
-        for state in list(self._mimic_states):
-            self.deactivate_mimic_state(self_state=state, task=task)
-
-    def _add_callback_to_state(
-        self,
-        source: Any,
-        callback: Callable[["Actor", Any], Any],
-        state_name: str,
-    ) -> None:
-        """Add a callback to a state for recording.
-
-        Args:
-            source (Any): The source for keying the callback (unused, but for the key)
-            callback (Callable[[Actor, Any], Any]): Takes the actor and state value
-            state_name (str): _description_
-        """
-        state: State = self._state_defs[state_name]
-        state._add_callback(source, callback)
-
-    def _remove_callback_from_state(
-        self,
-        source: Any,
-        state_name: str,
-    ) -> None:
-        """Remove a state callback based on the source key.
-
-        Args:
-            source (Any): Callback key
-            state_name (str): Name of the state with the callback.
-        """
-        state = self._state_defs[state_name]
-        state._remove_callback(source)
-
+    ###########################################################
+    ### Knowledge Helpers #####################################
     def get_knowledge(self, name: str, must_exist: bool = False) -> Any:
-        """Get a knowledge value from the actor.
+        """Get a piece of knowledge by name.
+
+        If the knowledge doesn't exist, and it must not exist, this return
+        upstage_des.actor.EMPTY_KNOWLEDGE. Test equivalence using `is` to ensure
+        you aren't getting a None you meant to set.
 
         Args:
-            name (str):  The name of the knowledge
-            must_exist (bool): Raise an error if the knowledge isn't present. Defaults to false.
+            name (str): Name
+            must_exist (bool, optional): If the knowledge must exist.
+                Defaults to False.
+
+        Raises:
+            SimulationError: If the knowledge must exist, but doesn't
 
         Returns:
-            Any: The knowledge value. None if the name doesn't exist.
+            Any: The value of the knowledge entry.
         """
-        if must_exist and name not in self._knowledge:
-            raise SimulationError(f"Knowledge '{name}' does not exist in {self}")
-        return self._knowledge.get(name, None)
-
-    def get_and_clear_knowledge(self, name: str, caller: str | None = None) -> Any:
-        """Get knowledge and clear it.
-
-        Clearing knowledge implies it must exist in the direct methods, so the
-        same assumption holds here.
-
-        Args:
-            name (str): Knowledge name.
-            caller (str): The name of the calling process for logging. Defaults to None.
-
-        Returns:
-            Any: The knowledge value.
-        """
-        know = self.get_knowledge(name, must_exist=True)
-        self.clear_knowledge(name, caller)
-        return know
-
-    def _log_caller(
-        self,
-        method_name: str = "",
-        caller_level: int = 1,
-        caller_name: str | None = None,
-    ) -> None:
-        """Log information about who is calling this method.
-
-        If no caller_name is given, it is searched for in the stack.
-
-        Args:
-            method_name (str, optional): Method name for logging. Defaults to "".
-            caller_level (int, optional): Level to look up for the caller. Defaults to 1.
-            caller_name (Optional[str], optional): Name of the caller. Defaults to None.
-        """
-        if caller_name is None:
-            info = get_caller_info(caller_level=caller_level + 1)
-        else:
-            info = caller_name
-        self.log(f"method '{method_name}' called by '{info}'")
+        if name not in self.knowledge:
+            if must_exist:
+                raise SimulationError(f"Knowledge {name} does not exist on {self.name}")
+            return EMPTY_KNOWLEDGE
+        return self.knowledge[name]
 
     def set_knowledge(
-        self,
-        name: str,
-        value: Any,
-        overwrite: bool = False,
-        caller: str | None = None,
+        self, name: str, value: Any, overwrite: bool = True, caller: Any = ""
     ) -> None:
-        """Set a knowledge value.
-
-        Raises an error if the knowledge exists and overwrite is False.
+        """Set knowledge, checking for overwrite and logging who set it.
 
         Args:
-            name (str): The name of the knowledge item.
-            value (Any): The value to store for the knowledge.
-            overwrite (bool, Optional): Allow the knowledge to be changed if it exits.
-                Defaults to False.
-            caller (str, Optional): The name of the object that called the method.
+            name (str): Knowledge name
+            value (Any): Knowledge value
+            caller (Any): This gets logged as the reason for setting knowledge.
+            overwrite (bool, optional): Allow existing knowledge to be overwritten.
+                Defaults to True.
+
+        Raises:
+            SimulationError: If existing knowledge would be overwritten without permission.
         """
-        self._log_caller(f"set_knowledge '{name}={value}'", caller_name=caller)
-        if name in self._knowledge and not overwrite:
+        self.write_to_log(f"Setting {name} knowledge. Reason: {caller}")
+        if self.get_knowledge(name) is EMPTY_KNOWLEDGE or overwrite:
+            self.knowledge[name] = value
+            return
+        raise SimulationError(f"Knowledge {name} is already set, and overwrite is {overwrite}")
+
+    def clear_knowledge(self, name: str, caller: Any = "") -> None:
+        """Delete knowledge from the dictonary.
+
+        Args:
+            name (str): The name
+            caller (str): Who is calling this method. Defaults to "".
+        """
+        self.write_to_log(f"Clearing {name} knowledge. Reason: {caller}")
+        if name in self.knowledge:
+            self.knowledge[name] = EMPTY_KNOWLEDGE
+
+    def get_and_clear_knowledge(self, name: str, caller: Any = "") -> Any:
+        """Get a knowledge value and clear it.
+
+        The knowledge is assumed to exist.
+
+        Args:
+            name (str): The name
+            caller (str): Who is calling this method. Defaults to "".
+
+        Raises:
+            SimulationError: If the knowledge doesn't exist
+
+        Returns:
+            Any: Knowledge value
+        """
+        know = self.get_knowledge(name, must_exist=True)
+        self.clear_knowledge(name, caller=caller)
+        return know
+
+    ###########################################################
+    ### Activate States #######################################
+    def _lock_state(self, *, state: str, cause: "Task") -> None:
+        """Lock one of the actor's states by a given cause.
+
+        Args:
+            state (str): The name of the state to lock
+            cause (Task): The cause that is locking the state
+        """
+        # single-task only, so no task should
+        # be associated with this state
+        if state in self._causes_by_state:
             raise SimulationError(
-                f"Actor {self} overwriting existing knowledge {name} "
-                f"without override permission. \n"
-                f"Current: {self._knowledge[name]}, New: {value}"
+                f"State '{state}' cannot be used by '{cause}' because it is "
+                f"locked by {self._causes_by_state[state]}"
             )
-        else:
-            self._knowledge[name] = value
+        self._states_by_cause[cause].add(state)
+        self._causes_by_state[state] = cause
 
-    def clear_knowledge(self, name: str, caller: str | None = None) -> None:
-        """Clear a knowledge value.
+    def _unlock_state(self, *, state: str, cause: "Task") -> None:
+        """Unlock one of the actor's states by a given cause.
 
-        Raises an error if the knowledge does not exist.
+        If the cause didn't lock the state, an error is raised.
 
         Args:
-            name (str): The name of the knowledge item to clear.
-            caller (str):  The name of the Task that called the method.
-                Used for debug logging purposes.
-
+            state (str): The name of the state to lock
+            cause (Task): The cause that is unlocking the state
         """
-        self._log_caller(f"clear_knowledge '{name}'", caller_name=caller)
-        if name not in self._knowledge:
-            raise SimulationError(f"Actor {self} does not have knowledge: {name}")
-        else:
-            del self._knowledge[name]
+        if self._causes_by_state.get(state, None) is not cause:
+            raise SimulationError(f"State '{state}' cannot was not used by '{cause}'")
+        self._states_by_cause[cause].remove(state)
+        del self._causes_by_state[state]
 
-    def set_bulk_knowledge(
-        self, know: dict[str, Any], overwrite: bool = False, caller: str | None = None
-    ) -> None:
-        """Set multiple knowledge entries at once.
+    def activate_state(self, state: str, *, task: "Task", **state_kwargs: Any) -> None:
+        """Activate a state.
 
         Args:
-            know (dict[str, Any]): Dictionary of key:value pairs of knowledge.
-            overwrite (bool, optional): If overwrite is allowed. Defaults to False.
-            caller (str | None, optional): The name of the Task that called the method.
-                Defaults to None.
+            state (str): The name of the state to activate
+            task (Task): Unique identifier or object for who activated the state.
+            state_kwargs (Any): Arguments to pass to the state activation.
         """
-        for k, v in know.items():
-            self.set_knowledge(k, v, overwrite, caller)
+        self.write_to_log("%s is activating state: %s", task, state)
+        _state = self.__model_fields__[state]
+        assert isinstance(_state, _ActiveState)
+        self._lock_state(state=state, cause=task)
+        _state.activate(self, **state_kwargs)
 
-    def clear_bulk_knowledge(self, names: Iterable[str], caller: str | None = None) -> None:
-        """Clear a list of knowledge entries.
+    def deactivate_state(self, state: str, *, task: "Task", **kwargs: Any) -> None:
+        """Deactivate an already active state.
 
         Args:
-            names (Iterable[str]): Knowledge names.
-            caller (str | None, optional): The name of the Task that called the method.
-                Defaults to None.
+            state (str): Name of the state
+            task (Task): Unique identifier or object for who activated the state.
+            kwargs (Any): Arguments expected by the specific state.
         """
-        for name in names:
-            self.clear_knowledge(name, caller)
+        self.write_to_log("%s is deactivating state: %s", task, state)
+        _state = self.__model_fields__[state]
+        assert isinstance(_state, _ActiveState)
+        self._unlock_state(state=state, cause=task)
+        _state.deactivate(self, **kwargs)
 
-    def get_bulk_knowledge(self, names: Iterable[str], must_exist: bool = False) -> dict[str, Any]:
-        """Get multiple knowledge items.
+    def deactivate_states(self, states: Iterable[str], *, task: "Task", **kwargs: Any) -> None:
+        """Deactivate already active states.
 
         Args:
-            names (Iterable[str]): Names of the knowledge
-            must_exist (bool, optional): If all entires must exist. Defaults to False.
+            states (Iterable[str]): Names of the states
+            task (Task): Unique identifier or object for who activated the state.
+            kwargs (Any): Arguments expected by the specific state.
+        """
+        for name in states:
+            self.deactivate_state(name, task=task, **kwargs)
+
+    def deactivate_all_states(self, *, task: "Task", **kwargs: Any) -> None:
+        """Deactivate all running states.
+
+        This allows no states to be deactivated if none were activated by the cause.
+
+        Args:
+            task (Task): Unique identifier or object for who activated the state.
+            kwargs (Any): Arguments expected by the states to deactivate.
+        """
+        if task not in self._states_by_cause:
+            return
+        state_names = list(self._states_by_cause[task])
+        self.deactivate_states(state_names, task=task, **kwargs)
+
+    def activate_linear_state(self, state: str, rate: float, *, task: "Task") -> None:
+        """Activate a linear changing state.
+
+        Args:
+            state (str): The state name
+            rate (float): The rate to change the state
+            task (Task): Unique identifier or object for who is activating the state.
+        """
+        _state = self.__model_fields__[state]
+        assert type(_state) is LinearChangingState
+        self.activate_state(state, rate=rate, task=task)
+
+    def deactivate_linear_state(self, state: str, *, task: "Task") -> None:
+        """Deactivate a linear changing state.
+
+        Exists as a pair to `activate_linear_state`.
+
+        Args:
+            state (str): The state name
+            task (Task): Unique identifier or object for who activated the state.
+        """
+        _state = self.__model_fields__[state]
+        assert type(_state) is LinearChangingState
+        self.deactivate_state(state, task=task)
+
+    def get_time_for_state_goal(self, state: str, goal_value: float) -> float | None:
+        """Get the time when a linear changing state will reach a goal value.
+
+        Args:
+            state (str): The state name
+            goal_value (float): The target value
 
         Returns:
-            dict[str, Any]: The knowledge values. None if not present.
+            float | None: The absolute time when the state will reach the goal value,
+                or None if the state is not active or the goal is unreachable.
         """
-        return {name: self.get_knowledge(name, must_exist) for name in names}
+        _state = self.__model_fields__[state]
+        predict_method = getattr(_state, "predict_value_time", None)
+        if predict_method is None:
+            return None
+        try:
+            result = predict_method(self, goal_value)
+            return result  # type: ignore[no-any-return]
+        except Exception:
+            return None
 
-    def get_and_clear_bulk_knowledge(
-        self, names: Iterable[str], caller: str | None = None
-    ) -> dict[str, Any]:
-        """Get and clear multiple knowledge entries.
+        ###########################################################
 
-        Args:
-            names (Iterable[str]): The knowledge to retrieve and delete.
-            caller (str | None, optional): The name of the caller. Defaults to None.
-
-        Returns:
-            dict[str, Any]: The retrieved knowledge.
-        """
-        return {name: self.get_and_clear_knowledge(name, caller) for name in names}
-
-    def add_task_network(self, network: TaskNetwork) -> None:
+    ### Tasks and Networks ####################################
+    def add_task_network(self, network: "TaskNetwork") -> None:
         """Add a task network to the actor.
 
         Args:
@@ -732,7 +466,7 @@ Args:
         Args:
             network_name (str): The name of the network to clear the task queue.
         """
-        self._log_caller("clear_task_queue")
+        self.write_to_log(f"Clearing task queue on {network_name}")
         self._task_queue[network_name] = []
 
     def set_task_queue(self, network_name: str, task_list: list[str]) -> None:
@@ -745,7 +479,7 @@ Args:
         Raises:
             SimulationError: _description_
         """
-        self._log_caller("set_task_queue")
+        self.write_to_log(f"Clearing task queue on {network_name} to {task_list}")
         if self._task_queue[network_name]:
             raise SimulationError(f"Task queue on {self.name} is already set. Use append or clear.")
         self._task_queue[network_name] = list(task_list)
@@ -810,7 +544,7 @@ Args:
             )
         elif not queue:
             self.set_task_queue(network_name, [task_name])
-        self.log(f"begin_next_task: Starting {task_name} task")
+        self.write_to_log(f"begin_next_task: Starting {task_name} task on {network_name} network.")
         self._task_queue[network_name].pop(0)
 
     def start_network_loop(
@@ -888,7 +622,7 @@ Args:
         """
         return network_id in self._task_networks
 
-    def suggest_network_name(self, factory: TaskNetworkFactory) -> str:
+    def suggest_network_name(self, factory: "TaskNetworkFactory") -> str:
         """Deconflict names of task networks by suggesting a new name.
 
         Used for creating multiple parallel task networks.
@@ -922,327 +656,137 @@ Args:
             raise SimulationError(f"No networked with id: {network_id} to delete")
         del self._task_networks[network_id]
 
-    def rehearse_network(
+    def _clean(self) -> None:
+        """Run to clean all memory from the actor."""
+        self._state_histories = {}
+        self._log = deque()
+        self._state_data = {}
+        self._states_by_cause = {}
+        self._causes_by_state = {}
+
+
+class Actor(_BaseActor):
+    """The actor."""
+
+    name: str
+    debug_logging: bool = True
+    knowledge: Knowledge = State(default_factory=Knowledge.make_blank).create()
+
+
+class ActorHelper:
+    """A mixin class for modifying an actor with logging help."""
+
+    def set_actor_knowledge(
         self,
-        network_name: str,
-        task_name_list: list[str],
-        knowledge: dict[str, Any] | None = None,
-        end_task: str | None = None,
-    ) -> Self:
-        """Rehearse a network on this actor.
-
-        Supply the network name, the tasks to rehearse from this state, and
-        any knowledge to apply to the cloned actor.
-
-        Args:
-            network_name (str): Network name
-            task_name_list (list[str]): Tasks to rehearse on the network.
-            knowledge (dict[str, Any], optional): knowledge to give to the cloned
-                actor. Defaults to None.
-            end_task (str, optional): A task to end on once reached.
-
-        Returns:
-            Actor: The cloned actor after rehearsing the network.
-        """
-        knowledge = {} if knowledge is None else knowledge
-        net = self._task_networks[network_name]
-        understudy = net.rehearse_network(
-            actor=self,
-            task_name_list=task_name_list,
-            knowledge=knowledge,
-            end_task=end_task,
-        )
-        return understudy
-
-    def clone(
-        self,
-        new_env: MockEnvironment | None = None,
-        knowledge: dict[str, Any] | None = None,
-        **new_states: Any,
-    ) -> Self:
-        """Clones an actor and assigns it a new environment.
-
-        Note:
-            This function is useful when testing if an actor can accomplish a
-            task.
-
-            In general, cloned actor are referred to as ``understudy``
-            to keep with the theater analogy.
-
-            The clones' names are appended with the label ``'[CLONE #]'`` where
-            ``'#'`` indicates the number of clones of the actor.
-
-        Args:
-            new_env (Optional[MockEnvironment], optional): Environment for cloning.
-                Defaults to None.
-            knowledge (Optional[dict[str, Any]], optional): Knowledge for the clone.
-                Defaults to None.
-            new_states (Any): New states to add to the actor when cloning.
-
-        Returns:
-            Actor: The cloned actor of the same type
-        """
-        knowledge = {} if knowledge is None else knowledge
-        new_env = MockEnvironment.mock(self.env) if new_env is None else new_env
-
-        states: dict[str, Any] = {}
-        for state in self.states:
-            state_obj = self._state_defs[state]
-            if isinstance(state_obj, ResourceState):
-                states[state] = state_obj._make_clone(self, getattr(self, state))
-            elif isinstance(state_obj, _KeyValueBase):
-                states[state] = state_obj._make_clone(self)
-            else:
-                states[state] = copy(getattr(self, state))
-        states.update(new_states)
-
-        self._num_clones += 1
-
-        clone = self.__class__(
-            name=self.name + f" [CLONE {self._num_clones}]",
-            debug_log=self._debug_logging,
-            debug_log_time=self._debug_log_time,
-            **states,
-        )
-        clone.env = new_env
-
-        ignored_attributes = list(states.keys()) + ["env", "stage"]
-
-        for attribute_name, attribute in self.__class__.__dict__.items():
-            if not any(
-                (
-                    attribute_name in ignored_attributes,
-                    attribute_name.startswith("_"),
-                    callable(attribute),
-                )
-            ):
-                setattr(clone, attribute_name, attribute)
-
-        # update the state histories
-        for state_name in self._state_defs:
-            if state_name in self._state_histories:
-                clone._state_histories[state_name] = deepcopy(self._state_histories[state_name])
-
-        clone._knowledge = {}
-        for name, data in self._knowledge.items():
-            clone._knowledge[name] = copy(data)
-
-        for name, data in knowledge.items():
-            clone._knowledge[name] = copy(data)
-
-        clone._task_queue = copy(self._task_queue)
-        clone._task_networks = copy(self._task_networks)
-
-        if clone._debug_logging:
-            clone._debug_log = list(self._debug_log)
-
-        clone._is_rehearsing = True
-        return clone
-
-    def log(self, msg: str | None = None) -> list[tuple[float | int, str]] | None:
-        """Add to the log or return it.
-
-        Only adds to log if debug_logging is True.
-
-        Args:
-            msg (str, Optional): The message to log.
-
-        Returns:
-            list[str] | None: The log if no message is given. None otherwise.
-        """
-        if msg is None:
-            return self._debug_log
-        elif self._debug_logging:
-            dlt = self._debug_log_time
-            do_time = dlt if dlt is not None else self.stage.get("debug_log_time", True)
-            if do_time:
-                ts = self.pretty_now
-                msg = f"{ts} {msg}"
-            self._debug_log += [(self.env.now, msg)]
-        return None
-
-    def get_log(self) -> list[tuple[float | int, str]]:
-        """Get the debug log.
-
-        Returns:
-            list[str]: List of log messages.
-        """
-        return self._debug_log
-
-    @property
-    def states(self) -> tuple[str, ...]:
-        """Get the names of the actor's states.
-
-        Returns:
-            tuple[str]: State names
-        """
-        return tuple(self._state_defs.keys())
-
-    @property
-    def state_values(self) -> dict[str, Any]:
-        """Get the state names and values.
-
-        Returns:
-            dict[str, Any]: State name:value pairs.
-        """
-        return {k: getattr(self, k) for k in self.states}
-
-    def _get_detection_state(self) -> None | str:
-        """Find the name of a state is of type DetectabilityState.
-
-        Returns:
-            None | str: The name of the state (None if none found).
-        """
-        detection = [k for k, v in self._state_defs.items() if isinstance(v, DetectabilityState)]
-        if len(detection) > 1:
-            raise NotImplementedError("Only 1 state of type DetectabilityState allowed for now")
-        return None if not detection else detection[0]
-
-    def _match_attr(self, name: str) -> str | None:
-        """Test if self has a matching attribute name.
-
-        Args:
-            name (str): The attribute to find
-
-        Returns:
-            str | None: The name if it has it, None otherwise.
-        """
-        if not hasattr(self, name):
-            return None
-        return name
-
-    def _get_matching_state(
-        self,
-        state_class: type[State],
-        attr_matches: dict[str, Any] | None = None,
-    ) -> str | None:
-        """Find a state that matches the class and optional attributes and return its name.
-
-        For multiple states with the same class, this returns the first available.
-
-        Args:
-            state_class (State): The class of state to search for
-            attr_matches (Optional[dict[str, Any]], optional): Attributes and values
-                to match. Defaults to None.
-
-        Returns:
-            str | None: The name of the state (for getattr)
-        """
-
-        def match_tester(nm: str, val: Any, state: State) -> bool:
-            if hasattr(state, nm):
-                matching: bool = getattr(state, nm) == val
-                return matching
-            return False
-
-        for name, state in self._state_defs.items():
-            if not isinstance(state, state_class):
-                continue
-
-            if attr_matches is None:
-                return self._match_attr(name)
-
-            has_attribute_matches = all(
-                match_tester(nm, val, state) for nm, val in attr_matches.items()
-            )
-            if has_attribute_matches:
-                return self._match_attr(name)
-        return None
-
-    def create_knowledge_event(
-        self,
-        *,
+        actor: Actor,
         name: str,
-        rehearsal_time_to_complete: float = 0.0,
-    ) -> Event:
-        """Create an event and store it in knowledge.
+        value: Any,
+        overwrite: bool = False,
+    ) -> None:
+        """Set knowledge on the actor.
 
-        Useful for creating simple hold points in Tasks that can be succeeded by
-        other processes.
-
-        Example:
-            >>> def task(self, actor):
-            >>>     evt = actor.create_knowledge_event(name="hold")
-            >>>     yield evt
-            >>>     ... # do things
-            ...
-            >>> def other_task(self, actor):
-            >>>     if condition:
-            >>>         actor.succeed_knowledge_event(name="hold")
+        Convenience method for passing in the name of task for actor logging.
 
         Args:
-            name (str): Name of the knowledge slot to store the event in.
-            rehearsal_time_to_complete (float, optional): The event's expected
-                time to complete. Defaults to 0.0.
+            actor (Actor): The actor to set knowledge on.
+            name (str): Name of the knowledge
+            value (Any): Value of the knowledge
+            overwrite (bool, optional): Allow overwrite or not. Defaults to False.
+        """
+        cname = self.__class__.__qualname__
+        actor.set_knowledge(name, value, overwrite=overwrite, caller=cname)
+
+    def clear_actor_knowledge(self, actor: Actor, name: str) -> None:
+        """Clear knowledge from an actor.
+
+        Convenience method for passing in the name of task for actor logging.
+
+        Args:
+            actor (Actor): The actor to clear knowledge from
+            name (str): The name of the knowledge
+        """
+        cname = self.__class__.__qualname__
+        actor.clear_knowledge(name, caller=cname)
+
+    @staticmethod
+    def get_actor_knowledge(actor: Actor, name: str, must_exist: bool = False) -> Any:
+        """Get knowledge from the actor.
+
+        Args:
+            actor (Actor): The actor to get knowledge from.
+            name (str): Name of the knowledge
+            must_exist (bool, optional): Raise errors if the knowledge doesn't exist.
+            Defaults to False.
 
         Returns:
-            Event: The event to yield on
+            Any: The knowledge value, which could be None
         """
-        event = Event(rehearsal_time_to_complete=rehearsal_time_to_complete)
-        # Rehearsals on this method won't clear the event, so save the user some trouble.
-        overwrite = True if self._is_rehearsing else False
-        self.set_knowledge(name, event, overwrite=overwrite)
-        return event
+        return actor.get_knowledge(name, must_exist)
 
-    def succeed_knowledge_event(self, *, name: str, **kwargs: Any) -> None:
-        """Succeed and clear an event stored in the actor's knowledge.
+    def get_and_clear_actor_knowledge(self, actor: Actor, name: str) -> Any:
+        """Get and clear knowledge on an actor.
 
-        See "create_knowledge_event" for usage example.
+        The knowledge is assumed to exist.
 
         Args:
-            name (str): Event knowledge name.
-            **kwargs (Any): Any payload to send to the event. Defaults to None
-        """
-        event = self.get_knowledge(name)
-        if event is None:
-            raise SimulationError(f"No knowledge named {name} to succeed")
-        if not isinstance(event, Event):
-            raise SimulationError(f"Knowledge {name} is not an Event.")
-        self.clear_knowledge(name, "actor.succeed_knowledge_event")
-        event.succeed(**kwargs)
-
-    def get_remaining_waypoints(
-        self, location_state: str
-    ) -> list[GeodeticLocation] | list[CartesianLocation]:
-        """Convenience method for interacting with LocationChangingStates.
-
-        Primary use case is when restarting a Task that has a motion element to
-        allow updating waypoint knowledge easily.
-
-        Args:
-            location_state (str): The name of the <LocationChangingState>
+            actor (Actor): The actor to get knowledge from.
+            name (str): The knowledge name.
 
         Returns:
-            list[Location]: List of waypoints yet to be reached
+            Any: The knowledge value.
         """
-        loc_state = self._state_defs[location_state]
-        assert isinstance(loc_state, GeodeticLocationChangingState | CartesianLocationChangingState)
-        wypts = loc_state._get_remaining_waypoints(self)
-        return wypts
+        cname = self.__class__.__qualname__
+        return actor.get_and_clear_knowledge(name, caller=cname)
 
-    def get_nucleus(self) -> "TaskNetworkNucleus":
-        """Return the actor's nucleus.
-
-        Returns:
-            TaskNetworkNucleus: The nucleus on the actor.
-        """
-        if self._state_listener is None:
-            raise SimulationError("Expected a nucleus, but none found.")
-        return self._state_listener
-
-    def record_state(self, state_name: str) -> None:
-        """Record a state by its name.
-
-        Useful for states that have attributes that aren't set
-        via the descriptor, such as dictionaries or dataclasses.
+    def set_actor_bulk_knowledge(
+        self, actor: Actor, know: dict[str, Any], overwrite: bool = False
+    ) -> None:
+        """Set multiple knowledge entries at once.
 
         Args:
-            state_name (str): The name of the state.
+            actor (Actor): The actor to operate on.
+            know (dict[str, Any]): Dictionary of key:value pairs of knowledge.
+            overwrite (bool, optional): If overwrite is allowed. Defaults to False.
         """
-        if state_name not in self.states:
-            raise SimulationError(f"No state '{state_name}' to record.")
-        v = getattr(self, state_name)
-        self._state_defs[state_name]._do_record(self, v)
+        for k, v in know.items():
+            self.set_actor_knowledge(actor, k, v, overwrite)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.name}"
+    def clear_actor_bulk_knowledge(self, actor: Actor, names: Iterable[str]) -> None:
+        """Clear a list of knowledge entries.
+
+        Args:
+            actor (Actor): The actor to operate on.
+            names (Iterable[str]): Knowledge names.
+        """
+        for name in names:
+            self.clear_actor_knowledge(actor, name)
+
+    def get_actor_bulk_knowledge(
+        self, actor: Actor, names: Iterable[str], must_exist: bool = False
+    ) -> dict[str, Any]:
+        """Get multiple knowledge items.
+
+        Args:
+            actor (Actor): The actor to operate on.
+            names (Iterable[str]): Names of the knowledge
+            must_exist (bool, optional): If all entires must exist. Defaults to False.
+
+        Returns:
+            dict[str, Any]: The knowledge values. None if not present.
+        """
+        return {name: self.get_actor_knowledge(actor, name, must_exist) for name in names}
+
+    def get_and_clear_actor_bulk_knowledge(
+        self, actor: Actor, names: Iterable[str], caller: str | None = None
+    ) -> dict[str, Any]:
+        """Get and clear multiple knowledge entries.
+
+        Args:
+            actor (Actor): The actor to operate on.
+            names (Iterable[str]): The knowledge to retrieve and delete.
+            caller (str | None, optional): The name of the caller. Defaults to None.
+
+        Returns:
+            dict[str, Any]: The retrieved knowledge.
+        """
+        return {name: self.get_and_clear_actor_knowledge(actor, name) for name in names}

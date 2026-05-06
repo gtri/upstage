@@ -6,7 +6,7 @@ assistance for the usual pitfalls in custom discrete-event simulation: interrupt
 
 UPSTAGE - which is built on the [SimPy](https://simpy.readthedocs.io/en/latest/) library - contains two primary components that are assembled to create a broad array of simulations.
 
-The components are {{ Actor }} - which contain {{ State }} - and {{ Task }}, which can be assembled into a {{ TaskNetwork }}. Actors can have multiple networks running on them, their states can be shared, and there are features for interactions between task networks running on the same actor. Those tasks modify the states on their actor, with features for real-time states that update on request without requiring time-stepping or modifying the existing events.
+The components are {{ Actor }} - which contain {{ State }} - and {{ Task }}. Actors can have multiple networks running on them, their states can be shared, and there are features for interactions between task networks running on the same actor. Those tasks modify the states on their actor, with features for real-time states that update on request without requiring time-stepping or modifying the existing events.
 
 ```{image} _static/upstage-flow.png
 :align: center
@@ -16,43 +16,19 @@ Additional features include:
 
 1. Context-aware {{ EnvironmentContext }}, accessed via {{ UpstageBase }}, enabling thread-safe simulation globals for the Stage and Named Entities (see below).
 2. Active States, such as {{ LinearChangingState }} which represent continuous-time attributes of actors at discrete points.
-3. Spatial-aware data types like {{ CartesianLocation }}, and states like the waypoint-following {{ GeodeticLocationChangingState }}.
-4. Geodetic and cartesian positions, distances, and motion - with ranged sensing.
-5. {{ NamedEntity }} in a thread-safe global context, enabling easier "director" logic creation with fewer args in your code
-6. The stage: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
-7. Rehearsal: Write planning and simulation code in one place only, and "rehearse" an actor through a task network using planning factors to discover task feasibility.
-8. All States are recordable, and some record dataclass and dictionary values.
-9. A {{ Routine }} class for building reusable event behaviors to simplify {{ Task }} coding.
-10. {{ PointToPoint }}  and {{ RoutingTable }} communications handlers
-11. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.
-12. And more!
+3. Named Entitites in a thread-safe global context, enabling easier "director" logic creation with fewer args in your code
+4. The stage: a global context variable for simulation properties and attributes. This enables under-the-hood coordination of motion, geography, and other features.
+5. All States are recordable, and some record dataclass and dictionary values.
+6. Numerous runtime checks and error handling for typical DES pitfalls: based on years of custom DES-building experience.
+7. And more!
 
 ```{note}
-This project is under active development.
+This project is under active development. This branch of the docs is for the unreleased version 1.0. The docs may be innacurate.
 ```
 
-## Demo
+## Installation from source
 
-Try one of these demos in your browser with JupyterLite.
-
-```{toctree}
-:caption: UPSTAGE Demos
-:maxdepth: 1
-
-demo.md
-```
-
-## Installation
-
-In a suitable Python environment (3.11+):
-
-```console
-(venv) $ pip install upstage-des
-```
-
-### Installation from source
-
-Alternatively, you can download UPSTAGE and install it manually. Clone, or download the archive and extract it. From the extraction location (and within a suitable Python environment):
+You can download UPSTAGE and install it manually. Clone, or download the archive and extract it. From the extraction location (and within a suitable Python environment):
 
 ```console
 (venv) $ python -m pip install .
@@ -60,14 +36,15 @@ Alternatively, you can download UPSTAGE and install it manually. Clone, or downl
 
 (or just `pip install .`)
 
-## User Guide
+## Features
 
 ```{toctree}
-:caption: Guide
-:maxdepth: 3
+:caption: Features
+:maxdepth: 2
 
-user_guide/index
+features/logging.md
 ```
+
 
 ## Contributing
 

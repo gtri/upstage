@@ -7,7 +7,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 upstage_des = { path=".", editable=true}
 
 [dependencies]
-python = ">=3.11"
+python = ">=3.12"
 
 # generic tasks ###########################################
 [tasks]
@@ -44,8 +44,8 @@ cmd = "ruff check src/ --fix"
 inputs = ["src/**/*.py"]
 
 [feature.tasks-lint.tasks.mypy]
-cmd = "mypy --show-error-codes -p upstage_des"
-inputs = ["src/**/*.py"]
+cmd = "mypy --show-error-codes"
+inputs = ["src/**/*.py", "tests/**/*.py"]
 
 [feature.tasks-lint.tasks.check-pyproject]
 cmd = "pyproject-fmt pyproject.toml --check"
@@ -61,7 +61,7 @@ inputs = ["src/**/*.py"]
 
 [feature.tasks-docs.tasks.autogen]
 description = "Autobuild the code documentation"
-cmd = "sphinx-apidoc -f -o ./docs/source/auto ./src/upstage_des ./src/upstage_des/test"
+cmd = "sphinx-apidoc -f -o ./docs/source/auto ./src/upstage_des"
 
 [feature.tasks-docs.tasks.build_html_docs]
 description = "Build the documentation"
@@ -89,15 +89,6 @@ features = [
   "tasks-jlite",
 ]
 
-[environments.py311]
-features  = [
-  "py311",
-  "deps-lint",
-  "deps-test",
-  "deps-docs",
-  "tasks-lint",
-  "tasks-test",
-]
 
 [environments.py312]
 features  = [
@@ -122,14 +113,25 @@ features  = [
   "tasks-test",
 ]
 
-[feature.py311.dependencies]
-python = "3.11.*"
+[environments.py314]
+features  = [
+  "py314",
+  "deps-lint",
+  "deps-test",
+  "deps-docs",
+  "tasks-lint",
+  "tasks-test",
+]
+
 
 [feature.py312.dependencies]
 python = "3.12.*"
 
 [feature.py313.dependencies]
 python = "3.13.*"
+
+[feature.py314.dependencies]
+python = "3.14.*"
 
 [feature.deps-lint.dependencies]
 mypy = "*"

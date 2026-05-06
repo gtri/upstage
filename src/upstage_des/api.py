@@ -1,166 +1,96 @@
-# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2026 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
 
-"""The elements in the UPSTAGE Application Programmable Interface."""
+"""API for standard usage of upstage-des."""
 
-# Core
-# Director, stage, and Exceptions
-# Actor
-from upstage_des.actor import Actor
+from upstage_des.actor import EMPTY_KNOWLEDGE, Actor, Knowledge
 from upstage_des.base import (
+    ENTITY_REGISTRY_CONTEXT_VAR,
+    ENV_CONTEXT_VAR,
+    SIMPY_GEN,
+    STAGE_CONTEXT_VAR,
     EnvironmentContext,
-    MotionAndDetectionError,
-    NamedUpstageEntity,
-    RulesError,
+    SimulationEnd,
     SimulationError,
+    Stage,
     UpstageBase,
     UpstageError,
     add_stage_variable,
+    clear_top_context,
+    create_top_context,
+    get_entities_by_class,
+    get_entity_registry,
     get_stage,
     get_stage_variable,
 )
-
-# Comms
-from upstage_des.communications.comms import Message, MessageContent, PointToPointCommsManager
-from upstage_des.communications.routing import RoutingTableCommsManager
-
-# Constants
-from upstage_des.constants import PLANNING_FACTOR_OBJECT
-
-# Data types
-from upstage_des.data_types import (
-    CartesianLocation,
-    CartesianLocationData,
-    GeodeticLocation,
-    GeodeticLocationData,
-    Location,
+from upstage_des.events import (
+    Any,
+    Event,
+    FilterGet,
+    Get,
+    Put,
+    ResourceHold,
+    Wait,
+    WaitUntil,
 )
-
-# Events
-from upstage_des.events import All, Any, Event, FilterGet, Get, Put, ResourceHold, Wait
-
-# Motion
-from upstage_des.motion import SensorMotionManager, SteppedMotionManager
-
-# Task network nucleus
-from upstage_des.nucleus import NucleusInterrupt, TaskNetworkNucleus
-
-# Resources
-from upstage_des.resources.container import (
-    ContainerEmptyError,
-    ContainerError,
-    ContainerFullError,
-    ContinuousContainer,
-)
-from upstage_des.resources.monitoring import (
-    SelfMonitoringContainer,
-    SelfMonitoringContinuousContainer,
-    SelfMonitoringFilterStore,
-    SelfMonitoringReserveContainer,
-    SelfMonitoringSortedFilterStore,
-    SelfMonitoringStore,
-)
-from upstage_des.resources.reserve import ReserveContainer
-from upstage_des.resources.sorted import SortedFilterGet, SortedFilterStore
-
-# Routine
-from upstage_des.routines import Routine, WindowedGet
-
-# Nucleus-friendly states
-from upstage_des.state_sharing import SharedLinearChangingState
-
-# States
 from upstage_des.states import (
-    CartesianLocationChangingState,
-    CommunicationStore,
-    DataclassState,
-    DetectabilityState,
-    DictionaryState,
-    GeodeticLocationChangingState,
     LinearChangingState,
-    MultiStoreState,
-    ResourceState,
     State,
 )
-
-# Task
-from upstage_des.task import DecisionTask, InterruptStates, Task, TerminalTask, process
-
-# Task Networks
-from upstage_des.task_network import TaskLinks, TaskNetwork, TaskNetworkFactory
-
-# Conversion
-from upstage_des.units import unit_convert
+from upstage_des.task_networks import (
+    TaskLinks,
+    TaskNetwork,
+    TaskNetworkFactory,
+    TaskTransition,
+)
+from upstage_des.tasks import (
+    TASK_GEN,
+    DecisionTask,
+    InterruptStates,
+    Task,
+    TerminalTask,
+)
 
 __all__ = [
-    "UpstageError",
-    "SimulationError",
-    "MotionAndDetectionError",
-    "RulesError",
     "Actor",
-    "PLANNING_FACTOR_OBJECT",
-    "UpstageBase",
-    "NamedUpstageEntity",
+    "Knowledge",
+    "EMPTY_KNOWLEDGE",
+    "ENTITY_REGISTRY_CONTEXT_VAR",
+    "ENV_CONTEXT_VAR",
+    "STAGE_CONTEXT_VAR",
     "EnvironmentContext",
+    "SimulationError",
+    "Stage",
+    "UpstageBase",
+    "UpstageError",
     "add_stage_variable",
-    "get_stage_variable",
+    "clear_top_context",
+    "create_top_context",
+    "get_entities_by_class",
+    "get_entity_registry",
     "get_stage",
-    "All",
+    "get_stage_variable",
     "Any",
     "Event",
-    "Get",
     "FilterGet",
-    "SortedFilterGet",
+    "Get",
     "Put",
     "ResourceHold",
     "Wait",
-    "ContainerEmptyError",
-    "ContainerError",
-    "ContainerFullError",
-    "ContinuousContainer",
-    "SelfMonitoringContainer",
-    "SelfMonitoringContinuousContainer",
-    "SelfMonitoringFilterStore",
-    "SelfMonitoringSortedFilterStore",
-    "SelfMonitoringReserveContainer",
-    "SelfMonitoringStore",
-    "ReserveContainer",
-    "SortedFilterStore",
-    "CartesianLocation",
-    "GeodeticLocation",
-    "Location",
-    "CartesianLocationData",
-    "GeodeticLocationData",
     "LinearChangingState",
-    "DictionaryState",
-    "DataclassState",
-    "CartesianLocationChangingState",
     "State",
-    "GeodeticLocationChangingState",
-    "DetectabilityState",
-    "MultiStoreState",
-    "ResourceState",
-    "CommunicationStore",
     "DecisionTask",
-    "Task",
-    "process",
     "InterruptStates",
-    "TerminalTask",
+    "Task",
+    "TASK_GEN",
+    "SIMPY_GEN",
+    "WaitUntil",
+    "TaskLinks",
     "TaskNetwork",
     "TaskNetworkFactory",
-    "TaskLinks",
-    "TaskNetworkNucleus",
-    "NucleusInterrupt",
-    "SharedLinearChangingState",
-    "PointToPointCommsManager",
-    "RoutingTableCommsManager",
-    "Message",
-    "MessageContent",
-    "SensorMotionManager",
-    "SteppedMotionManager",
-    "unit_convert",
-    "Routine",
-    "WindowedGet",
+    "TaskTransition",
+    "TerminalTask",
+    "SimulationEnd",
 ]

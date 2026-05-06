@@ -45,19 +45,10 @@ myst_substitutions = {
     "Actor": "{py:class}`Actor <upstage_des.actor.Actor>`",
     "State": "{py:class}`~upstage_des.states.State`",
     "Task": "{py:class}`~upstage_des.task.Task`",
-    "TaskNetwork": "{py:class}`~upstage_des.task_network.TaskNetwork`",
     "EnvironmentContext": "{py:class}`~upstage_des.base.EnvironmentContext`",
     "UpstageBase": "{py:class}`~upstage_des.base.UpstageBase`",
-    "NamedEntity": "{py:class}`~upstage_des.base.NamedUpstageEntity`",
     "LinearChangingState": "{py:class}`~upstage_des.states.LinearChangingState`",
-    "CartesianLocation": "{py:class}`~upstage_des.data_types.CartesianLocation`",
-    "GeodeticLocationChangingState": "{py:class}`~upstage_des.states.GeodeticLocationChangingState`",
-    "ResourceState": "{py:class}`~upstage_des.states.ResourceState`",
-    "SelfMonitoringStore": "{py:class}`~upstage_des.stores.SelfMonitoringStore`",
     "DecisionTask": "{py:class}`~upstage_des.task.DecisionTask`",
-    "Routine": "{py:class}`~upstage_des.routines.Routine`",
-    "PointToPoint": "{py:class}`~upstage_des.communications.comms.PointToPointCommsManager`",
-    "RoutingTable": "{py:class}`~upstage_des.communications.routing.RoutingTableCommsManager`",
 }
 
 
