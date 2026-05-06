@@ -96,7 +96,8 @@ def test_stage_not_available_outside_context() -> None:
 
 
 def test_stage_property_error_outside_context() -> None:
-    base = UpstageBase()
+    with pytest.warns(UserWarning, match="Environment not created at instantiation"):
+        base = UpstageBase()
     with pytest.raises(LookupError):
         _ = base.stage
 

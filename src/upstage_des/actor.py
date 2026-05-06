@@ -8,9 +8,8 @@
 import logging
 from collections import OrderedDict, defaultdict, deque
 from collections.abc import Iterable
-from copy import deepcopy
-from dataclasses import dataclass
-from typing import Any, Self, dataclass_transform
+from dataclasses import MISSING, dataclass
+from typing import TYPE_CHECKING, Any, Self, dataclass_transform
 
 from simpy import Process
 
@@ -18,11 +17,58 @@ from upstage_des._logging import get_actor_logger
 from upstage_des.base import (
     SimulationError,
     UpstageBase,
+    UpstageError,
 )
 from upstage_des.root_types import StateDataDict
 from upstage_des.states import LinearChangingState, State, _ActiveState
 
-EMPTY_KNOWLEDGE = object()
+if TYPE_CHECKING:
+    from upstage_des.task_networks import TaskNetwork, TaskNetworkFactory
+    from upstage_des.tasks import Task
+
+
+class _EMPTY_KNOWLEDGE_TYPE:
+    pass
+
+
+EMPTY_KNOWLEDGE = _EMPTY_KNOWLEDGE_TYPE()
+
+
+@dataclass
+class Knowledge:
+    """A dataclass with dictionary-like access."""
+
+    def get(self, key: str, default: Any = None) -> Any:  # noqa: D102
+        return getattr(self, key, default)
+
+    def keys(self) -> list[str]:
+        """Get keys."""
+        return list(self.__dataclass_fields__.keys())
+
+    @classmethod
+    def make_blank(cls) -> Self:
+        """Create a blank version of ourselves."""
+        inputs: dict[str, Any] = {}
+        for k, v in cls.__dataclass_fields__.items():
+            if v.default is not MISSING:
+                inputs[k] = v.default
+            elif v.default_factory is not MISSING:
+                inputs[k] = v.default_factory()
+            else:
+                inputs[k] = EMPTY_KNOWLEDGE
+        return cls(**inputs)
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        setattr(self, key, value)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.__dataclass_fields__
+
+    def __len__(self) -> int:
+        return len(self.__dataclass_fields__)
 
 
 @dataclass
@@ -48,15 +94,18 @@ def _process_model_class(cls: type[Any]) -> None:
             # Use State if defined, else create one
             if name in base.__dict__ and isinstance(base.__dict__[name], State):
                 field_obj = base.__dict__[name]
+            elif mdata := getattr(annotations[name], "__metadata__", None):
+                field_obj = mdata[0]
+                if not isinstance(field_obj, State):
+                    raise UpstageError(f"State {name} has improper annotation. Expected a state.")
             else:
                 default = base.__dict__.get(name, ...)
                 if default is ...:
                     field_obj = State()
                     if name == "knowledge":
-                        field_obj._default_factory = dict
+                        field_obj._default_factory = annotations[name].make_blank
                 else:
                     field_obj = State(default=default)
-            # In all cases, drop the type info into the data
             field_obj._add_type(annotations[name])
 
             if not getattr(field_obj, "name", None):
@@ -76,10 +125,11 @@ def _process_model_class(cls: type[Any]) -> None:
         # Set up the data storage
         self._state_histories = {}
         self._log = deque()
-        self._is_clone = False
         self._state_data = {}
         self._states_by_cause = defaultdict(set)
         self._causes_by_state = {}
+        self._task_networks = {}
+        self._task_queue = {}
 
         for name in model_fields.keys():
             value = kwargs.pop(name, ...)
@@ -116,7 +166,6 @@ class _BaseActor(UpstageBase):
     Attributes:
         name: The actor's name
         debug_logging: Whether to enable debug logging
-        is_clone: Whether this actor is a clone (set by clone() method)
 
     Example:
         >>> class MyActor(BaseAct):
@@ -130,9 +179,8 @@ class _BaseActor(UpstageBase):
 
     name: str
     debug_logging: bool
-    knowledge: dict[str, Any]
+    knowledge: Knowledge
 
-    _is_clone: bool
     _state_histories: dict[str, deque[tuple[float, Any] | tuple[float, Any, Any]]]
     _log: deque[tuple[float, str]]
     _state_data: dict[str, StateDataDict]
@@ -140,19 +188,16 @@ class _BaseActor(UpstageBase):
     _states_by_cause: dict[Any, set[str]]
     _causes_by_state: dict[str, Any]
     _logger: logging.Logger
+    _task_networks: dict[str, "TaskNetwork"]
+    _task_queue: dict[str, list[str]]
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         # Apply the model transformation to every subclass
         _process_model_class(cls)
 
-    @property
-    def is_clone(self) -> bool:
-        """Return whether this actor is a clone."""
-        return getattr(self, "_is_clone", False)
-
     def _record_state_change(self, name: str, value: Any, extra: Any | None = None) -> None:
-        if name in ["name", "debug_logging", "is_clone", "knowledge"]:
+        if name in ["name", "debug_logging", "knowledge"]:
             return
         time = self.env.now
         if name not in self._state_histories:
@@ -245,7 +290,7 @@ class _BaseActor(UpstageBase):
         """
         self.write_to_log(f"Clearing {name} knowledge. Reason: {caller}")
         if name in self.knowledge:
-            del self.knowledge[name]
+            self.knowledge[name] = EMPTY_KNOWLEDGE
 
     def get_and_clear_knowledge(self, name: str, caller: Any = "") -> Any:
         """Get a knowledge value and clear it.
@@ -268,7 +313,7 @@ class _BaseActor(UpstageBase):
 
     ###########################################################
     ### Activate States #######################################
-    def _lock_state(self, *, state: str, cause: Any) -> None:
+    def _lock_state(self, *, state: str, cause: "Task") -> None:
         """Lock one of the actor's states by a given cause.
 
         Args:
@@ -285,7 +330,7 @@ class _BaseActor(UpstageBase):
         self._states_by_cause[cause].add(state)
         self._causes_by_state[state] = cause
 
-    def _unlock_state(self, *, state: str, cause: Any) -> None:
+    def _unlock_state(self, *, state: str, cause: "Task") -> None:
         """Unlock one of the actor's states by a given cause.
 
         If the cause didn't lock the state, an error is raised.
@@ -299,83 +344,85 @@ class _BaseActor(UpstageBase):
         self._states_by_cause[cause].remove(state)
         del self._causes_by_state[state]
 
-    def activate_state(self, state: str, *, cause: Any, **state_kwargs: Any) -> None:
+    def activate_state(self, state: str, *, task: "Task", **state_kwargs: Any) -> None:
         """Activate a state.
 
         Args:
             state (str): The name of the state to activate
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             state_kwargs (Any): Arguments to pass to the state activation.
         """
+        self.write_to_log("%s is activating state: %s", task, state)
         _state = self.__model_fields__[state]
         assert isinstance(_state, _ActiveState)
-        self._lock_state(state=state, cause=cause)
+        self._lock_state(state=state, cause=task)
         _state.activate(self, **state_kwargs)
 
-    def deactivate_state(self, state: str, *, cause: Any, **kwargs: Any) -> None:
+    def deactivate_state(self, state: str, *, task: "Task", **kwargs: Any) -> None:
         """Deactivate an already active state.
 
         Args:
             state (str): Name of the state
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             kwargs (Any): Arguments expected by the specific state.
         """
+        self.write_to_log("%s is deactivating state: %s", task, state)
         _state = self.__model_fields__[state]
         assert isinstance(_state, _ActiveState)
-        self._unlock_state(state=state, cause=cause)
+        self._unlock_state(state=state, cause=task)
         _state.deactivate(self, **kwargs)
 
-    def deactivate_states(self, states: Iterable[str], *, cause: Any, **kwargs: Any) -> None:
+    def deactivate_states(self, states: Iterable[str], *, task: "Task", **kwargs: Any) -> None:
         """Deactivate already active states.
 
         Args:
             states (Iterable[str]): Names of the states
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             kwargs (Any): Arguments expected by the specific state.
         """
         for name in states:
-            self.deactivate_state(name, cause=cause, **kwargs)
+            self.deactivate_state(name, task=task, **kwargs)
 
-    def deactivate_all_states(self, *, cause: Any, **kwargs: Any) -> None:
+    def deactivate_all_states(self, *, task: "Task", **kwargs: Any) -> None:
         """Deactivate all running states.
 
         This allows no states to be deactivated if none were activated by the cause.
 
         Args:
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
             kwargs (Any): Arguments expected by the states to deactivate.
         """
-        if cause not in self._states_by_cause:
+        if task not in self._states_by_cause:
             return
-        state_names = list(self._states_by_cause[cause])
-        self.deactivate_states(state_names, cause=cause, **kwargs)
+        state_names = list(self._states_by_cause[task])
+        self.deactivate_states(state_names, task=task, **kwargs)
 
-    def activate_linear_state(self, state: str, rate: float, *, cause: Any) -> None:
+    def activate_linear_state(self, state: str, rate: float, *, task: "Task") -> None:
         """Activate a linear changing state.
 
         Args:
             state (str): The state name
             rate (float): The rate to change the state
-            cause (Any): Unique identifier or object for who is activating the state.
+            task (Task): Unique identifier or object for who is activating the state.
         """
         _state = self.__model_fields__[state]
         assert type(_state) is LinearChangingState
-        self.activate_state(state, rate=rate, cause=cause)
+        self.activate_state(state, rate=rate, task=task)
 
-    def deactivate_linear_state(self, state: str, *, cause: Any) -> None:
+    def deactivate_linear_state(self, state: str, *, task: "Task") -> None:
         """Deactivate a linear changing state.
 
         Exists as a pair to `activate_linear_state`.
 
         Args:
             state (str): The state name
-            cause (Any): Unique identifier or object for who activated the state.
+            task (Task): Unique identifier or object for who activated the state.
         """
         _state = self.__model_fields__[state]
         assert type(_state) is LinearChangingState
-        self.deactivate_state(state, cause=cause)
+        self.deactivate_state(state, task=task)
 
-    def make_event_for_state_goal(self, state: str, goal_value: float) -> float | None:
+    def get_time_for_state_goal(self, state: str, goal_value: float) -> float | None:
         """Get the time when a linear changing state will reach a goal value.
 
         Args:
@@ -396,34 +443,218 @@ class _BaseActor(UpstageBase):
         except Exception:
             return None
 
-    ###########################################################
-    ### Cloning ###############################################
-    def clone(self) -> Self:
-        """Create a deep copy of this actor with current state values.
+        ###########################################################
 
-        The clone:
-        - Has all state values deep-copied from the current actor
-        - Does not copy any state values that are actors
-        - Has no state history
-        - Is marked with is_clone=True
-        - Is not registered in the entity registry
+    ### Tasks and Networks ####################################
+    def add_task_network(self, network: "TaskNetwork") -> None:
+        """Add a task network to the actor.
+
+        Args:
+            network (TaskNetwork): The task network to add to the actor.
+        """
+        network_name = network.name
+        if network_name in self._task_networks:
+            raise SimulationError(f"Task network{network_name} already in {self}")
+        self._task_networks[network_name] = network
+        self._task_queue[network_name] = []
+
+    def clear_task_queue(self, network_name: str) -> None:
+        """Empty the actor's task queue.
+
+        This will cause the task network to be used for task flow.
+
+        Args:
+            network_name (str): The name of the network to clear the task queue.
+        """
+        self.write_to_log(f"Clearing task queue on {network_name}")
+        self._task_queue[network_name] = []
+
+    def set_task_queue(self, network_name: str, task_list: list[str]) -> None:
+        """Initialize an actor's empty task queue.
+
+        Args:
+            network_name (str): Task Network name
+            task_list (list[str]): List of task names to queue.
+
+        Raises:
+            SimulationError: _description_
+        """
+        self.write_to_log(f"Clearing task queue on {network_name} to {task_list}")
+        if self._task_queue[network_name]:
+            raise SimulationError(f"Task queue on {self.name} is already set. Use append or clear.")
+        self._task_queue[network_name] = list(task_list)
+
+    def get_task_queue(self, network_name: str) -> list[str]:
+        """Get the actor's task queue on a single network.
+
+        Args:
+            network_name (str): The network name
 
         Returns:
-            Self: A cloned actor with the same state values
+            list[str]: List of task names in the queue
         """
-        kwargs: dict[str, Any] = {}
-        for field_name, field_obj in self.__model_fields__.items():
-            current_value = getattr(self, field_name)
-            if isinstance(current_value, Actor):
-                kwargs[field_name] = current_value
-            else:
-                kwargs[field_name] = deepcopy(current_value)
-        kwargs["name"] = kwargs["name"] + ".clone"
-        cloned = type(self)(**kwargs)
-        cloned._state_histories = {}
-        cloned._is_clone = True
+        return self._task_queue[network_name]
 
-        return cloned
+    def get_all_task_queues(self) -> dict[str, list[str]]:
+        """Get the task queues for all running networks.
+
+        Returns:
+            dict[str, list[str]]: Task names, keyed on task network name.
+        """
+        queues: dict[str, list[str]] = {}
+        for name in self._task_networks.keys():
+            queues[name] = self.get_task_queue(name)
+        return queues
+
+    def get_next_task(self, network_name: str) -> None | str:
+        """Return the next task the actor has been told if there is one.
+
+        This does not clear the task, it's information only.
+
+        Args:
+            network_name (str): The name of the network
+
+        Returns:
+            None | str: The name of the next task, None if no next task.
+        """
+        queue = self._task_queue[network_name]
+        queue_length = len(queue)
+        return None if queue_length == 0 else queue[0]
+
+    def _clear_task(self, network_name: str) -> None:
+        """Clear a task from the queue.
+
+        Useful for rehearsal.
+        """
+        self._task_queue[network_name].pop(0)
+
+    def _begin_next_task(self, network_name: str, task_name: str) -> None:
+        """Clear the first task in the task queue.
+
+        The task name is required to check that the next task follows the actor's plan.
+
+        Args:
+            network_name (str): The task network name
+            task_name (str): The name of the task to start
+        """
+        queue = self._task_queue.get(network_name)
+        if queue and queue[0] != task_name:
+            raise SimulationError(
+                f"Actor {self.name} commanded to perform '{task_name}' but '{queue[0]}' is expected"
+            )
+        elif not queue:
+            self.set_task_queue(network_name, [task_name])
+        self.write_to_log(f"begin_next_task: Starting {task_name} task on {network_name} network.")
+        self._task_queue[network_name].pop(0)
+
+    def start_network_loop(
+        self,
+        network_name: str,
+        init_task_name: str | None = None,
+    ) -> None:
+        """Start a task network looping/running on an actor.
+
+        If no task name is given, it will default to following the queue.
+
+        Args:
+            network_name (str): Network name.
+            init_task_name (str, optional): Task to start with. Defaults to None.
+        """
+        network = self._task_networks[network_name]
+        network.loop(actor=self, init_task_name=init_task_name)
+
+    def get_running_task(self, network_name: str) -> TaskData | None:
+        """Return name and process reference of a task on this Actor's task network.
+
+        Useful for finding a process to call interrupt() on.
+
+        Args:
+            network_name (str): Network name.
+
+        Returns:
+            TaskData: Dataclass of name and process for the current task.
+                {"name": Name, "process": the Process simpy is holding.}
+        """
+        if network_name not in self._task_networks:
+            raise SimulationError(f"{self} does not have a task networked named {network_name}")
+        net = self._task_networks[network_name]
+        if net._current_task_proc is not None:
+            assert net._current_task_name is not None
+            assert net._current_task_proc is not None
+            task_data = TaskData(name=net._current_task_name, process=net._current_task_proc)
+            return task_data
+        return None
+
+    def get_running_tasks(self) -> dict[str, TaskData]:
+        """Get all running task data.
+
+        Returns:
+            dict[str, dict[str, TaskData]]: Dictionary of all running tasks.
+                Keyed on network name, then {"name": Name, "process": ...}
+        """
+        tasks: dict[str, TaskData] = {}
+        for name, net in self._task_networks.items():
+            if net._current_task_proc is not None:
+                assert net._current_task_name is not None
+                tasks[name] = TaskData(name=net._current_task_name, process=net._current_task_proc)
+        return tasks
+
+    def interrupt_network(self, network_name: str, **interrupt_kwargs: Any) -> None:
+        """Interrupt a running task network.
+
+        Args:
+            network_name (str): The name of the network.
+            interrupt_kwargs (Any): kwargs to pass to the interrupt.
+        """
+        data = self.get_running_task(network_name)
+        if data is None:
+            raise UpstageError(f"No processes named {network_name} is running.")
+        data.process.interrupt(**interrupt_kwargs)
+
+    def has_task_network(self, network_id: Any) -> bool:
+        """Test if a network id exists.
+
+        Args:
+            network_id (Any): Typically a string for the network name.
+
+        Returns:
+            bool: If the task network is on this actor.
+        """
+        return network_id in self._task_networks
+
+    def suggest_network_name(self, factory: "TaskNetworkFactory") -> str:
+        """Deconflict names of task networks by suggesting a new name.
+
+        Used for creating multiple parallel task networks.
+
+        Args:
+            factory (TaskNetworkFactory): The factory from which you will create the network.
+
+        Returns:
+            str: The network name to use
+        """
+        new_name = factory.name
+        if new_name not in self._task_networks:
+            return new_name
+        i = 0
+        while new_name in self._task_networks:
+            i += 1
+            new_name = f"{factory.name}_{i}"
+        return new_name
+
+    def delete_task_network(self, network_id: Any) -> None:
+        """Deletes a task network reference.
+
+        Be careful, the network may still be running!
+
+        Do any interruptions on your own.
+
+        Args:
+            network_id (Any): Typically a string for the network name.
+        """
+        if not self.has_task_network(network_id):
+            raise SimulationError(f"No networked with id: {network_id} to delete")
+        del self._task_networks[network_id]
 
     def _clean(self) -> None:
         """Run to clean all memory from the actor."""
@@ -439,7 +670,7 @@ class Actor(_BaseActor):
 
     name: str
     debug_logging: bool = True
-    knowledge: dict[str, Any]
+    knowledge: Knowledge = State(default_factory=Knowledge.make_blank).create()
 
 
 class ActorHelper:
