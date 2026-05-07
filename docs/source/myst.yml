@@ -1,0 +1,36 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: 60efd887-52a5-48c5-be80-9d157fd60295
+  title: UPSTAGE DES Framework
+  description: A framework for hybrid DES/Agent Based Simulation
+  github: https://github.com/gtri/upstage
+  license:
+    code: BSD-3-Clause
+  keywords: [simulation, discrete event]
+  toc:
+    - file: index.md
+    - file: intro.md
+    - file: features.md
+      children:
+        - file: features-actor.md
+        - file: features-knowledge.md
+        - file: features-logging.md
+        - file: features-states.md
+        - file: features-tasks.md
+        - file: features-task-networks.md
+site:
+  template: book-theme
+  options:
+    folders: true
+    logo_text: UPSTAGE
+    logo: _static/upstage-logo-medium.png
+    favicon: _static/favicon.ico
+  # actions:
+  #   - title: GitHub
+  #     url: https://github.com/gtri/upstage
+  nav:
+    - title: Internal page
+  parts:
+    primary_sidebar_footer: primary-sidebar-footer.md
+    footer: ©️ GTRI 2026

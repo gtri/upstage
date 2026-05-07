@@ -67,12 +67,18 @@ depends-on = ["lint-check", "test"]
 description = "Create jupyterlite page"
 cmd = "jupyter lite build --contents jupyterlite/content --output-dir _build/html/demo"
 
+[feature.tasks-docs.tasks.html]
+description = "Run MYST Site"
+cmd = "myst start"
+cwd = "docs/source"
+
 [environments.dev]
 features = [
   "deps-lint",
   "deps-test",
   "deps-docs",
   "deps-jlite",
+  "tasks-docs",
   "tasks-lint",
   "tasks-test",
   "tasks-start",
@@ -87,6 +93,7 @@ features  = [
   "deps-test",
   "deps-docs",
   "deps-jlite",
+  "tasks-docs",
   "tasks-lint",
   "tasks-test",
   "tasks-jlite",
@@ -98,6 +105,7 @@ features  = [
   "deps-lint",
   "deps-test",
   "deps-docs",
+  "tasks-docs",
   "tasks-lint",
   "tasks-test",
 ]
@@ -108,6 +116,7 @@ features  = [
   "deps-lint",
   "deps-test",
   "deps-docs",
+  "tasks-docs",
   "tasks-lint",
   "tasks-test",
 ]
