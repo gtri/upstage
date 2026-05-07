@@ -7,9 +7,11 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast, get_args, get_origin
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, cast, get_args, get_origin
 
-from upstage_des.base import SimulationError
+import simpy as SIM
+
+from upstage_des.base import SimulationError, UpstageError
 
 if TYPE_CHECKING:
     from upstage_des.actor import _BaseActor as Actor
@@ -41,6 +43,8 @@ def check_type(value: Any, annotation: Any) -> bool:
 
     if origin in (list, dict, set, tuple):
         return isinstance(value, origin)
+    if origin is Literal:
+        return value in get_args(annotation)
 
     return True
 
@@ -70,6 +74,7 @@ class State[T]:
         default_factory: Callable[[], Any] | None = None,
         recording: bool = True,
         validator: Callable[[Any, Any], None] | None = None,
+        type_check_first: bool = False,
         type_check_each: bool = False,
         validate_each: bool = True,
     ) -> None:
@@ -80,6 +85,7 @@ class State[T]:
             default_factory: Factory function for default values (for mutable defaults).
             recording: Whether to record state changes.
             validator: Optional validator function that raises on invalid values.
+            type_check_first: Optional control for type checking on init only.
             type_check_each: Optional control for when to type check on a set.
             validate_each: Optional control for when to validate on a set.
 
@@ -96,6 +102,7 @@ class State[T]:
         self._validator = validator
         self._unchecked = True
         self._given_type = ...
+        self._type_check_first = type_check_first
         self._type_check_each = type_check_each
         self._validate_each = validate_each
 
@@ -142,7 +149,8 @@ class State[T]:
             ValueError: If the validator rejects the value.
         """
         do_validate = self._unchecked or self._validate_each
-        do_type = self._unchecked or self._type_check_each
+        do_type = self._unchecked and self._type_check_first
+        do_type |= self._type_check_each
         self._unchecked = False
         if do_validate and self._validator is not None:
             self._validator(obj, value)
@@ -204,6 +212,193 @@ class State[T]:
             True if default or default_factory is provided.
         """
         return self._default is not None or self._default_factory is not None
+
+
+TR = SIM.Store | SIM.Container
+
+
+class ResourceState[TR](State):
+    """A State class for States that are meant to be Stores or Containers.
+
+    This should enable easier initialization of Actors with stores/containers or
+    similar objects as states.
+
+    No input is needed for the state if you define a default resource class in
+    the class definition and do not wish to modify the default inputs of that
+    class. You can also define default inputs for the resource instantiation.
+
+    The input an Actor needs to receive for a ResourceState is a dictionary of:
+    * 'kind': <class> (optional if you provided a default)
+    * 'capacity': <numeric> (optional, works on stores and containers)
+    * 'init': <numeric> (optional, works on containers)
+    * key:value for any other input expected as a keyword argument by the resource class
+
+    Note that the resource class given must accept the environment as the first
+    positional argument. This is to maintain compatibility with simpy.
+
+    Example:
+        >>> class Warehouse(Actor):
+        >>>     shelf: Store = ResourceState(default=Store).create()
+        >>>     bucket: Container = ResourceState(
+        >>>         default=Container,
+        >>>         valid_types=(Container, SelfMonitoringContainer),
+        >>>     )
+        >>>     charger: Store = ResourceState(
+        >>>         default=Store,
+        >>>         default_kwargs={"capacity": 5},
+        >>>     )
+        >>>
+        >>> wh = Warehouse(
+        >>>     name='Depot',
+        >>> )
+        >>> wh.update_resource("shelf", capacity=10)
+        >>> wh.update_resource("bucket", kind=SelfMonitoringContainer, initial=30)
+    """
+
+    def __init__(
+        self,
+        *,
+        default: Any | None = None,
+        valid_types: type | tuple[type, ...] | None = None,
+        default_kwargs: dict[str, Any] | None = None,
+    ) -> None:
+        """Create a resource State decorator.
+
+        Args:
+            default (Any | None, optional): Default store/container class. Defaults to None.
+            valid_types (type | tuple[type, ...] | None, optional): Valid store/container
+                classes. Defaults to None.
+            default_kwargs (dict[str, Any], optional): Kwargs to pass to the creation
+                of the default store/container class.
+        """
+        if isinstance(valid_types, type):
+            valid_types = (valid_types,)
+
+        if valid_types:
+            for v in valid_types:
+                if not isinstance(v, type) or not issubclass(v, SIM.Store | SIM.Container):
+                    raise UpstageError(f"Bad valid type for {self}: {v}")
+        else:
+            valid_types = (SIM.Store, SIM.Container)
+
+        if default is not None and (
+            not isinstance(default, type) or not issubclass(default, SIM.Store | SIM.Container)
+        ):
+            raise UpstageError(f"Bad default type for {self}: {default}")
+
+        super().__init__(
+            default=default,
+            recording=False,
+        )
+        self._default_kwargs = default_kwargs.copy() if default_kwargs is not None else {}
+        self._been_set: set[Actor] = set()
+        self._types = valid_types
+
+    def __set__(self, obj: "Actor", value: dict, no_record: bool = True) -> None:
+        """Set the state value.
+
+        Args:
+            obj (Actor): The actor instance
+            value (dict | Any): Either a dictionary of resource data OR an actual resource
+            no_record (bool): Ignored input for type consistency.
+        """
+        if obj in self._been_set:
+            raise UpstageError(
+                f"State '{self}' on '{obj}' has already been created It cannot be changed once set!"
+            )
+
+        env = getattr(obj, "env", None)
+        if env is None:
+            raise UpstageError(
+                f"Actor {obj} does not have an `env` attribute for state {self.name}"
+            )
+        kwargs = self._default_kwargs.copy()
+
+        if not isinstance(value, dict):
+            # we've been passed an actual resource, so save it and leave
+            if isinstance(value, type):
+                new = value(env, **kwargs)
+                if not isinstance(new, self._types):
+                    raise UpstageError(f"Resource object: '{value}' is not an expected type.")
+                obj._state_data[self.name]["value"] = new
+            elif not isinstance(value, self._types):
+                raise UpstageError(f"Resource object: '{value}' is not an expected type.")
+            else:
+                obj._state_data[self.name]["value"] = value
+            self._been_set.add(obj)
+            return
+
+        resource_type = value.get("kind", self._default)
+        if resource_type is None:
+            raise UpstageError(f"No resource type (Store, e.g.) specified for {obj}")
+
+        if self._types and not issubclass(resource_type, self._types):
+            raise UpstageError(
+                f"{resource_type} is of type {type(resource_type)} not of type {self._types}"
+            )
+
+        kwargs.update({k: v for k, v in value.items() if k != "kind"})
+        try:
+            resource_obj = resource_type(env, **kwargs)
+        except TypeError as e:
+            raise UpstageError(
+                f"Bad argument input to resource state {self.name}"
+                f" resource class {resource_type} :{e}"
+            )
+        except Exception as e:
+            raise UpstageError(f"Exception in ResourceState init: {e}")
+
+        obj._state_data[self.name]["value"] = resource_obj
+        self._been_set.add(obj)
+
+    def _set_default(self, instance: "Actor") -> None:
+        """Set the default conditions.
+
+        The empty dictionary input forces default to happen the right way.
+
+        Args:
+            instance (Actor): The actor holding this state.
+        """
+        self.__set__(instance, {})
+
+    def __get__(self, obj: Union["Actor", None], objtype: type) -> TR:
+        if obj is None:
+            raise SimulationError(f"Unexpected get in state {self.name}")
+        if self.name not in obj._state_data:
+            self._set_default(obj)
+        obj = obj._state_data[self.name]["value"]
+        if not issubclass(type(obj), SIM.Store | SIM.Container):
+            raise UpstageError("Bad type of ResourceStatee")
+        return cast(TR, obj)
+
+    def _modify_init(
+        self,
+        obj: "Actor",
+        *,
+        kind: type[SIM.Store] | type[SIM.Container] | None = None,
+        capacity: int | float | None = None,
+        init: int | float | None = None,
+    ) -> None:
+        """Modify capacity and initial amounts for stores/containers.
+
+        Args:
+            obj: The actor
+            kind: The kind of store, optional.
+            capacity (int | float | None, optional): _description_. Defaults to None.
+            init (int | float | None, optional): _description_. Defaults to None.
+        """
+        # Remove the _been_set for manual override
+        value: dict[str, Any] = {}
+        if kind is not None:
+            value["kind"] = kind
+        if capacity is not None:
+            value["capacity"] = capacity
+        if init is not None:
+            value["init"] = init
+
+        if obj in self._been_set:
+            self._been_set.remove(obj)
+        self.__set__(obj, value)
 
 
 class _ActiveState[T](State):

@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from dataclasses import MISSING, dataclass
 from typing import TYPE_CHECKING, Any, Self, dataclass_transform
 
-from simpy import Process
+from simpy import Container, Process, Store
 
 from upstage_des._logging import get_actor_logger
 from upstage_des.base import (
@@ -20,7 +20,7 @@ from upstage_des.base import (
     UpstageError,
 )
 from upstage_des.root_types import StateDataDict
-from upstage_des.states import LinearChangingState, State, _ActiveState
+from upstage_des.states import LinearChangingState, ResourceState, State, _ActiveState
 
 if TYPE_CHECKING:
     from upstage_des.task_networks import TaskNetwork, TaskNetworkFactory
@@ -443,8 +443,33 @@ class _BaseActor(UpstageBase):
         except Exception:
             return None
 
-        ###########################################################
+    ###########################################################
+    ### Resource States #######################################
+    def update_resource(
+        self,
+        resource_name: str,
+        *,
+        kind: type[Store] | type[Container] | None = None,
+        capacity: int | float | None = None,
+        init: int | float | None = None,
+    ) -> None:
+        """Update a resource state by name.
 
+        This method exists to work with actor typing but still allow generic
+        resource definitions that are updated at runtime.
+
+        Args:
+            resource_name (str): _description_
+            kind (Store | Container | None, optional): _description_. Defaults to None.
+            capacity (int | float | None, optional): _description_. Defaults to None.
+            init (int | float | None, optional): _description_. Defaults to None.
+        """
+        state_obj = self.__model_fields__[resource_name]
+        if not isinstance(state_obj, ResourceState):
+            raise TypeError(f"State {resource_name} is not a ResourceState")
+        state_obj._modify_init(self, kind=kind, capacity=capacity, init=init)
+
+    ###########################################################
     ### Tasks and Networks ####################################
     def add_task_network(self, network: "TaskNetwork") -> None:
         """Add a task network to the actor.

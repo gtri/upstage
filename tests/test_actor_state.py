@@ -134,7 +134,7 @@ def test_multiple_instances_independent() -> None:
 
 def test_bad_type() -> None:
     class MyActor(Actor):
-        fuel: float
+        fuel: float = State(type_check_first=True).create()
         position: tuple[float, float] = (0.0, 0.0)
 
     with EnvironmentContext():

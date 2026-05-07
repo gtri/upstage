@@ -256,6 +256,7 @@ def test_factory_builders() -> None:
         assert env.now == 3
         assert act.data == 4
 
+test_factory_builders()
 
 def test_network_naming() -> None:
     class AnActor(Actor):

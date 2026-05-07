@@ -26,7 +26,23 @@ Additional features include:
 This project is under active development. This branch of the docs is for the unreleased version 1.0. The docs may be innacurate.
 ```
 
-## Installation from source
+## Installation
+
+UPSTAGE is available on `conda-forge` and `pypi`. Install using:
+
+```bash
+conda install -c conda-forge upstage-des
+```
+
+or
+
+```bash
+pip install upstage-des
+```
+
+into your preferred environment.
+
+### Installation from source
 
 You can download UPSTAGE and install it manually. Clone, or download the archive and extract it. From the extraction location (and within a suitable Python environment):
 
@@ -35,8 +51,6 @@ You can download UPSTAGE and install it manually. Clone, or download the archive
 ```
 
 (or just `pip install .`)
-
-
 
 ## Contributing
 

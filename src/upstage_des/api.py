@@ -37,6 +37,7 @@ from upstage_des.events import (
 )
 from upstage_des.states import (
     LinearChangingState,
+    ResourceState,
     State,
 )
 from upstage_des.task_networks import (
@@ -93,4 +94,5 @@ __all__ = [
     "TaskTransition",
     "TerminalTask",
     "SimulationEnd",
+    "ResourceState",
 ]

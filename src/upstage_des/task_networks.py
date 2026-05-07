@@ -100,6 +100,7 @@ def _validate_network(
         UpstageError: If a referenced task name is not in *task_classes*.
     """
     known = set(task_classes.keys())
+    terminating = set([k for k, v in task_classes.items() if issubclass(v, TerminalTask)])
     missing: set[str] = set()
     for src, links in task_links.items():
         for target in links._all_targets():
@@ -110,7 +111,7 @@ def _validate_network(
             f"Task link(s) reference unknown task name(s): {sorted(missing)}. "
             f"Known tasks: {sorted(known)}"
         )
-    unlinked = known - set(task_links.keys())
+    unlinked = known - set(task_links.keys()) - terminating
     if unlinked:
         warn(
             f"Task(s) {sorted(unlinked)} are in task_classes but have no entry in task_links.",
