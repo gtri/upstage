@@ -65,7 +65,7 @@ depends-on = ["lint-check", "test"]
 
 [feature.tasks-jlite.tasks.build_jl]
 description = "Create jupyterlite page"
-cmd = "jupyter lite build --contents jupyterlite/content --output-dir build/docs/demo"
+cmd = "jupyter lite build --contents jupyterlite/content --output-dir _build/html/demo"
 
 [environments.dev]
 features = [
