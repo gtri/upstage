@@ -1,4 +1,4 @@
-# Copyright (C) 2025 by the Georgia Tech Research Institute (GTRI)
+# Copyright (C) 2026 by the Georgia Tech Research Institute (GTRI)
 
 # Licensed under the BSD 3-Clause License.
 # See the LICENSE file in the project root for complete license terms and disclaimers.
@@ -11,6 +11,9 @@ development process for complex simulations.
 
 """
 
+from ._logging import _install_null_handler
 from ._version import __authors__, __version__
+
+_install_null_handler()
 
 __all__ = ("__authors__", "__version__")

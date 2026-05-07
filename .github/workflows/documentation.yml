@@ -15,7 +15,7 @@ jobs:
           manifest-path: pixi.toml
           pixi-version: v0.41.0
           cache: true
-      - run: pixi run -e py312 build_html_docs
+      - run: pixi run -e py312 myst build --html
       - name: Build the JupyterLite site
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: pixi run -e py312 build_jl
@@ -25,5 +25,5 @@ jobs:
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/docs/
+          publish_dir: ./_build/html
           force_orphan: true

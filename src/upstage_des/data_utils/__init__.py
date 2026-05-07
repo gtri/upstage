@@ -1,12 +1,6 @@
-"""Utilities for data processing."""
+# Copyright (C) 2026 by the Georgia Tech Research Institute (GTRI)
 
-from .data_recorder import DataRecorder, get_recorded_data, record_data
-from .data_utils import create_location_table, create_table
+# Licensed under the BSD 3-Clause License.
+# See the LICENSE file in the project root for complete license terms and disclaimers.
 
-__all__ = [
-    "create_table",
-    "create_location_table",
-    "DataRecorder",
-    "record_data",
-    "get_recorded_data",
-]
+"""Data gathering utils."""
