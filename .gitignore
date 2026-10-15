@@ -46,3 +46,6 @@ docs/source/auto
 # Jupyterlite
 *.doit.db
 _output
+
+# MyST build outputs
+_build

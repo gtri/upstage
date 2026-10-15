@@ -7,7 +7,7 @@ platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 upstage_des = { path=".", editable=true}
 
 [dependencies]
-python = ">=3.11"
+python = ">=3.12"
 
 # generic tasks ###########################################
 [tasks]
@@ -44,8 +44,8 @@ cmd = "ruff check src/ --fix"
 inputs = ["src/**/*.py"]
 
 [feature.tasks-lint.tasks.mypy]
-cmd = "mypy --show-error-codes -p upstage_des"
-inputs = ["src/**/*.py"]
+cmd = "mypy --show-error-codes"
+inputs = ["src/**/*.py", "tests/**/*.py"]
 
 [feature.tasks-lint.tasks.check-pyproject]
 cmd = "pyproject-fmt pyproject.toml --check"
@@ -59,22 +59,18 @@ inputs = ["src/**/*.py"]
 cmd = "ruff check src/"
 inputs = ["src/**/*.py"]
 
-[feature.tasks-docs.tasks.autogen]
-description = "Autobuild the code documentation"
-cmd = "sphinx-apidoc -f -o ./docs/source/auto ./src/upstage_des ./src/upstage_des/test"
-
-[feature.tasks-docs.tasks.build_html_docs]
-description = "Build the documentation"
-cmd = "sphinx-build -a -E -b html ./docs/source ./build/docs"
-depends-on = ["autogen"]
-
 [feature.tasks-start.tasks.first]
 description = "Set up and test"
-depends-on = ["lint-check", "test", "build_html_docs"]
+depends-on = ["lint-check", "test"]
 
 [feature.tasks-jlite.tasks.build_jl]
 description = "Create jupyterlite page"
-cmd = "jupyter lite build --contents jupyterlite/content --output-dir build/docs/demo"
+cmd = "jupyter lite build --contents jupyterlite/content --output-dir _build/html/demo"
+
+[feature.tasks-docs.tasks.html]
+description = "Run MYST Site"
+cmd = "myst start"
+cwd = "docs/source"
 
 [environments.dev]
 features = [
@@ -82,22 +78,13 @@ features = [
   "deps-test",
   "deps-docs",
   "deps-jlite",
+  "tasks-docs",
   "tasks-lint",
   "tasks-test",
-  "tasks-docs",
   "tasks-start",
   "tasks-jlite",
 ]
 
-[environments.py311]
-features  = [
-  "py311",
-  "deps-lint",
-  "deps-test",
-  "deps-docs",
-  "tasks-lint",
-  "tasks-test",
-]
 
 [environments.py312]
 features  = [
@@ -106,9 +93,9 @@ features  = [
   "deps-test",
   "deps-docs",
   "deps-jlite",
+  "tasks-docs",
   "tasks-lint",
   "tasks-test",
-  "tasks-docs",
   "tasks-jlite",
 ]
 
@@ -118,18 +105,31 @@ features  = [
   "deps-lint",
   "deps-test",
   "deps-docs",
+  "tasks-docs",
   "tasks-lint",
   "tasks-test",
 ]
 
-[feature.py311.dependencies]
-python = "3.11.*"
+[environments.py314]
+features  = [
+  "py314",
+  "deps-lint",
+  "deps-test",
+  "deps-docs",
+  "tasks-docs",
+  "tasks-lint",
+  "tasks-test",
+]
+
 
 [feature.py312.dependencies]
 python = "3.12.*"
 
 [feature.py313.dependencies]
 python = "3.13.*"
+
+[feature.py314.dependencies]
+python = "3.14.*"
 
 [feature.deps-lint.dependencies]
 mypy = "*"
@@ -146,9 +146,8 @@ pytest-xdist = "*"
 pytest-json-report = "*"
 
 [feature.deps-docs.dependencies]
-myst-parser = "*"
-pydata-sphinx-theme = "*"
-sphinx = ">=7"
+sphinx-autodoc2 = "*"
+mystmd = "*"
 
 [feature.deps-jlite.dependencies]
 jupyterlite-core = "==0.6.1"
