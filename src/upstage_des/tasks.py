@@ -7,15 +7,16 @@
 
 from collections.abc import Generator
 from enum import IntFlag
-from typing import TYPE_CHECKING, Any, TypeVar
-from warnings import warn
+from typing import TYPE_CHECKING, Any
 
 from simpy import Event as SimpyEvent
 from simpy import Interrupt, Process
+from simpy.resources.resource import Request as SIMReq
+from simpy.resources.resource import Resource as SIMResource
 
 from upstage_des.actor import ActorHelper
 from upstage_des.base import SimulationError, UpstageBase, process
-from upstage_des.events import BaseEvent, Event
+from upstage_des.events import _cancel_event, _event_has_resource_request
 
 if TYPE_CHECKING:
     from upstage_des.actor import Actor
@@ -26,7 +27,7 @@ __all__ = ("DecisionTask", "Task", "process", "TerminalTask", "InterruptStates")
 
 NOT_IMPLEMENTED_MSG = "User must define the actions performed when executing this task"
 
-TASK_GEN = Generator[BaseEvent, Any, None]
+TASK_GEN = Generator[SimpyEvent, Any, None]
 
 
 class InterruptStates(IntFlag):
@@ -35,9 +36,6 @@ class InterruptStates(IntFlag):
     END = 0
     IGNORE = 1
     RESTART = 2
-
-
-EVT = TypeVar("EVT", bound=BaseEvent)
 
 
 class Task(UpstageBase, ActorHelper):
@@ -65,7 +63,7 @@ class Task(UpstageBase, ActorHelper):
         """Zero-time hook called before ``task()`` runs.
 
         Use this for setup that would otherwise require a ``DecisionTask``:
-        setting knowledge, acquiring resources, initializing state.
+        setting knowledge, initializing state, etc.
 
         Args:
             actor: The actor about to execute this task.
@@ -121,12 +119,16 @@ class Task(UpstageBase, ActorHelper):
         """
         return self._marker
 
-    def get_marker_time(self) -> float | None:
+    def get_marker_time(self) -> float:
         """The time the current marker was set.
+
+        If there is no marker, raises an error.
 
         Returns:
             float | None: Marker set time (or None if cleared)
         """
+        if self._marked_time is None:
+            raise SimulationError(f"No marker set on task {self.__class__.__name__}")
         return self._marked_time
 
     def clear_marker(self) -> None:
@@ -200,7 +202,11 @@ class Task(UpstageBase, ActorHelper):
         return actor.get_next_task(self._network_name)
 
     def _handle_interruption(
-        self, actor: "Actor", interrupt: Interrupt, next_event: BaseEvent | Process
+        self,
+        actor: "Actor",
+        interrupt: Interrupt,
+        next_event: SimpyEvent,
+        held_resources: list[tuple[SIMReq, SIMResource]],
     ) -> InterruptStates:
         """Clean up after an interrupt and perform interrupt checks/actions.
 
@@ -208,6 +214,7 @@ class Task(UpstageBase, ActorHelper):
             actor (Actor): _description_
             interrupt (Interrupt): _description_
             next_event (BaseEvent): _description_
+            held_resources (list[ResourceHold]): _description_
 
         Returns:
             InterruptStates: action to take
@@ -226,16 +233,21 @@ class Task(UpstageBase, ActorHelper):
         ):
             actor.write_to_log(f"Interrupted by {interrupt}.")
             actor.deactivate_all_states(task=self)
-            if isinstance(next_event, BaseEvent):
+            if isinstance(next_event, SimpyEvent):
                 names = list(actor.knowledge.keys())
                 for name in names:
                     if actor.knowledge[name] is next_event:
                         actor.clear_knowledge(name, caller=f"Clearing knowledge event {name}")
-                next_event.cancel()
-            elif isinstance(next_event, Process):
-                next_event.interrupt(cause=interrupt.cause)
+                _cancel_event(next_event, interrupt.cause)
             else:
                 raise SimulationError(f"Bad event passed: {next_event}")
+            # Handle ending resource holds.
+            # We don't know if they will have succeeded or not
+            for request, resource in held_resources:
+                if request in resource.queue:
+                    request.cancel()
+                elif request in resource.users:
+                    resource.release(request)
         elif _interrupt_action != InterruptStates.IGNORE:
             raise SimulationError(f"Wrong interrupt action value: {_interrupt_action}")
         if self._final_interrupt:
@@ -258,7 +270,9 @@ class Task(UpstageBase, ActorHelper):
         return_item = None
         stop_run = False
         back_from_interrupt = False
-        event_to_yield: Process | SimpyEvent
+        event_to_yield: SimpyEvent
+        # Resources use a context manager to be ignored
+        held_resources: list[tuple[SIMReq, SIMResource]] = []
         while not stop_run:
             try:
                 while True:
@@ -277,34 +291,28 @@ class Task(UpstageBase, ActorHelper):
                                 break
                             continue
 
-                        if isinstance(next_event, Process):
-                            warn(
-                                f"Yielding a simpy.Process from {self}. "
-                                f"This is dangerous, take care. ",
-                                UserWarning,
-                            )
+                        if isinstance(next_event, SimpyEvent):
                             event_to_yield = next_event
-                        elif isinstance(next_event, BaseEvent):
-                            event_to_yield = next_event.as_event()
+                            if reqs := _event_has_resource_request(next_event):
+                                for the_request, the_resource in reqs:
+                                    held_resources.append((the_request, the_resource))
                         else:
-                            raise SimulationError(f"Unexpected yielded event type: {next_event}")
+                            raise SimulationError(f"Unsupported yielded event type: {next_event}")
                     else:
                         back_from_interrupt = False
                     return_item = yield event_to_yield
-                    # TODO: test if the return_item is for a multi-event
-                    # that way we can return it as a more useful object
 
             except Interrupt as interrupt:
                 action = self._handle_interruption(
                     actor,
                     interrupt,
                     next_event,
+                    held_resources,
                 )
                 if action == InterruptStates.IGNORE:
                     back_from_interrupt = True
                 else:
                     # This is restart or end; either way we have to cancel
-                    # any routines in the stack.
                     while generators:
                         gen = generators.pop()
                         gen.close()
@@ -313,6 +321,7 @@ class Task(UpstageBase, ActorHelper):
                             self.task(actor=actor),
                         ]
                         return_item = None
+                        held_resources = []
                     else:
                         stop_run = True
 
@@ -399,6 +408,6 @@ class TerminalTask(Task):
         """
         log_message = self.log_message(actor=actor)
         actor.write_to_log(log_message)
-        the_long_event = Event(rehearsal_time_to_complete=self._time_to_complete)
+        the_long_event = SimpyEvent(self.env)
         yield the_long_event
         raise SimulationError(f"A terminal task completed on {actor}")

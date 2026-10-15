@@ -8,24 +8,16 @@ import pytest
 
 from upstage_des.api import (
     Actor,
-    Any,
+    AnyOf,
     DecisionTask,
     EnvironmentContext,
-    Event,
-    Get,
     InterruptStates,
     LinearChangingState,
-    Put,
-    ResourceHold,
     State,
     Task,
     TaskLinks,
     TaskNetworkFactory,
-    Wait,
-    WaitUntil,
-    add_stage_variable,
     TASK_GEN,
-    SIMPY_GEN,
     SimulationError,
     UpstageError,
     TaskTransition,
@@ -34,6 +26,7 @@ from upstage_des.api import (
     get_stage,
     SimulationEnd,
 )
+from upstage_des.events import Timeout, is_event_complete, make_random_timeout, make_timeout_until
 from upstage_des.utils.task_net_viz import to_dot, to_mermaid
 
 
@@ -60,11 +53,12 @@ class Search(InsectInterrupt):
         )
         no_food_time = actor.get_time_for_state_goal("hunger", 0.0)
         assert no_food_time is not None
-        no_food_event = WaitUntil(no_food_time)
-        search_event = Wait.from_random_uniform(0.5, 2.0)
-        yield Any(no_food_event, search_event)
+        actor.write_to_log(f"Trying until {no_food_time}")
+        no_food_event = make_timeout_until(no_food_time)
+        search_event = make_random_timeout(0.5, 2.0)
+        yield AnyOf([no_food_event, search_event])
         actor.deactivate_all_states(task=self)
-        if no_food_event.is_complete():
+        if is_event_complete(no_food_event):
             self.set_actor_task_queue(actor, ["End"])
         else:
             self.set_actor_task_queue(actor, ["Eat"])
@@ -79,19 +73,19 @@ class Eat(InsectInterrupt):
         )
         satiated_time = actor.get_time_for_state_goal("hunger", 1.0)
         assert satiated_time is not None
-        yield WaitUntil(satiated_time)
+        yield make_timeout_until(satiated_time)
         actor.deactivate_linear_state("hunger", task=self)
 
 
 class Sleep(InsectInterrupt):
     def task(self, *, actor: Insect) -> TASK_GEN:
-        yield Wait(3.0)
+        yield Timeout(3.0)
         actor.hunger -= 0.3
 
 
 class Defend(Task):
     def task(self, *, actor: Insect) -> TASK_GEN:
-        yield Wait(0.2)
+        yield Timeout(0.2)
         if actor.hunger < 0.3:
             actor.hunger = 0.0
             self.set_actor_task_queue(actor, ["End"])
@@ -117,7 +111,7 @@ class Swatter(Actor): ...
 class SwatInsects(Task):
     def task(self, *, actor: Swatter) -> TASK_GEN:
         # Looping task for swatting insects
-        yield Wait.from_random_uniform(2.1, 4.3)
+        yield make_random_timeout(2.1, 4.3)
         insects: list[Insect] = get_entities_by_class("Insect")
         insects = [x for x in insects if x.hunger > 0]
         if not insects:
@@ -171,6 +165,7 @@ def test_building_network() -> None:
             ...
         assert env.now > 0.0
 
+test_building_network()
 
 def test_factory_builders() -> None:
 
@@ -180,12 +175,12 @@ def test_factory_builders() -> None:
     class TaskA(Task):
         def task(self, *, actor: AnActor) -> TASK_GEN:
             actor.data += 1
-            yield Wait(1.0)
+            yield Timeout(1.0)
     
     class TaskB(Task):
         def task(self, *, actor: AnActor) -> TASK_GEN:
             actor.data += 3
-            yield Wait(2.0)
+            yield Timeout(2.0)
 
     net_single_term_A = TaskNetworkFactory.from_single_terminating(
         "termA",
@@ -265,7 +260,7 @@ def test_network_naming() -> None:
     class TaskA(Task):
         def task(self, *, actor: AnActor) -> TASK_GEN:
             actor.data += 1
-            yield Wait(1.0)
+            yield Timeout(1.0)
     
     netfact = TaskNetworkFactory.from_single_looping("TASKA", TaskA)
 
@@ -291,12 +286,12 @@ def test_decision_task_hold() -> None:
     class Waiter(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
             data.append(f"{self.env.now:.1f} >> {actor.name} in Waiter")
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class Runner(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
             data.append(f"{self.env.now:.1f} >> {actor.name} in Runner")
-            yield Wait(2.0)
+            yield Timeout(2.0)
 
     class Thinker(DecisionTask):
         DO_NOT_HOLD = True
@@ -369,7 +364,7 @@ def test_decision_task_hold() -> None:
 def test_class_keyed_factory() -> None:
     class Mover(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class Planner(DecisionTask):
         def make_decision(self, *, actor: Actor) -> None:
@@ -400,7 +395,7 @@ def test_class_keyed_single_arg() -> None:
 
     class Ping(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     links: dict[type[Task], TaskLinks] = {Ping: TaskLinks(default=Ping, allowed=[Ping])}
     factory = TaskNetworkFactory(
@@ -413,7 +408,7 @@ def test_class_keyed_single_arg() -> None:
 def test_validation_catches_bad_reference() -> None:
     class Good(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     bad_links: dict[type[Task], TaskLinks] = {
         Good: TaskLinks(default="Nonexistent", allowed=["Nonexistent"]),
@@ -425,11 +420,11 @@ def test_validation_catches_bad_reference() -> None:
 def test_validation_warns_unlinked_task() -> None:
     class A(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class B(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     with pytest.warns(UserWarning, match="no entry in task_links"):
         TaskNetworkFactory(
@@ -444,7 +439,7 @@ def test_string_api_still_works() -> None:
 
     class X(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     factory = TaskNetworkFactory(
         "Compat",
@@ -467,18 +462,18 @@ def test_guard_transitions() -> None:
     class StepA(Task):
         def task(self, *, actor: Bot) -> TASK_GEN:
             trace.append("A")
-            yield Wait(1.0)
+            yield Timeout(1.0)
             actor.status += 1
 
     class StepB(Task):
         def task(self, *, actor: Bot) -> TASK_GEN:
             trace.append("B")
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class StepC(Task):
         def task(self, *, actor: Bot) -> TASK_GEN:
             trace.append("C")
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     def go_to_c(actor: Bot) -> bool:
         return actor.status >= 2
@@ -519,7 +514,7 @@ def test_on_enter_on_exit() -> None:
 
         def task(self, *, actor: Actor) -> TASK_GEN:
             trace.append("task")
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
         def on_exit(self, *, actor: Actor) -> None:
             trace.append("exit")
@@ -539,11 +534,11 @@ def test_on_enter_on_exit() -> None:
 def test_to_mermaid() -> None:
     class A(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class B(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     factory = TaskNetworkFactory(
         "Viz",
@@ -569,11 +564,11 @@ def test_to_mermaid() -> None:
 def test_to_dot() -> None:
     class X(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class Y(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     factory = TaskNetworkFactory(
         "DotViz",
@@ -602,11 +597,11 @@ def test_to_mermaid_snapshot_guards_and_labels() -> None:
 
     class A(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class B(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     def needs_b(actor: Actor) -> bool:
         return True
@@ -642,11 +637,11 @@ def test_to_mermaid_snapshot_allowed_edges_and_legend() -> None:
 
     class A(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class B(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     factory = TaskNetworkFactory(
         "SnapAllowed",
@@ -675,11 +670,11 @@ def test_to_mermaid_snapshot_legend_off() -> None:
 
     class A(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class B(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     factory = TaskNetworkFactory(
         "SnapNoLegend",
@@ -701,7 +696,7 @@ def test_to_mermaid_snapshot_with_hooks() -> None:
             pass
 
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     factory = TaskNetworkFactory.from_single_looping("Hook", Hooked)
     mermaid = to_mermaid(factory.make_network())
@@ -713,11 +708,11 @@ def test_to_dot_snapshot_uniform_nodes() -> None:
 
     class X(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class Y(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     factory = TaskNetworkFactory(
         "DotSnap",
@@ -752,14 +747,14 @@ def test_to_dot_snapshot_with_hooks_and_labels() -> None:
             pass
 
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     class Exit(Task):
         def on_exit(self, *, actor: Actor) -> None:
             pass
 
         def task(self, *, actor: Actor) -> TASK_GEN:
-            yield Wait(1.0)
+            yield Timeout(1.0)
 
     def done(actor: Actor) -> bool:
         return True

@@ -235,7 +235,6 @@ class EnvironmentContext:
         self.env_token: Token[SimpyEnv]
         self.stage_token: Token[Stage]
         self.entity_registry_token: Token[dict[str, list[Any]]]
-        self.rehearsal_token: Token[bool]
         self._env: SimpyEnv | None = None
         self._initial_time: float = initial_time
         self._random_seed: int | None = random_seed
@@ -332,6 +331,15 @@ def get_stage() -> Stage:
         LookupError: If no stage context is available
     """
     return STAGE_CONTEXT_VAR.get()
+
+
+def get_env() -> SimpyEnv:
+    """Return the current environment.
+
+    Returns:
+        simpy.Environment: The environment
+    """
+    return ENV_CONTEXT_VAR.get()
 
 
 def create_top_context(

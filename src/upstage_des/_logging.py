@@ -38,10 +38,6 @@ def _install_null_handler() -> None:
 
 
 def get_actor_logger(actor: "Actor") -> logging.Logger:
-    """Return the ``logging.Logger`` for a given actor.
-
-    Rehearsal clones get a ``.rehearsal`` suffix so their emissions can
-    be filtered independently from real-run logs.
-    """
+    """Return the ``logging.Logger`` for a given actor."""
     name = f"{ACTOR_LOGGER_PREFIX}.{actor.name}"
     return logging.getLogger(name)

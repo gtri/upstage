@@ -121,7 +121,7 @@ def _validate_network(
 
 
 class TaskNetwork:
-    """A means to represent, execute, and rehearse interdependent tasks."""
+    """A means to represent and execute sequences of tasks."""
 
     def __init__(
         self,
@@ -165,7 +165,7 @@ class TaskNetwork:
         task_from_queue = actor.get_next_task(self.name)
         if task_from_queue is not None:
             if clear_queue:
-                actor._clear_task(self.name)
+                actor._clear_next_task(self.name)
             return task_from_queue
 
         links = self.task_links[curr_task_name]
@@ -186,7 +186,7 @@ class TaskNetwork:
 
     @process
     def loop(
-        self, *, actor: "Actor", init_task_name: str | None = None
+        self, *, actor: "Actor", init_task: str | type[Task] | None = None
     ) -> Generator[Process, None, None]:
         """Start a task network running its loop.
 
@@ -194,16 +194,17 @@ class TaskNetwork:
 
         Args:
             actor (Actor): The actor to run the loop on.
-            init_task_name (Optional[str], optional): Optional task to start running.
+            init_task (str | Task, optional): Optional task to start running.
             Defaults to None.
         """
         next_name = actor.get_next_task(self.name)
         if next_name is None:
-            if init_task_name is None:
+            if init_task is None:
                 raise SimulationError(
                     f"Actor {actor} wasn't supplied an initial task"
                 )  # pramga: no cover
-            next_name = init_task_name
+            name = init_task if isinstance(init_task, str) else init_task.__name__
+            next_name = name
 
         self._current_task_name = next_name
 

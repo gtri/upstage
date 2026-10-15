@@ -7,9 +7,10 @@
 
 import pytest
 from upstage_des.api import Actor, ResourceState, EnvironmentContext, UpstageError
-from simpy import Store, Container
+from simpy import Store, Container, Resource as SIMResource
 
 from upstage_des.base import SIMPY_GEN
+from upstage_des.events import Timeout
 
 
 def test_resource_state_valid_types() -> None:
@@ -35,6 +36,24 @@ def test_resource_state_valid_types() -> None:
         with pytest.raises(UpstageError):
             class _(Actor):  # type: ignore [no-redef]
                 res: Store = ResourceState(valid_types=(Actor,))  # type: ignore [assignment]
+
+        with pytest.raises(UpstageError):
+            class _(Actor):  # type: ignore [no-redef]
+                res: Store = ResourceState(default=(Actor,))  # type: ignore [assignment]
+
+    with EnvironmentContext() as env:
+        h = Holder(
+            name="example2",
+            res=Store(env=env, capacity=2),
+        )
+        assert h.res.capacity == 2
+
+        # This makes mypy upset, but is allowed.
+        h2 = Holder(
+            name="exampleA",
+            res=Store, # type: ignore [arg-type]
+        )
+        assert h2.res.capacity == float('inf')
 
 
 def test_resource_state_set_protection() -> None:
@@ -146,3 +165,50 @@ def test_resource_state_simpy_store_running() -> None:
         env.run()
         assert proc_2.value == "Item 0"
         assert proc_1.value == "Done"
+
+
+def test_sim_resource_as_state() -> None:
+    class Holder(Actor):
+        res: SIMResource = ResourceState(default=SIMResource).create()
+
+    with EnvironmentContext() as env:
+        h = Holder(
+            name="Example",
+            res={"kind": SIMResource, "capacity": 3}, # type: ignore[arg-type]
+        )
+
+        def use_process(entity: Holder) -> SIMPY_GEN:
+            req = entity.res.request()
+            yield req
+            yield Timeout(1.0)
+            entity.res.release(req)
+            return entity.env.now
+
+        procs = [
+            env.process(use_process(h))
+            for _ in range(8)
+        ]
+        env.run()
+        values = [p.value for p in procs]
+        assert values == [1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0]
+
+    with EnvironmentContext() as env:
+        h = Holder(
+            name="Example",
+        )
+        h.update_resource("res", capacity=4)
+
+        def use_process(entity: Holder) -> SIMPY_GEN:
+            req = entity.res.request()
+            yield req
+            yield Timeout(1.0)
+            entity.res.release(req)
+            return entity.env.now
+
+        procs = [
+            env.process(use_process(h))
+            for _ in range(8)
+        ]
+        env.run()
+        values = [p.value for p in procs]
+        assert values == [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0]

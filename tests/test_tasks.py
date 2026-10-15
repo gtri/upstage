@@ -6,15 +6,14 @@
 """Test singular tasks."""
 
 from dataclasses import dataclass
-from inspect import isgeneratorfunction
-from typing import Any, TypedDict, cast
+from typing import Any, cast
 
 import pytest
-from simpy import Environment, Interrupt, Process
+from simpy import Environment, Process
 
 from upstage_des.actor import EMPTY_KNOWLEDGE, Actor, Knowledge
 from upstage_des.base import SIMPY_GEN, EnvironmentContext, SimulationError
-from upstage_des.events import Wait
+from upstage_des.events import Timeout
 from upstage_des.states import LinearChangingState, State
 from upstage_des.tasks import DecisionTask, InterruptStates, Task, TASK_GEN, TerminalTask
 
@@ -42,7 +41,7 @@ class KnowTask(Task):
             must_exist=True,
         )
         assert know == {"thing1": "Hello", "thing2": 6.28}
-        yield Wait(actor.time)
+        yield Timeout(actor.time)
 
 
 class ActorForTest(Actor):
@@ -64,7 +63,7 @@ class WorkingTask(Task):
 
     def task(self, *, actor: ActorForTest) -> TASK_GEN:
         for wait_period in self.times:
-            the_event = Wait(wait_period)
+            the_event = Timeout(wait_period)
             yield the_event
             actor.dummy += wait_period
 
@@ -75,7 +74,7 @@ class ChangingTask(Task):
 
     def task(self, *, actor: ActorForTest) -> TASK_GEN:
         for t in self.times:
-            the_event = Wait(t)
+            the_event = Timeout(t)
             actor.activate_state(state="dummy", task=self, rate=self.rate)
             yield the_event
             actor.deactivate_state(state="dummy", task=self)
@@ -91,7 +90,7 @@ class WorkingTask2(Task):
 
     def task(self, *, actor: ActorChangeForTest) -> TASK_GEN:
         for wait_period in self.times:
-            wait_event = Wait(wait_period)
+            wait_event = Timeout(wait_period)
             self.log.append(
                 f"{self.env.now}: {self.__class__.__name__} "
                 f"waiting {wait_period}, value={actor.dummy}"
@@ -112,7 +111,7 @@ class ChangingTask2(Task):
 
     def task(self, *, actor: ActorForTest | ActorChangeForTest) -> TASK_GEN:
         for wait_period in self.times:
-            wait_event = Wait(wait_period)
+            wait_event = Timeout(wait_period)
             actor.activate_state(state="dummy", task=self, rate=self.rate)
             actor.set_knowledge("example for logging", "a value", overwrite=True)
             self.log.append(
@@ -166,23 +165,6 @@ def test_task() -> None:
         assert "Reason: KnowTask" in thelog[1][1]
 
 
-def test_failures_for_tasks_with_simpy_events() -> None:
-    with EnvironmentContext() as env:
-        actor = ActorForTest(name="testing", dummy=0.)
-
-        class BrokenTask(Task):
-            def task(self, *, actor: ActorForTest) -> TASK_GEN:
-                yield self.env.timeout(1.0)  # type: ignore [misc]
-
-        # msg = "*Task is yielding objects without `as_event`*"
-        with pytest.raises(SimulationError):  # , match=msg):
-            the_task = BrokenTask()
-            _ = the_task.run(
-                actor=actor,
-            )
-            env.run()
-
-
 def test_failures_for_tasks_with_incorrect_events() -> None:
     with EnvironmentContext():
         actor = ActorForTest(name="testing", dummy=0.)
@@ -199,7 +181,7 @@ def test_failures_for_tasks_with_incorrect_events() -> None:
             def task(self, *, actor: ActorForTest) -> TASK_GEN:
                 yield self.event_class()
 
-        # msg = '*must be a subclass of BaseEvent*'
+        # msg = '*must be a subclass of Event*'
         with EnvironmentContext() as env:
             with pytest.raises(SimulationError):
                 task_instance = BrokenTask(BlankEvent)
@@ -331,7 +313,7 @@ class Restartable(Task):
             rate=actor.rate,
         )
         self.set_marker("change to test")
-        yield Wait(10.0)
+        yield Timeout(10.0)
         actor.deactivate_all_states(task=self)
 
     def on_interrupt(self, *, actor: Dummy, cause: Any) -> InterruptStates:
@@ -409,12 +391,12 @@ def test_markers() -> None:
     class MarkedTask(Task):
         def task(self, *, actor: Actor) -> TASK_GEN:
             self.set_marker("First", InterruptStates.IGNORE)
-            yield Wait(1.0)
+            yield Timeout(1.0)
             self.clear_marker()
             self.set_marker("Second", InterruptStates.RESTART)
-            yield Wait(3.0)
+            yield Timeout(3.0)
             self.set_marker("Third", InterruptStates.END)
-            yield Wait(3.0)
+            yield Timeout(3.0)
 
     with EnvironmentContext(initial_time=0.1) as env:
         act = Actor(name="test")
@@ -443,53 +425,6 @@ def test_markers() -> None:
         assert t.get_marker() == "Second"
         env.run(until=5.3)
         assert t.get_marker() == "Third"
-
-
-def test_interrupt_process() -> None:
-    data: list[Any] = []
-    def proc(env: Environment, t: float) -> SIMPY_GEN:
-        data.append("start")
-        try:
-            yield env.timeout(t)
-            data.append("done")
-        except Interrupt as e:
-            data.append(e.cause)
-
-    def proc_bad(env: Environment, t: float) -> SIMPY_GEN:
-        data.append("start")
-        yield env.timeout(t)
-        data.append("done")
-
-    class ProcTask(Task):
-        def task(self, *, actor: Actor) -> TASK_GEN:
-            _p = self.env.process(proc(self.env, 2.1))
-            yield _p  # type: ignore[misc]
-
-    class ProcTaskBad(Task):
-        def task(self, *, actor: Actor) -> TASK_GEN:
-            _p = self.env.process(proc_bad(self.env, 2.1))
-            yield _p  # type: ignore[misc]
-
-    with pytest.warns(UserWarning, match="Yielding a simpy.Process"):
-        with EnvironmentContext() as env:
-            act = Actor(name="example")
-            t = ProcTask()
-            p = t.run(actor=act)
-            env.run(until=1.3)
-            assert data[0] == "start"
-            p.interrupt(cause="CAUSE")
-            env.run()
-            assert data[-1] == "CAUSE"
-
-        with EnvironmentContext() as env:
-            act = Actor(name="example")
-            t2 = ProcTaskBad()
-            p = t2.run(actor=act)
-            env.run(until=1.3)
-            assert data[0] == "start"
-            p.interrupt(cause="CAUSE")
-            with pytest.raises(Interrupt):
-                env.run()
 
 
 @dataclass
@@ -532,10 +467,10 @@ def test_task_knowledge() -> None:
                 actor=actor,
                 know={"ONE": 1, "TWO": 2.0}
             )
-            yield Wait(1.0)
+            yield Timeout(1.0)
             z = self.get_and_clear_actor_knowledge(actor, "ONE")
             assert z == 1
-            yield Wait(1.0)
+            yield Timeout(1.0)
             ans = self.get_and_clear_actor_bulk_knowledge(actor, names=["TWO"])
             assert ans == {"TWO": 2}
 

@@ -22,16 +22,16 @@ class TaskOne(Task):
     def task(self, *, actor: ParallelTest) -> TASK_GEN:
         actor.working = not actor.working
         actor._lock_state(state="working", cause=self)
-        thing = yield UP.Get(actor.internal)
+        thing = yield actor.internal.get()
         actor.logger.append((actor.env.now, thing, actor.working))
         actor._unlock_state(state="working", cause=self)
 
 
 class TaskTwo(Task):
     def task(self, *, actor: ParallelTest) -> TASK_GEN:
-        other = yield UP.Get(actor.comms)
+        other = yield actor.comms.get()
         actor.logger.append((actor.env.now, "Put the message", actor.working))
-        yield UP.Put(actor.internal, other)
+        yield actor.internal.put(other)
 
 
 def test_parallel_looping() -> None:
@@ -61,8 +61,8 @@ def test_parallel_looping() -> None:
         pt.add_task_network(tn1)
         pt.add_task_network(tn2)
 
-        pt.start_network_loop("InternalGet", init_task_name="Task")
-        pt.start_network_loop("ExternalGet", init_task_name="Task")
+        pt.start_network_loop("InternalGet", init_task="Task")
+        pt.start_network_loop("ExternalGet", init_task="Task")
         env.process(proc(env, pt, "the msg"))
         env.run(until=1.0)
         running = pt.get_running_tasks()

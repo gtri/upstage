@@ -212,7 +212,7 @@ class _BaseActor(UpstageBase):
 
         Args:
             to_write (str): The text to write
-            args (Any): Objects to formate into the `to_write` string.
+            args (Any): Objects to format into the `to_write` string.
             level (int): Logging library level. Defaults to INFO.
         """
         logger = self._logger
@@ -546,11 +546,8 @@ class _BaseActor(UpstageBase):
         queue_length = len(queue)
         return None if queue_length == 0 else queue[0]
 
-    def _clear_task(self, network_name: str) -> None:
-        """Clear a task from the queue.
-
-        Useful for rehearsal.
-        """
+    def _clear_next_task(self, network_name: str) -> None:
+        """Clear a task from the queue."""
         self._task_queue[network_name].pop(0)
 
     def _begin_next_task(self, network_name: str, task_name: str) -> None:
@@ -574,19 +571,20 @@ class _BaseActor(UpstageBase):
 
     def start_network_loop(
         self,
-        network_name: str,
-        init_task_name: str | None = None,
+        network_name: str | TaskNetwork,
+        init_task: str | type[Task] | None = None,
     ) -> None:
         """Start a task network looping/running on an actor.
 
         If no task name is given, it will default to following the queue.
 
         Args:
-            network_name (str): Network name.
-            init_task_name (str, optional): Task to start with. Defaults to None.
+            network_name (str | TaskNetwork): Network name or network object.
+            init_task (str, type[Task], optional): Task to start with. Defaults to None.
         """
+        network_name = network_name if isinstance(network_name, str) else network_name.name
         network = self._task_networks[network_name]
-        network.loop(actor=self, init_task_name=init_task_name)
+        network.loop(actor=self, init_task=init_task)
 
     def get_running_task(self, network_name: str) -> TaskData | None:
         """Return name and process reference of a task on this Actor's task network.
@@ -609,6 +607,25 @@ class _BaseActor(UpstageBase):
             task_data = TaskData(name=net._current_task_name, process=net._current_task_proc)
             return task_data
         return None
+
+    def get_must_be_running_task(self, network_name: str) -> TaskData:
+        """Return name and process reference of a task on this Actor's task network.
+
+        Useful for finding a process to call interrupt() on.
+
+        Raises an error if the task is not running.
+
+        Args:
+            network_name (str): Network name.
+
+        Returns:
+            TaskData: Dataclass of name and process for the current task.
+                {"name": Name, "process": the Process simpy is holding.}
+        """
+        task = self.get_running_task(network_name)
+        if task is None:
+            raise SimulationError(f"No task on {network_name} is running")
+        return task
 
     def get_running_tasks(self) -> dict[str, TaskData]:
         """Get all running task data.

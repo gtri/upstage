@@ -214,11 +214,11 @@ class State[T]:
         return self._default is not None or self._default_factory is not None
 
 
-TR = SIM.Store | SIM.Container
+TR = SIM.Store | SIM.Container | SIM.Resource
 
 
-class ResourceState[TR](State):
-    """A State class for States that are meant to be Stores or Containers.
+class ResourceState(State):
+    """A State class for States that are meant to be Stores, Containers, or Resources.
 
     This should enable easier initialization of Actors with stores/containers or
     similar objects as states.
@@ -276,14 +276,14 @@ class ResourceState[TR](State):
 
         if valid_types:
             for v in valid_types:
-                if not isinstance(v, type) or not issubclass(v, SIM.Store | SIM.Container):
+                if not isinstance(v, type):
+                    raise UpstageError(f"Bad valid type for {self}: {v}")
+                if not issubclass(v, TR):
                     raise UpstageError(f"Bad valid type for {self}: {v}")
         else:
-            valid_types = (SIM.Store, SIM.Container)
+            valid_types = (SIM.Store, SIM.Container, SIM.Resource)
 
-        if default is not None and (
-            not isinstance(default, type) or not issubclass(default, SIM.Store | SIM.Container)
-        ):
+        if default is not None and (not isinstance(default, type) or not issubclass(default, TR)):
             raise UpstageError(f"Bad default type for {self}: {default}")
 
         super().__init__(
@@ -367,7 +367,7 @@ class ResourceState[TR](State):
         if self.name not in obj._state_data:
             self._set_default(obj)
         obj = obj._state_data[self.name]["value"]
-        if not issubclass(type(obj), SIM.Store | SIM.Container):
+        if not issubclass(type(obj), SIM.Store | SIM.Container | SIM.Resource):
             raise UpstageError("Bad type of ResourceStatee")
         return cast(TR, obj)
 
